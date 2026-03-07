@@ -45,11 +45,11 @@ services:
     networks:
       - ai
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/8000' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 120s # model load time
+      start_period: 300s # increased for model load
 
   # ── AMD GPU metrics exporter ──────────────────────────────────────────────────
   amd-gpu-exporter:
@@ -122,8 +122,7 @@ services:
     networks:
       - ai
     depends_on:
-      vllm:
-        condition: service_healthy
+      - vllm
 
   # ── Grafana ───────────────────────────────────────────────────────────────────
   grafana:
