@@ -112,7 +112,15 @@ usermod -aG docker "${ALLOWED_USER}"
 success "${ALLOWED_USER} added to docker group (effective on next login)."
 
 # =============================================================================
-# 5. Starship prompt
+# 5. Hugging Face CLI
+# =============================================================================
+info "Installing Hugging Face CLI…"
+apt-get install -y python3-full python3-pip > /dev/null
+sudo -u "${ALLOWED_USER}" bash -c "curl -LsSf https://hf.co/cli/install.sh | bash"
+success "Hugging Face CLI installed for ${ALLOWED_USER}."
+
+# =============================================================================
+# 6. Starship prompt
 # =============================================================================
 info "Installing Starship prompt…"
 curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
@@ -135,10 +143,12 @@ echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║  🐆 Panther Minor setup complete!            ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
-echo -e "${GREEN}║  SSH port  : ${SSH_PORT}                          ║${NC}"
-echo -e "${GREEN}║  UFW rules : ${SSH_PORT}/tcp  80/tcp  443/tcp     ║${NC}"
-echo -e "${GREEN}║  fail2ban  : active                          ║${NC}"
-echo -e "${GREEN}║  Starship  : active                          ║${NC}"
+echo -e "${GREEN}║  SSH port    : ${SSH_PORT}                        ║${NC}"
+echo -e "${GREEN}║  UFW rules   : ${SSH_PORT}/tcp  80/tcp  443/tcp   ║${NC}"
+echo -e "${GREEN}║  fail2ban    : active                        ║${NC}"
+echo -e "${GREEN}║  Docker      : ${ALLOWED_USER} added to group        ║${NC}"
+echo -e "${GREEN}║  HF CLI      : installed                     ║${NC}"
+echo -e "${GREEN}║  Starship    : active                        ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 warn "⚠  Reconnect via: ssh -p ${SSH_PORT} ${ALLOWED_USER}@<server-ip>"
