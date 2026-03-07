@@ -34,10 +34,10 @@ services:
       python -m vllm.entrypoints.openai.api_server
       --host 0.0.0.0
       --port 8000
-      --model ${MODEL:-Qwen/Qwen3-14B}
+      --model ${MODEL:-Qwen/Qwen2.5-Coder-32B-Instruct}
       --tensor-parallel-size 2
       --dtype bfloat16
-      --max-model-len 32768
+      --max-model-len ${MAX_MODEL_LEN:-32768}
       --gpu-memory-utilization 0.90
       --enable-prefix-caching
     ports:
