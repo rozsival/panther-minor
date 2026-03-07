@@ -27,7 +27,7 @@ services:
       - render
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
-      ROCR_VISIBLE_DEVICES: "0,1"
+      ROCR_VISIBLE_DEVICES: ${ROCR_VISIBLE_DEVICES:-0,1}
     volumes:
       - huggingface-cache:/root/.cache/huggingface
     command: >
