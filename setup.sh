@@ -105,7 +105,14 @@ systemctl restart fail2ban
 success "fail2ban configured and running."
 
 # =============================================================================
-# 4. Starship prompt
+# 4. Docker group
+# =============================================================================
+info "Adding ${ALLOWED_USER} to the docker group…"
+usermod -aG docker "${ALLOWED_USER}"
+success "${ALLOWED_USER} added to docker group (effective on next login)."
+
+# =============================================================================
+# 5. Starship prompt
 # =============================================================================
 info "Installing Starship prompt…"
 curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null

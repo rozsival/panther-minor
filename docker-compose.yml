@@ -53,7 +53,7 @@ services:
 
   # ── AMD GPU metrics exporter ──────────────────────────────────────────────────
   amd-gpu-exporter:
-    image: rocm/device-metrics-exporter:latest
+    image: rocm/device-metrics-exporter:v1.4.0
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
