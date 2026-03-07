@@ -46,6 +46,19 @@ ssh -p 2222 <user>@panther-minor
 > [!WARNING]
 > You should disable the iGPU in the BIOS for ROCm to work properly. Ensure you have a DisplayPort connected to the dedicated GPU.
 
+### Kernel Parameters (RDNA 4 Fix)
+
+To prevent GPU hangs on Radeon AI PRO / RDNA 4 hardware:
+
+1. Edit GRUB: `sudo nano /etc/default/grub`
+2. Add `amdgpu.mes=0 iommu=pt` to `GRUB_CMDLINE_LINUX_DEFAULT`.
+3. Update and reboot:
+
+   ```bash
+   sudo update-grub
+   sudo reboot
+   ```
+
 Follow the instructions at [AMD Docs](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html) to install ROCm.
 
 ## vLLM Cluster
