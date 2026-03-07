@@ -60,18 +60,16 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 ### Configuration
 
-Edit `.env` to choose a model:
+Copy the example env file and pick a model:
 
 ```bash
-# Default — safe for 2×32 GB VRAM
-MODEL=Qwen/Qwen3-14B
-
-# For a larger model (weights will fill most VRAM):
-# MODEL=Qwen/Qwen3-32B
-
-# For gated models (Llama, Gemma, etc.) set your token:
-# HF_TOKEN=hf_...
+cp .env.example .env
 ```
+
+> [!WARNING]
+> Make sure you set the `HF_TOKEN` before starting everything up.
+
+The default is `Qwen/Qwen2.5-Coder-32B-Instruct` — a strong coding model that fits across both GPUs. Edit `MODEL` in `.env` to switch to any other option listed in the file (see comments for full list of Qwen chat and coder variants).
 
 ### Start
 
@@ -79,7 +77,7 @@ MODEL=Qwen/Qwen3-14B
 docker compose up -d
 ```
 
-The first start will download the model from Hugging Face (~28 GB for Qwen3-14B). Watch progress with:
+The first start will download the model from Hugging Face (~65 GB for Coder-32B). Watch progress with:
 
 ```bash
 docker compose logs -f vllm
