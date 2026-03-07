@@ -53,7 +53,6 @@ services:
       --enforce-eager
       --enable-auto-tool-choice
       --tool-call-parser ${TOOL_CALL_PARSER:-hermes}
-      --reasoning-parser ${REASONING_PARSER:-deepseek_r1}
     ports:
       - "${VLLM_PORT:-8000}:8000"
     networks:
