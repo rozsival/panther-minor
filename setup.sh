@@ -105,6 +105,23 @@ systemctl restart fail2ban
 success "fail2ban configured and running."
 
 # =============================================================================
+# 4. Starship prompt
+# =============================================================================
+info "Installing Starship prompt…"
+curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
+
+# Wire into the allowed user's .bashrc (idempotent)
+BASHRC="/home/${ALLOWED_USER}/.bashrc"
+STARSHIP_INIT='eval "$(starship init bash)"'
+if ! grep -qF "starship init bash" "$BASHRC" 2>/dev/null; then
+  echo "" >> "$BASHRC"
+  echo "# Starship prompt" >> "$BASHRC"
+  echo "$STARSHIP_INIT" >> "$BASHRC"
+fi
+chown "${ALLOWED_USER}:${ALLOWED_USER}" "$BASHRC"
+success "Starship installed and added to ${BASHRC}."
+
+# =============================================================================
 # Done
 # =============================================================================
 echo ""
@@ -114,6 +131,10 @@ echo -e "${GREEN}╠════════════════════
 echo -e "${GREEN}║  SSH port  : ${SSH_PORT}                          ║${NC}"
 echo -e "${GREEN}║  UFW rules : ${SSH_PORT}/tcp  80/tcp  443/tcp     ║${NC}"
 echo -e "${GREEN}║  fail2ban  : active                          ║${NC}"
+echo -e "${GREEN}║  Starship  : active                          ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
 warn "⚠  Reconnect via: ssh -p ${SSH_PORT} ${ALLOWED_USER}@<server-ip>"
+
+# Hand off to a fresh login shell as the allowed user so Starship is active immediately
+exec su - "${ALLOWED_USER}"
