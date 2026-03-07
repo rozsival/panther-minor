@@ -1,0 +1,357 @@
+{
+  "__inputs": [],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "10.0.0"
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    { "type": "panel", "id": "gauge", "name": "Gauge", "version": "" },
+    { "type": "panel", "id": "stat", "name": "Stat", "version": "" }
+  ],
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "refresh": "15s",
+  "schemaVersion": 38,
+  "tags": ["panther-minor", "gpu", "vllm"],
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Panther Minor",
+  "uid": "panther-minor",
+  "version": 1,
+  "panels": [
+    {
+      "type": "row",
+      "id": 1,
+      "title": "GPU 0",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "GPU 0 — Utilisation",
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "continuous-GrYlRd" }
+        }
+      },
+      "targets": [
+        { "expr": "amd_gpu_activity{gpu_id=\"0\"}", "legendFormat": "GPU 0" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "GPU 0 — VRAM Used",
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "color": { "mode": "continuous-BlPu" } }
+      },
+      "targets": [
+        {
+          "expr": "amd_gpu_memory_used{gpu_id=\"0\"} * 1048576",
+          "legendFormat": "Used"
+        },
+        {
+          "expr": "amd_gpu_memory_total{gpu_id=\"0\"} * 1048576",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "GPU 0 — Temperature",
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "continuous-RdYlGr" }
+        }
+      },
+      "targets": [
+        {
+          "expr": "amd_gpu_temperature{gpu_id=\"0\",type=\"edge\"}",
+          "legendFormat": "Edge"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "GPU 0 — Power Draw",
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "watt", "color": { "mode": "continuous-YlRd" } }
+      },
+      "targets": [
+        { "expr": "amd_gpu_power{gpu_id=\"0\"}", "legendFormat": "Power" }
+      ]
+    },
+
+    {
+      "type": "row",
+      "id": 10,
+      "title": "GPU 1",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 8 },
+      "collapsed": false
+    },
+
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "GPU 1 — Utilisation",
+      "gridPos": { "h": 7, "w": 6, "x": 0, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "continuous-GrYlRd" }
+        }
+      },
+      "targets": [
+        { "expr": "amd_gpu_activity{gpu_id=\"1\"}", "legendFormat": "GPU 1" }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "GPU 1 — VRAM Used",
+      "gridPos": { "h": 7, "w": 6, "x": 6, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes", "color": { "mode": "continuous-BlPu" } }
+      },
+      "targets": [
+        {
+          "expr": "amd_gpu_memory_used{gpu_id=\"1\"} * 1048576",
+          "legendFormat": "Used"
+        },
+        {
+          "expr": "amd_gpu_memory_total{gpu_id=\"1\"} * 1048576",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "GPU 1 — Temperature",
+      "gridPos": { "h": 7, "w": 6, "x": 12, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "color": { "mode": "continuous-RdYlGr" }
+        }
+      },
+      "targets": [
+        {
+          "expr": "amd_gpu_temperature{gpu_id=\"1\",type=\"edge\"}",
+          "legendFormat": "Edge"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "timeseries",
+      "title": "GPU 1 — Power Draw",
+      "gridPos": { "h": 7, "w": 6, "x": 18, "y": 9 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "watt", "color": { "mode": "continuous-YlRd" } }
+      },
+      "targets": [
+        { "expr": "amd_gpu_power{gpu_id=\"1\"}", "legendFormat": "Power" }
+      ]
+    },
+
+    {
+      "type": "row",
+      "id": 20,
+      "title": "System",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 16 },
+      "collapsed": false
+    },
+
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "CPU Usage",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "percent", "min": 0, "max": 100 }
+      },
+      "targets": [
+        {
+          "expr": "100 - (avg(rate(node_cpu_seconds_total{mode=\"idle\"}[2m])) * 100)",
+          "legendFormat": "CPU %"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "type": "timeseries",
+      "title": "RAM Usage",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 17 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "bytes" }
+      },
+      "targets": [
+        {
+          "expr": "node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes",
+          "legendFormat": "Used"
+        },
+        {
+          "expr": "node_memory_MemTotal_bytes",
+          "legendFormat": "Total"
+        }
+      ]
+    },
+
+    {
+      "type": "row",
+      "id": 30,
+      "title": "vLLM",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "collapsed": false
+    },
+
+    {
+      "id": 31,
+      "type": "stat",
+      "title": "Active Requests",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 20 },
+              { "color": "red", "value": 50 }
+            ]
+          }
+        }
+      },
+      "targets": [{ "expr": "vllm:num_requests_running", "legendFormat": "" }]
+    },
+    {
+      "id": 32,
+      "type": "stat",
+      "title": "Queued Requests",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 1 }
+            ]
+          }
+        }
+      },
+      "targets": [{ "expr": "vllm:num_requests_waiting", "legendFormat": "" }]
+    },
+    {
+      "id": 33,
+      "type": "stat",
+      "title": "KV Cache Usage",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.7 },
+              { "color": "red", "value": 0.9 }
+            ]
+          }
+        }
+      },
+      "targets": [{ "expr": "vllm:gpu_cache_usage_perc", "legendFormat": "" }]
+    },
+    {
+      "id": 34,
+      "type": "timeseries",
+      "title": "Request Throughput (req/s)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 25 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        {
+          "expr": "rate(vllm:request_success_total[2m])",
+          "legendFormat": "Success"
+        },
+        {
+          "expr": "rate(vllm:request_failure_total[2m])",
+          "legendFormat": "Failure"
+        }
+      ]
+    },
+    {
+      "id": 35,
+      "type": "timeseries",
+      "title": "End-to-End Latency (p50 / p95 / p99)",
+      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 32 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
+          "legendFormat": "p99"
+        }
+      ]
+    }
+  ]
+}
