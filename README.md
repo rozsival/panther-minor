@@ -41,9 +41,90 @@ ssh -p 2222 vit@panther-minor
 > [!NOTE]
 > You need to be connected to Tailscale to access the server every time.
 
-## ADM GPU Kernel with ROCm
+## AMD GPU Kernel with ROCm
 
 > [!WARNING]
 > You should disable the iGPU in the BIOS for ROCm to work properly. Ensure you have a DisplayPort connected to the dedicated GPU.
 
 Follow the instructions at [AMD Docs](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html) to install ROCm.
+
+## vLLM Cluster
+
+Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
+
+### Prerequisites
+
+- Docker and Docker Compose [installed](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
+- ROCm installed (see section above)
+- The repo already cloned on the server
+
+### Configuration
+
+Edit `.env` to choose a model:
+
+```bash
+# Default — safe for 2×32 GB VRAM
+MODEL=Qwen/Qwen3-14B
+
+# For a larger model (weights will fill most VRAM):
+# MODEL=Qwen/Qwen3-32B
+
+# For gated models (Llama, Gemma, etc.) set your token:
+# HF_TOKEN=hf_...
+```
+
+### Start
+
+```bash
+docker compose up -d
+```
+
+The first start will download the model from Hugging Face (~28 GB for Qwen3-14B). Watch progress with:
+
+```bash
+docker compose logs -f vllm
+```
+
+### API
+
+The OpenAI-compatible API is available at `http://panther-minor:8000/v1`.
+
+List loaded models:
+
+```bash
+curl http://panther-minor:8000/v1/models
+```
+
+Chat completion:
+
+```bash
+curl http://panther-minor:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "Qwen/Qwen3-14B",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+Connect any OpenAI-compatible client (Continue.dev, LiteLLM, etc.) to `http://panther-minor:8000/v1` with any API key (auth is not enabled).
+
+### Browser Tools
+
+| Service               | URL                         | Credentials       |
+| --------------------- | --------------------------- | ----------------- |
+| **Open WebUI** (chat) | `http://panther-minor:8080` | no login required |
+| Grafana (monitoring)  | `http://panther-minor:3000` | `admin` / `admin` |
+| Prometheus            | `http://panther-minor:9090` | —                 |
+
+The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and vLLM request metrics.
+
+> [!NOTE]
+> The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
+
+### Stop
+
+```bash
+docker compose down
+```
+
+Model weights are cached in the `huggingface-cache` Docker volume and will not be re-downloaded on subsequent starts.

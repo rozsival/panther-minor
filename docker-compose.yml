@@ -1,0 +1,145 @@
+name: panther-minor
+
+# ── Shared network ─────────────────────────────────────────────────────────────
+networks:
+  ai:
+    driver: bridge
+
+# ── Persistent volumes ─────────────────────────────────────────────────────────
+volumes:
+  prometheus-data:
+  grafana-data:
+  huggingface-cache:
+  open-webui-data:
+
+services:
+  # ── vLLM ─────────────────────────────────────────────────────────────────────
+  # OpenAI-compatible LLM inference on two AMD GPUs (tensor-parallel)
+  vllm:
+    image: rocm/vllm:latest
+    restart: unless-stopped
+    ipc: host # required for tensor-parallel shared memory
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      ROCR_VISIBLE_DEVICES: "0,1"
+    volumes:
+      - huggingface-cache:/root/.cache/huggingface
+    command: >
+      python -m vllm.entrypoints.openai.api_server
+      --host 0.0.0.0
+      --port 8000
+      --model ${MODEL:-Qwen/Qwen3-14B}
+      --tensor-parallel-size 2
+      --dtype bfloat16
+      --max-model-len 32768
+      --gpu-memory-utilization 0.90
+      --enable-prefix-caching
+    ports:
+      - "${VLLM_PORT:-8000}:8000"
+    networks:
+      - ai
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s # model load time
+
+  # ── AMD GPU metrics exporter ──────────────────────────────────────────────────
+  amd-gpu-exporter:
+    image: rocm/device-metrics-exporter:latest
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+      - render
+    ports:
+      - "${GPU_EXPORTER_PORT:-5000}:5000"
+    networks:
+      - ai
+
+  # ── Host metrics (CPU, RAM, disk, network) ─────────────────────────────────
+  node-exporter:
+    image: prom/node-exporter:latest
+    restart: unless-stopped
+    pid: host
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
+    expose:
+      - 9100
+    networks:
+      - ai
+
+  # ── Prometheus ────────────────────────────────────────────────────────────────
+  prometheus:
+    image: prom/prometheus:latest
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    networks:
+      - ai
+    depends_on:
+      - node-exporter
+      - amd-gpu-exporter
+
+  # ── Open WebUI (chat interface) ───────────────────────────────────────────────
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    environment:
+      # Point directly at the local vLLM API
+      OPENAI_API_BASE_URL: http://vllm:8000/v1
+      OPENAI_API_KEY: "not-required"
+      # Disable login — this is a private local server
+      WEBUI_AUTH: "false"
+    volumes:
+      - open-webui-data:/app/backend/data
+    ports:
+      - "8080:8080"
+    networks:
+      - ai
+    depends_on:
+      vllm:
+        condition: service_healthy
+
+  # ── Grafana ───────────────────────────────────────────────────────────────────
+  grafana:
+    image: grafana/grafana-oss:latest
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    networks:
+      - ai
+    depends_on:
+      - prometheus
