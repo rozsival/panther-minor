@@ -52,7 +52,7 @@ services:
       --enable-prefix-caching
       --enforce-eager
       --enable-auto-tool-choice
-      --tool-call-parser ${TOOL_CALL_PARSER:-hermes}
+      --tool-call-parser ${TOOL_CALL_PARSER:-qwen3_coder}
     ports:
       - "${VLLM_PORT:-8000}:8000"
     networks:
