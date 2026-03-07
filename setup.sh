@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Panther Minor — AI Workstation Setup
+# Panther Minor - AI Workstation Setup
 # https://github.com/rozsival/panther-minor
 #
 # Usage:
@@ -9,31 +9,72 @@
 
 set -euo pipefail
 
-# ── Colour helpers ────────────────────────────────────────────────────────────
+# -- Colour helpers ------------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
-success() { echo -e "${GREEN}[OK]${NC}    $*"; }
-warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
-error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
+log_info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
+log_success() { echo -e "${GREEN}[OK]${NC}    $*"; }
+log_warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
+log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
-# ── Root check ────────────────────────────────────────────────────────────────
-[[ $EUID -ne 0 ]] && error "This script must be run as root (use sudo)."
+# -- Root check ----------------------------------------------------------------
+[[ $EUID -ne 0 ]] && log_error "This script must be run as root (use sudo)."
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# -- Config --------------------------------------------------------------------
 SSH_PORT=2222
 ALLOWED_USER=vit
 SSHD_CONFIG=/etc/ssh/sshd_config
 FAIL2BAN_JAIL=/etc/fail2ban/jail.local
 
 # =============================================================================
+# 0. Hardware Pre-flight (RDNA 4 / gfx1201)
+# =============================================================================
+log_info "Checking hardware compatibility..."
+
+# List detected AMD GPUs
+AMD_GPUS=$(lspci -nn | grep -i "AMD/ATI" | grep -iE "VGA|Display|3D" || true)
+if [[ -z "$AMD_GPUS" ]]; then
+    log_warn "No AMD GPUs detected via lspci. Ensure drivers are installed."
+else
+    echo -e "${AMD_GPUS}" | while read -r line; do
+        log_info "Detected: $line"
+    done
+fi
+
+# Check for RDNA 4 (gfx1201) - typically 1002:743x, 742x or 7551 (Navi 48)
+if echo "$AMD_GPUS" | grep -qE "1002:(74[23]|7551)"; then
+    log_warn "RDNA 4 (gfx1201) architecture detected."
+    
+    # Check Kernel version
+    KERNEL_VER=$(uname -r | cut -d'-' -f1)
+    if [[ $(echo -e "$KERNEL_VER\n6.11" | sort -V | head -n1) == "$KERNEL_VER" && "$KERNEL_VER" != "6.11" ]]; then
+        log_warn "Kernel $KERNEL_VER is older than 6.11. RDNA 4 requires a newer kernel for stability."
+    else
+        log_success "Kernel $KERNEL_VER is compatible with RDNA 4."
+    fi
+
+    # Check for SMU mismatch in dmesg
+    if dmesg | grep -qi "SMU driver if version not matched"; then
+        log_error "CRITICAL: SMU driver version mismatch detected. You must update your host drivers/firmware."
+    fi
+
+    # Check rocm-smi for clear indices
+    if command -v rocm-smi &> /dev/null; then
+        log_info "ROCm Device Topology:"
+        rocm-smi --showhw | grep -v "SMI" || true
+    fi
+else
+    log_info "No RDNA 4 specific hardware detected. Proceeding with generic setup."
+fi
+
+# =============================================================================
 # 1. SSH Hardening
 # =============================================================================
-info "Configuring SSH ($SSHD_CONFIG)…"
+log_info "Configuring SSH ($SSHD_CONFIG)..."
 
 # Back up original config (once)
 if [[ ! -f "${SSHD_CONFIG}.orig" ]]; then
   cp "$SSHD_CONFIG" "${SSHD_CONFIG}.orig"
-  info "Original sshd_config backed up to ${SSHD_CONFIG}.orig"
+  log_info "Original sshd_config backed up to ${SSHD_CONFIG}.orig"
 fi
 
 # Helper: set or add a directive in sshd_config
@@ -58,17 +99,17 @@ set_sshd X11Forwarding                 no
 set_sshd AllowTcpForwarding            no
 set_sshd AllowUsers                    "$ALLOWED_USER"
 
-info "Validating SSH configuration…"
-sshd -t || error "sshd configuration is invalid — aborting to avoid locking you out."
+log_info "Validating SSH configuration..."
+sshd -t || log_error "sshd configuration is invalid -- aborting to avoid locking you out."
 
-info "Restarting SSH service…"
+log_info "Restarting SSH service..."
 systemctl restart ssh
-success "SSH hardened on port $SSH_PORT. AllowUsers: $ALLOWED_USER"
+log_success "SSH hardened on port $SSH_PORT. AllowUsers: $ALLOWED_USER"
 
 # =============================================================================
 # 2. Firewall (UFW)
 # =============================================================================
-info "Configuring UFW…"
+log_info "Configuring UFW..."
 
 ufw --force reset > /dev/null          # start from a clean state
 ufw default deny incoming
@@ -78,16 +119,16 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 ufw --force enable
 
-success "UFW enabled. Open ports: ${SSH_PORT}/tcp, 80/tcp, 443/tcp"
+log_success "UFW enabled. Open ports: ${SSH_PORT}/tcp, 80/tcp, 443/tcp"
 
 # =============================================================================
 # 3. fail2ban
 # =============================================================================
-info "Installing fail2ban…"
+log_info "Installing fail2ban..."
 apt-get update -qq
 apt-get install -y fail2ban > /dev/null
 
-info "Writing $FAIL2BAN_JAIL…"
+log_info "Writing $FAIL2BAN_JAIL..."
 cat > "$FAIL2BAN_JAIL" <<EOF
 [sshd]
 enabled  = true
@@ -99,30 +140,30 @@ bantime  = 1h
 findtime = 10m
 EOF
 
-info "Restarting fail2ban…"
+log_info "Restarting fail2ban..."
 systemctl enable --now fail2ban > /dev/null
 systemctl restart fail2ban
-success "fail2ban configured and running."
+log_success "fail2ban configured and running."
 
 # =============================================================================
 # 4. Docker group
 # =============================================================================
-info "Adding ${ALLOWED_USER} to the docker group…"
+log_info "Adding ${ALLOWED_USER} to the docker group..."
 usermod -aG docker "${ALLOWED_USER}"
-success "${ALLOWED_USER} added to docker group (effective on next login)."
+log_success "${ALLOWED_USER} added to docker group (effective on next login)."
 
 # =============================================================================
 # 5. Hugging Face CLI
 # =============================================================================
-info "Installing Hugging Face CLI…"
+log_info "Installing Hugging Face CLI..."
 apt-get install -y python3-full python3-pip > /dev/null
 sudo -u "${ALLOWED_USER}" bash -c "curl -LsSf https://hf.co/cli/install.sh | bash"
-success "Hugging Face CLI installed for ${ALLOWED_USER}."
+log_success "Hugging Face CLI installed for ${ALLOWED_USER}."
 
 # =============================================================================
 # 6. Starship prompt
 # =============================================================================
-info "Installing Starship prompt…"
+log_info "Installing Starship prompt..."
 curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
 
 # Wire into the allowed user's .bashrc (idempotent)
@@ -134,7 +175,7 @@ if ! grep -qF "starship init bash" "$BASHRC" 2>/dev/null; then
   echo "$STARSHIP_INIT" >> "$BASHRC"
 fi
 chown "${ALLOWED_USER}:${ALLOWED_USER}" "$BASHRC"
-success "Starship installed and added to ${BASHRC}."
+log_success "Starship installed and added to ${BASHRC}."
 
 # =============================================================================
 # Done
@@ -151,7 +192,7 @@ echo -e "${GREEN}║  HF CLI      : installed                     ║${NC}"
 echo -e "${GREEN}║  Starship    : active                        ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 echo ""
-warn "⚠  Reconnect via: ssh -p ${SSH_PORT} ${ALLOWED_USER}@<server-ip>"
+log_warn "⚠  Reconnect via: ssh -p ${SSH_PORT} ${ALLOWED_USER}@<server-ip>"
 
 # Hand off to a fresh login shell as the allowed user so Starship is active immediately
 exec su - "${ALLOWED_USER}"

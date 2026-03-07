@@ -67,9 +67,10 @@ cp .env.example .env
 ```
 
 > [!WARNING]
-> Make sure you set the `HF_TOKEN` before starting everything up.
+> The default is `Qwen/Qwen2.5-Coder-14B-Instruct` -- a strong coding model that fits comfortably on two 32GB GPUs while leaving enough VRAM for KV cache.
 
-The default is `Qwen/Qwen2.5-Coder-32B-Instruct` — a strong coding model that fits across both GPUs. Edit `MODEL` in `.env` to switch to any other option listed in the file (see comments for full list of Qwen chat and coder variants).
+> [!IMPORTANT]
+> **GPU Indices:** The `setup.sh` script will help you find the correct `HIP_VISIBLE_DEVICES`. For this specific workstation, **index 0 and 1** are the Radeon AI PRO cards, while **index 2** is the onboard graphics.
 
 ### Start
 
@@ -116,8 +117,37 @@ Connect any OpenAI-compatible client (Continue.dev, LiteLLM, etc.) to `http://pa
 
 The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and vLLM request metrics.
 
-> [!NOTE]
 > The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
+
+## RDNA 4 / Radeon AI PRO Troubleshooting
+
+If you are using brand-new RDNA 4 hardware (e.g. Radeon AI PRO R9700, `gfx1201`), you may encounter "GPU Hangs" or "SMU version mismatch" errors.
+
+### 1. Host Requirements
+
+Your host machine **must** have a modern driver/firmware stack:
+
+- **Kernel:** 6.11+ (6.13+ recommended for native support)
+- **Firmware:** The latest `linux-firmware` package containing `amdgpu` blobs for RDNA 4.
+- **ROCm:** 6.3+ installed on the host to provide the correct DKMS driver.
+
+### 2. Common Errors
+
+If `dmesg | grep amdgpu` shows:
+
+- `SMU driver if version not matched`: Your kernel driver is too old for the GPU firmware.
+- `MES(0) failed to respond`: The hardware scheduler hung; usually solved by disabling SDMA and AITER (auto-configured in this repo's `docker-compose.yml`).
+
+### 3. Stability Flags
+
+The `docker-compose.yml` in this repo automatically applies:
+
+- `HSA_ENABLE_SDMA: 0`
+- `VLLM_ROCM_USE_AITER: 0`
+- `VLLM_ATTENTION_BACKEND: TORCH_SDPA`
+- `--enforce-eager`
+
+These flags bypass unstable optimization paths while RDNA 4 support in ROCm/vLLM matures.
 
 ### Stop
 

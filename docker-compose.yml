@@ -28,12 +28,14 @@ services:
     environment:
       HF_TOKEN: ${HF_TOKEN:-}
       HIP_VISIBLE_DEVICES: ${HIP_VISIBLE_DEVICES:-0,1}
-      HSA_OVERRIDE_GFX_VERSION: 11.0.2
+      HSA_OVERRIDE_GFX_VERSION: 11.0.0
       VLLM_ROCM_USE_AITER: 0
       VLLM_USE_TRITON_FLASH_ATTN: 0
       VLLM_ATTENTION_BACKEND: TORCH_SDPA
+      HSA_ENABLE_SDMA: 0
       NCCL_P2P_DISABLE: 1
       NCCL_IB_DISABLE: 1
+      VLLM_TORCH_COMPILE_LEVEL: 0
     volumes:
       - huggingface-cache:/root/.cache/huggingface
     command: >
