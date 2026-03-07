@@ -1,6 +1,6 @@
 # 🐆 Panther Minor
 
-The AI Workstation setup.
+The AI Workstation Setup
 
 ## Pre-requisites
 
