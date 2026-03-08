@@ -13,8 +13,8 @@ scrape_configs:
     static_configs:
       - targets: ["amd-gpu-exporter:5000"]
 
-  # vLLM inference metrics (requests, latency, KV-cache)
-  - job_name: vllm
+  # Ollama metrics
+  - job_name: ollama
     static_configs:
-      - targets: ["vllm:8000"]
+      - targets: ["ollama:8000"]
     metrics_path: /metrics
