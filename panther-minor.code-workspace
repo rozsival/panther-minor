@@ -4,4 +4,7 @@
       "path": ".",
     },
   ],
+  "settings": {
+    "makefile.configureOnOpen": true,
+  },
 }
