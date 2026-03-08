@@ -48,10 +48,8 @@ ssh -p 2222 <user>@panther-minor
 
 ### Kernel Parameters (RDNA 4)
 
-To prevent GPU hangs on Radeon AI PRO / RDNA 4 hardware:
-
 1. Edit GRUB: `sudo nano /etc/default/grub`
-2. Add `amdgpu.mes=0 iommu=pt` to `GRUB_CMDLINE_LINUX_DEFAULT`.
+2. Add `amdgpu.mes=1 iommu=pt` to `GRUB_CMDLINE_LINUX_DEFAULT`.
 3. Update and reboot:
 
    ```bash
@@ -70,8 +68,6 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 ### Prerequisites
 
 - Docker and Docker Compose [installed](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
-- ROCm installed (see section above)
-- The repo already cloned on the server
 
 ### Configuration
 
@@ -90,7 +86,7 @@ make start
 The first start will pull the model from the Ollama registry via the auto-puller service. Watch progress with:
 
 ```bash
-docker compose logs -f ollama-puller
+make ollama-puller-logs
 ```
 
 ### API
@@ -128,33 +124,10 @@ The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperat
 
 > The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
 
-## RDNA 4 / Radeon AI PRO Troubleshooting
-
-If you are using brand-new RDNA 4 hardware (e.g. Radeon AI PRO R9700, `gfx1201`), you may encounter "GPU Hangs" or "SMU version mismatch" errors.
-
-### 1. Host Requirements
-
-Your host machine **must** have a modern driver/firmware stack:
-
-- **Kernel:** 6.11+ (6.13+ recommended for native support)
-- **Firmware:** The latest `linux-firmware` package containing `amdgpu` blobs for RDNA 4.
-- **ROCm:** 6.3+ installed on the host to provide the correct DKMS driver.
-
-### 2. Common Errors
-
-If `dmesg | grep amdgpu` shows:
-
-- `SMU driver if version not matched`: Your kernel driver is too old for the GPU firmware.
-- `MES(0) failed to respond`: The hardware scheduler hung; usually solved by disabling SDMA and AITER (auto-configured in this repo's `docker-compose.yml`).
-
-### 3. Stability Flags
-
-The `docker-compose.yml` in this repo uses Ollama (llama.cpp) which handles the new RDNA 4 math pipelines much better than ROCm's native PyTorch stack does right now.
-
 ### Stop
 
 ```bash
-docker compose down
+make stop
 ```
 
 Model weights are cached in the `ollama-data` Docker volume and will not be re-downloaded on subsequent starts.

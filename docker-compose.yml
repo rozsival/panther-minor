@@ -14,9 +14,9 @@ volumes:
 
 services:
   # -- Ollama (llama.cpp wrapper) ----------------------------------------------
-  # OpenAI-compatible LLM inference, native RDNA 4 support
+  # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   ollama:
-    image: ollama/ollama:rocm
+    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:latest
     privileged: true
     restart: unless-stopped
     devices:
@@ -28,10 +28,12 @@ services:
       - render
     environment:
       - HSA_OVERRIDE_GFX_VERSION=12.0.0
+      - OLLAMA_FLASH_ATTENTION=true
       - OLLAMA_HOST=0.0.0.0:8000
-      - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-32768}
-      - HIP_VISIBLE_DEVICES=${HIP_VISIBLE_DEVICES:-0,1}
       - OLLAMA_KEEP_ALIVE=24h
+      - OLLAMA_LLM_LIBRARY=rocm_v7
+      - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-32768}
+      - ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-0,1}
     volumes:
       - ollama-data:/root/.ollama
     ports:
@@ -67,7 +69,7 @@ services:
 
   # -- AMD GPU metrics exporter --------------------------------------------------
   amd-gpu-exporter:
-    image: rocm/device-metrics-exporter:v1.4.0
+    image: rocm/device-metrics-exporter:v1.5.0-beta.0
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
@@ -127,7 +129,7 @@ services:
     environment:
       # Point directly at the local Ollama API
       OPENAI_API_BASE_URL: http://ollama:8000/v1
-      OPENAI_API_KEY: "not-required"
+      OPENAI_API_KEY: "ollama"
       # Disable login — this is a private local server
       WEBUI_AUTH: "false"
     volumes:
@@ -144,9 +146,9 @@ services:
     image: grafana/grafana-oss:latest
     restart: unless-stopped
     environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: "false"
-      GF_AUTH_ANONYMOUS_ENABLED: "false"
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
