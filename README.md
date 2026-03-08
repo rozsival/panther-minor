@@ -46,7 +46,7 @@ ssh -p 2222 <user>@panther-minor
 > [!WARNING]
 > You should disable the iGPU in the BIOS for ROCm to work properly. Ensure you have a DisplayPort connected to the dedicated GPU.
 
-### Kernel Parameters (RDNA 4 Fix)
+### Kernel Parameters (RDNA 4)
 
 To prevent GPU hangs on Radeon AI PRO / RDNA 4 hardware:
 
@@ -59,9 +59,11 @@ To prevent GPU hangs on Radeon AI PRO / RDNA 4 hardware:
    sudo reboot
    ```
 
+### Install ROCm
+
 Follow the instructions at [AMD Docs](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html) to install ROCm.
 
-## vLLM Cluster
+## Ollama Cluster
 
 Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
 
@@ -79,11 +81,8 @@ Copy the example env file and pick a model:
 cp .env.example .env
 ```
 
-> [!WARNING]
-> The default is `Qwen/Qwen2.5-Coder-14B-Instruct` -- a strong coding model that fits comfortably on two 32GB GPUs while leaving enough VRAM for KV cache.
-
 > [!IMPORTANT]
-> **GPU Indices:** The `setup.sh` script will help you find the correct `HIP_VISIBLE_DEVICES`. For this specific workstation, **index 0 and 1** are the Radeon AI PRO cards, while **index 2** is the onboard graphics.
+> The default is `qwen2.5-coder:14b-instruct` -- a strong coding model that fits comfortably on two 32GB GPUs while leaving enough VRAM for KV cache.
 
 ### Start
 
@@ -91,10 +90,10 @@ cp .env.example .env
 docker compose up -d
 ```
 
-The first start will download the model from Hugging Face (~65 GB for Coder-32B). Watch progress with:
+The first start will pull the model from the Ollama registry via the auto-puller service. Watch progress with:
 
 ```bash
-docker compose logs -f vllm
+docker compose logs -f ollama-puller
 ```
 
 ### API
@@ -113,7 +112,7 @@ Chat completion:
 curl http://panther-minor:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "Qwen/Qwen3-14B",
+    "model": "qwen2.5-coder:14b-instruct",
     "messages": [{"role": "user", "content": "Hello!"}]
   }'
 ```
@@ -128,7 +127,7 @@ Connect any OpenAI-compatible client (Continue.dev, LiteLLM, etc.) to `http://pa
 | Grafana (monitoring)  | `http://panther-minor:3000` | `admin` / `admin` |
 | Prometheus            | `http://panther-minor:9090` | —                 |
 
-The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and vLLM request metrics.
+The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and Ollama request metrics.
 
 > The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
 
@@ -153,14 +152,7 @@ If `dmesg | grep amdgpu` shows:
 
 ### 3. Stability Flags
 
-The `docker-compose.yml` in this repo automatically applies:
-
-- `HSA_ENABLE_SDMA: 0`
-- `VLLM_ROCM_USE_AITER: 0`
-- `VLLM_ATTENTION_BACKEND: TORCH_SDPA`
-- `--enforce-eager`
-
-These flags bypass unstable optimization paths while RDNA 4 support in ROCm/vLLM matures.
+The `docker-compose.yml` in this repo uses Ollama (llama.cpp) which handles the new RDNA 4 math pipelines much better than ROCm's native PyTorch stack does right now.
 
 ### Stop
 
@@ -168,4 +160,4 @@ These flags bypass unstable optimization paths while RDNA 4 support in ROCm/vLLM
 docker compose down
 ```
 
-Model weights are cached in the `huggingface-cache` Docker volume and will not be re-downloaded on subsequent starts.
+Model weights are cached in the `ollama-data` Docker volume and will not be re-downloaded on subsequent starts.
