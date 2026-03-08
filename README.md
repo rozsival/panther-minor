@@ -75,19 +75,16 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 ### Configuration
 
-Copy the example env file and pick a model:
+Copy the example env file and [pick a model](https://ollama.com/search):
 
 ```bash
 cp .env.example .env
 ```
 
-> [!IMPORTANT]
-> The default is `qwen2.5-coder:14b-instruct` -- a strong coding model that fits comfortably on two 32GB GPUs while leaving enough VRAM for KV cache.
-
 ### Start
 
 ```bash
-docker compose up -d
+make start
 ```
 
 The first start will pull the model from the Ollama registry via the auto-puller service. Watch progress with:

@@ -67,7 +67,29 @@ else
 fi
 
 # =============================================================================
-# 1. SSH Hardening
+# 1. Essential Packages
+# =============================================================================
+log_info "Installing essential packages..."
+apt-get update -qq
+apt-get install -y \
+  apt-transport-https \
+  build-essential \
+  ca-certificates \
+  curl \
+  git \
+  htop \
+  jq \
+  nvtop \
+  software-properties-common \
+  tmux \
+  tree \
+  unzip \
+  wget > /dev/null
+
+log_success "Essential packages installed."
+
+# =============================================================================
+# 2. SSH Hardening
 # =============================================================================
 log_info "Configuring SSH ($SSHD_CONFIG)..."
 
@@ -107,7 +129,7 @@ systemctl restart ssh
 log_success "SSH hardened on port $SSH_PORT. AllowUsers: $ALLOWED_USER"
 
 # =============================================================================
-# 2. Firewall (UFW)
+# 3. Firewall (UFW)
 # =============================================================================
 log_info "Configuring UFW..."
 
@@ -122,7 +144,7 @@ ufw --force enable
 log_success "UFW enabled. Open ports: ${SSH_PORT}/tcp, 80/tcp, 443/tcp"
 
 # =============================================================================
-# 3. fail2ban
+# 4. fail2ban
 # =============================================================================
 log_info "Installing fail2ban..."
 apt-get update -qq
@@ -146,14 +168,14 @@ systemctl restart fail2ban
 log_success "fail2ban configured and running."
 
 # =============================================================================
-# 4. Docker group
+# 5. Docker group
 # =============================================================================
 log_info "Adding ${ALLOWED_USER} to the docker group..."
 usermod -aG docker "${ALLOWED_USER}"
 log_success "${ALLOWED_USER} added to docker group (effective on next login)."
 
 # =============================================================================
-# 5. Hugging Face CLI
+# 6. Hugging Face CLI
 # =============================================================================
 log_info "Installing Hugging Face CLI..."
 apt-get install -y python3-full python3-pip > /dev/null
@@ -161,7 +183,7 @@ sudo -u "${ALLOWED_USER}" bash -c "curl -LsSf https://hf.co/cli/install.sh | bas
 log_success "Hugging Face CLI installed for ${ALLOWED_USER}."
 
 # =============================================================================
-# 6. Starship prompt
+# 7. Starship prompt
 # =============================================================================
 log_info "Installing Starship prompt..."
 curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
@@ -184,6 +206,7 @@ echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║  🐆 Panther Minor setup complete!            ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
+printf "${GREEN}║  Packages    : %-30s║${NC}\n" "essentials installed"
 printf "${GREEN}║  SSH port    : %-30s║${NC}\n" "${SSH_PORT}"
 printf "${GREEN}║  UFW rules   : %-30s║${NC}\n" "${SSH_PORT}/tcp  80/tcp  443/tcp"
 printf "${GREEN}║  fail2ban    : %-30s║${NC}\n" "active"
