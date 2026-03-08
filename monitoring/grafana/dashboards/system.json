@@ -244,112 +244,73 @@
     {
       "type": "row",
       "id": 30,
-      "title": "vLLM",
+      "title": "Ollama",
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
       "collapsed": false
     },
-
     {
       "id": 31,
       "type": "stat",
-      "title": "Active Requests",
-      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 25 },
+      "title": "Tokens Evaluated",
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 25 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "color": { "mode": "thresholds" },
           "thresholds": {
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 20 },
-              { "color": "red", "value": 50 }
-            ]
+            "steps": [{ "color": "green", "value": null }]
           }
         }
       },
-      "targets": [{ "expr": "vllm:num_requests_running", "legendFormat": "" }]
+      "targets": [
+        { "expr": "sum(ollama_prompt_eval_count_total)", "legendFormat": "" }
+      ]
     },
     {
       "id": 32,
       "type": "stat",
-      "title": "Queued Requests",
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 25 },
+      "title": "Tokens Generated",
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 25 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
           "unit": "short",
           "color": { "mode": "thresholds" },
           "thresholds": {
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "red", "value": 1 }
-            ]
+            "steps": [{ "color": "green", "value": null }]
           }
         }
       },
-      "targets": [{ "expr": "vllm:num_requests_waiting", "legendFormat": "" }]
+      "targets": [
+        { "expr": "sum(ollama_eval_count_total)", "legendFormat": "" }
+      ]
     },
     {
       "id": 33,
-      "type": "stat",
-      "title": "KV Cache Usage",
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 25 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percentunit",
-          "min": 0,
-          "max": 1,
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 0.7 },
-              { "color": "red", "value": 0.9 }
-            ]
-          }
-        }
-      },
-      "targets": [{ "expr": "vllm:gpu_cache_usage_perc", "legendFormat": "" }]
-    },
-    {
-      "id": 34,
       "type": "timeseries",
-      "title": "Request Throughput (req/s)",
-      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 25 },
+      "title": "Prompt Eval Throughput (tok/s)",
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 29 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": { "defaults": { "unit": "reqps" } },
       "targets": [
         {
-          "expr": "rate(vllm:request_success_total[2m])",
-          "legendFormat": "Success"
-        },
-        {
-          "expr": "rate(vllm:request_failure_total[2m])",
-          "legendFormat": "Failure"
+          "expr": "sum(rate(ollama_prompt_eval_count_total[2m]))",
+          "legendFormat": "Eval tok/s"
         }
       ]
     },
     {
-      "id": 35,
+      "id": 34,
       "type": "timeseries",
-      "title": "End-to-End Latency (p50 / p95 / p99)",
-      "gridPos": { "h": 7, "w": 24, "x": 0, "y": 32 },
+      "title": "Generation Throughput (tok/s)",
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 29 },
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "fieldConfig": { "defaults": { "unit": "s" } },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
       "targets": [
         {
-          "expr": "histogram_quantile(0.50, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
-          "legendFormat": "p50"
-        },
-        {
-          "expr": "histogram_quantile(0.95, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
-          "legendFormat": "p95"
-        },
-        {
-          "expr": "histogram_quantile(0.99, rate(vllm:e2e_request_latency_seconds_bucket[2m]))",
-          "legendFormat": "p99"
+          "expr": "sum(rate(ollama_eval_count_total[2m]))",
+          "legendFormat": "Gen tok/s"
         }
       ]
     }
