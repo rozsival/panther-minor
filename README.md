@@ -4,7 +4,7 @@ The AI Workstation Setup
 
 ## Pre-requisites
 
-- Ubuntu Server 25.10 or newer
+- [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
 - Server created with name `panther-minor`
 - User `vit` created during installation
 - Server pre-installed with OpenSSH
@@ -119,6 +119,7 @@ Connect any OpenAI-compatible client (Continue.dev, LiteLLM, etc.) to `http://pa
 
 The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and Ollama request metrics.
 
+> [!NOTE]
 > The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
 
 ### Stop
