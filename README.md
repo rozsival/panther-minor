@@ -38,7 +38,7 @@ Connect to the server via Tailscale:
 ssh -p 2222 vit@panther-minor
 ```
 
-> [!NOTE]
+> [!IMPORTANT]
 > You need to be connected to Tailscale to access the server every time.
 
 ## AMD GPU Kernel with ROCm
