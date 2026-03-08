@@ -26,47 +26,6 @@ SSHD_CONFIG=/etc/ssh/sshd_config
 FAIL2BAN_JAIL=/etc/fail2ban/jail.local
 
 # =============================================================================
-# 0. Hardware Pre-flight (RDNA 4 / gfx1201)
-# =============================================================================
-log_info "Checking hardware compatibility..."
-
-# List detected AMD GPUs
-AMD_GPUS=$(lspci -nn | grep -i "AMD/ATI" | grep -iE "VGA|Display|3D" || true)
-if [[ -z "$AMD_GPUS" ]]; then
-    log_warn "No AMD GPUs detected via lspci. Ensure drivers are installed."
-else
-    echo -e "${AMD_GPUS}" | while read -r line; do
-        log_info "Detected: $line"
-    done
-fi
-
-# Check for RDNA 4 (gfx1201) - typically 1002:743x, 742x or 7551 (Navi 48)
-if echo "$AMD_GPUS" | grep -qE "1002:(74[23]|7551)"; then
-    log_warn "RDNA 4 (gfx1201) architecture detected."
-    
-    # Check Kernel version
-    KERNEL_VER=$(uname -r | cut -d'-' -f1)
-    if [[ $(echo -e "$KERNEL_VER\n6.11" | sort -V | head -n1) == "$KERNEL_VER" && "$KERNEL_VER" != "6.11" ]]; then
-        log_warn "Kernel $KERNEL_VER is older than 6.11. RDNA 4 requires a newer kernel for stability."
-    else
-        log_success "Kernel $KERNEL_VER is compatible with RDNA 4."
-    fi
-
-    # Check for SMU mismatch in dmesg
-    if dmesg | grep -qi "SMU driver if version not matched"; then
-        log_error "CRITICAL: SMU driver version mismatch detected. You must update your host drivers/firmware."
-    fi
-
-    # Check rocm-smi for clear indices
-    if command -v rocm-smi &> /dev/null; then
-        log_info "ROCm Device Topology:"
-        rocm-smi --showhw | grep -v "SMI" || true
-    fi
-else
-    log_info "No RDNA 4 specific hardware detected. Proceeding with generic setup."
-fi
-
-# =============================================================================
 # 1. Essential Packages
 # =============================================================================
 log_info "Installing essential packages..."
