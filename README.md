@@ -8,6 +8,7 @@ The AI Workstation Setup
 - Server created with name `panther-minor`
 - User `vit` created during installation
 - Server pre-installed with OpenSSH
+- Docker and Docker Compose [installed](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
 ## Setup
 
@@ -64,10 +65,6 @@ Follow the instructions at [AMD Docs](https://rocm.docs.amd.com/projects/install
 ## Ollama Cluster
 
 Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
-
-### Prerequisites
-
-- Docker and Docker Compose [installed](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
 ### Configuration
 

@@ -28,22 +28,19 @@ FAIL2BAN_JAIL=/etc/fail2ban/jail.local
 # =============================================================================
 # 1. Essential Packages
 # =============================================================================
-log_info "Installing essential packages..."
-apt-get update -qq
-apt-get install -y \
-  apt-transport-https \
+log_info "Updating system and installing essential packages..."
+apt update && apt upgrade -y
+apt install -y \
+  augeas-lenses \
+  augeas-tools \
   build-essential \
-  ca-certificates \
-  curl \
-  git \
   htop \
   jq \
   nvtop \
-  software-properties-common \
-  tmux \
+  python3-full \
+  python3-pip \
   tree \
-  unzip \
-  wget > /dev/null
+  unzip > /dev/null
 
 log_success "Essential packages installed."
 
@@ -58,27 +55,22 @@ if [[ ! -f "${SSHD_CONFIG}.orig" ]]; then
   log_info "Original sshd_config backed up to ${SSHD_CONFIG}.orig"
 fi
 
-# Helper: set or add a directive in sshd_config
-set_sshd() {
-  local key="$1" value="$2"
-  # Replace existing (commented or uncommented) line, or append
-  if grep -qE "^#?[[:space:]]*${key}[[:space:]]" "$SSHD_CONFIG"; then
-    sed -i -E "s|^#?[[:space:]]*(${key})[[:space:]].*|${key} ${value}|" "$SSHD_CONFIG"
-  else
-    echo "${key} ${value}" >> "$SSHD_CONFIG"
-  fi
-}
-
-set_sshd Port                          "$SSH_PORT"
-set_sshd PasswordAuthentication        no
-set_sshd ChallengeResponseAuthentication no
-set_sshd UsePAM                        no
-set_sshd PermitRootLogin               no
-set_sshd MaxAuthTries                  3
-set_sshd LoginGraceTime                30
-set_sshd X11Forwarding                 no
-set_sshd AllowTcpForwarding            no
-set_sshd AllowUsers                    "$ALLOWED_USER"
+log_info "Applying SSH hardening via Augeas..."
+# augtool commands to update sshd_config
+# -s saves automatically
+# -f reads from stdin
+augtool -s <<EOF
+set /files/etc/ssh/sshd_config/Port "$SSH_PORT"
+set /files/etc/ssh/sshd_config/PasswordAuthentication no
+set /files/etc/ssh/sshd_config/ChallengeResponseAuthentication no
+set /files/etc/ssh/sshd_config/UsePAM no
+set /files/etc/ssh/sshd_config/PermitRootLogin no
+set /files/etc/ssh/sshd_config/MaxAuthTries 3
+set /files/etc/ssh/sshd_config/LoginGraceTime 30
+set /files/etc/ssh/sshd_config/X11Forwarding no
+set /files/etc/ssh/sshd_config/AllowTcpForwarding no
+set /files/etc/ssh/sshd_config/AllowUsers/1 "$ALLOWED_USER"
+EOF
 
 log_info "Validating SSH configuration..."
 sshd -t || log_error "sshd configuration is invalid -- aborting to avoid locking you out."
@@ -106,8 +98,7 @@ log_success "UFW enabled. Open ports: ${SSH_PORT}/tcp, 80/tcp, 443/tcp"
 # 4. fail2ban
 # =============================================================================
 log_info "Installing fail2ban..."
-apt-get update -qq
-apt-get install -y fail2ban > /dev/null
+apt install -y fail2ban > /dev/null
 
 log_info "Writing $FAIL2BAN_JAIL..."
 cat > "$FAIL2BAN_JAIL" <<EOF
@@ -134,15 +125,7 @@ usermod -aG docker "${ALLOWED_USER}"
 log_success "${ALLOWED_USER} added to docker group (effective on next login)."
 
 # =============================================================================
-# 6. Hugging Face CLI
-# =============================================================================
-log_info "Installing Hugging Face CLI..."
-apt-get install -y python3-full python3-pip > /dev/null
-sudo -u "${ALLOWED_USER}" bash -c "curl -LsSf https://hf.co/cli/install.sh | bash"
-log_success "Hugging Face CLI installed for ${ALLOWED_USER}."
-
-# =============================================================================
-# 7. Starship prompt
+# 6. Starship prompt
 # =============================================================================
 log_info "Installing Starship prompt..."
 curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
