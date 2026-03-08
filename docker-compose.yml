@@ -32,17 +32,20 @@ services:
       HF_TOKEN: ${HF_TOKEN:-}
       HIP_VISIBLE_DEVICES: ${HIP_VISIBLE_DEVICES:-0,1}
       HSA_OVERRIDE_GFX_VERSION: 12.0.0
-      # -- Performance: Stage 1 (FlashAttention + graph capture) ----------------
-      VLLM_USE_TRITON_FLASH_ATTN: 1 # was 0; Triton FA kernel for gfx1201
+      # -- Attention: CK backend required for Qwen2 Sliding Window Attention ----
+      VLLM_USE_TRITON_FLASH_ATTN: 0 # CK FA supports SWA; Triton does not
+      # -- GEMM: disable broken Tunable Ops validator for gfx1201 ---------------
+      PYTORCH_TUNABLEOP_ENABLED: 0 # GCN_ARCH_NAME validator fails on RDNA4
+      # -- AITER: pre-fused kernels that bypass the broken GEMM path ------------
+      VLLM_ROCM_USE_AITER: 1
+      VLLM_ROCM_AITER_ATTENTION: 1
+      # -- Multi-GPU + stability ------------------------------------------------
       VLLM_WORKER_MULTIPROC_METHOD: spawn
       HSA_ENABLE_SDMA: 1
       HSA_FORCE_P2P: 1
       NCCL_P2P_DISABLE: 0
       NCCL_IB_DISABLE: 1
       VLLM_TORCH_COMPILE_LEVEL: 0
-      # -- Performance: Stage 2 — enable only after Stage 1 is stable ----------
-      # VLLM_ROCM_USE_AITER: 1
-      # VLLM_ROCM_AITER_ATTENTION: 1
     volumes:
       - huggingface-cache:/root/.cache/huggingface
     command: >
