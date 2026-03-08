@@ -25,6 +25,6 @@ This file provides essential context, architecture details, and guidelines for A
 2. **Metrics**: Grafana and Prometheus have been configured to scrape and display Ollama's native Prometheus metrics (`ollama_prompt_eval_count_total`, `ollama_eval_count_total`, etc.). Avoid referencing old vLLM metrics.
 3. **Auto-Pulling**: The stack includes a custom `ollama-puller` container to automatically fetch the configured model (default: `qwen2.5-coder:14b-instruct`) on startup.
 
-## Git commit messages
+## Git Commit Messages
 
 Strictly use Conventional Commits v1.0.0 format for commit messages. Prefer "lower case" over "Sentence case". Avoid final punctuation.
