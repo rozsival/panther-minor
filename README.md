@@ -107,7 +107,7 @@ curl http://panther-minor:8000/v1/chat/completions \
   }'
 ```
 
-Connect any OpenAI-compatible client (Continue.dev, LiteLLM, etc.) to `http://panther-minor:8000/v1` with any API key (auth is not enabled).
+Connect any OpenAI-compatible client (OpenCode, QwenCode etc.) to `http://panther-minor:8000/v1` with any API key (auth is not enabled).
 
 ### Browser Tools
 
