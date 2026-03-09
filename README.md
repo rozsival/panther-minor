@@ -32,7 +32,7 @@ The AI Workstation Setup
 Clone the repository and run the setup script:
 
 ```bash
-git clone https://github.com/rozsival/panther-minor.git
+git clone git@github.com:rozsival/panther-minor.git
 sudo bash panther-minor/setup.sh
 ```
 
