@@ -65,9 +65,10 @@ rm -f "$ACTIONS_FILE"
 
 # -- Reboot Prompt -------------------------------------------------------------
 echo ""
-read -p "A system reboot is required to apply all changes. Reboot now? (y/N): " confirm
+read -p "System reboot is required to apply all changes. Reboot now? (y/N): " confirm
 if [[ "$confirm" =~ ^[Yy]$ ]]; then
-  log_info "Rebooting system..."
+  log_info "Rebooting system in 5 seconds..."
+  sleep 5
   reboot
 else
   log_warn "Reboot skipped. Please remember to reboot manually."
