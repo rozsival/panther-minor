@@ -38,7 +38,7 @@ sudo bash panther-minor/setup.sh
 
 The script will automatically configure:
 
-- **Essential Packages** — `build-essential`, `jq`, `nvtop`, `llmfit`, etc
+- **Essential Packages** — `build-essential`, `jq`, `nvtop`, `llmfit`, etc. with auto updates
 - **Docker** — installs Docker Engine and Docker Compose
 - **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
@@ -46,7 +46,8 @@ The script will automatically configure:
 - **fail2ban** — installs and configures brute-force protection
 - **AMD GPU & ROCm** — installs the latest kernel drivers and ROCm
 - **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
-- **Starship** — sets up a modern shell prompt for the `vit` user
+- **Git** — configures default name, email, and rebase pull strategy
+- **Shell** — sets up a modern shell prompt for `vit` user
 
 > [!IMPORTANT]
 > **Reboot is required** after the script completes to load the new kernel drivers and parameters.

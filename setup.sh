@@ -22,7 +22,7 @@ source "${SCRIPTS_PATH}/common.sh"
 cat /dev/null > "$ACTIONS_FILE"
 
 # -- Execution -----------------------------------------------------------------
-echo -e "${BLUE}🐆 Panther Minor modular setup starting...${NC}\n"
+echo -e "${BLUE}🐆 ${SERVER_NAME} modular setup starting...${NC}\n"
 
 for script in "${SCRIPTS_PATH}"/[0-9][0-9]-*.sh; do
   if [[ -x "$script" ]]; then
@@ -37,7 +37,7 @@ done
 # =============================================================================
 echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
-echo -e "${GREEN}║  🐆 Panther Minor setup complete!            ║${NC}"
+echo -e "${GREEN}║  🐆 ${SERVER_NAME} setup complete!            ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
 printf "${GREEN}║  1. Packages : %-30s║${NC}\n" "installed"
 printf "${GREEN}║  2. Docker   : %-30s║${NC}\n" "ready"
@@ -45,8 +45,10 @@ printf "${GREEN}║  3. Tailscale: %-30s║${NC}\n" "installed"
 printf "${GREEN}║  4. SSH      : %-30s║${NC}\n" "hardened (port ${SSH_PORT})"
 printf "${GREEN}║  5. UFW      : %-30s║${NC}\n" "active"
 printf "${GREEN}║  6. fail2ban : %-30s║${NC}\n" "active"
-printf "${GREEN}║  7. AMD GPU  : %-30s║${NC}\n" "installed"
+printf "${GREEN}║  7. AMD GPU  : %-30s║${NC}\n" "v7.2 installed"
 printf "${GREEN}║  8. GRUB     : %-30s║${NC}\n" "parameters set"
+printf "${GREEN}║  9. Git      : %-30s║${NC}\n" "user/email/rebase set"
+printf "${GREEN}║ 10. Shell    : %-30s║${NC}\n" "Starship active"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 
 if [[ -s "$ACTIONS_FILE" ]]; then
