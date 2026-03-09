@@ -25,16 +25,25 @@ The AI Workstation Setup
 - Server created with name `panther-minor`
 - User `$USER` created during installation
 - Server pre-installed with OpenSSH
-- Server SSH key generated and [added to GitHub](https://github.com/settings/keys)
 
 ## Setup
 
-Clone the repository and run the setup script:
+Generate a [Fine-grained token](https://github.com/settings/personal-access-tokens) with Read/Write access to
+`panther-minor` repository.
+
+Then, connect to the server via SSH, clone the repository using the PAT and run the setup script:
 
 ```bash
-git clone git@github.com:rozsival/panther-minor.git
+ssh <user>@<server-ip>
+git clone https://github.com/rozsival/panther-minor.git
+# Cloning into 'panther-minor'...
+# Username for 'https://github.com': panther-minor
+# Password for 'https://panther-minor@github.com': <PAT>
 sudo bash panther-minor/setup.sh
 ```
+
+> [!NOTE]
+> You can discover the server IP after login on the host machine using `ip a` command.
 
 The script will automatically configure:
 
@@ -52,7 +61,7 @@ The script will automatically configure:
 > [!IMPORTANT]
 > **Reboot is required** after the script completes to load the new kernel drivers and parameters.
 > After reboot, SSH will be available on **port 2222** only.
-> Connect with: `ssh -p 2222 <user>@<server-ip>`
+> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
 
 ## Tailscale
 

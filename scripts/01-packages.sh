@@ -20,10 +20,12 @@ apt install -y \
   unattended-upgrades \
   unzip > /dev/null
 
-log_success "Essential packages installed with unattended upgrades enabled."
+log_info "Installing Homebrew (as ${ALLOWED_USER})..."
+# Pre-create Homebrew directories to avoid permission issues
+mkdir -p /home/linuxbrew/.linuxbrew
+chown -R "${ALLOWED_USER}:${ALLOWED_USER}" /home/linuxbrew
 
 # Install Homebrew as the allowed user
-log_info "Installing Homebrew (as ${ALLOWED_USER})..."
 sudo -u "${ALLOWED_USER}" bash -c 'NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' > /dev/null
 
 # Determine the brew prefix for the allowed user
@@ -38,7 +40,7 @@ BREW_PREFIX=$(sudo -u "${ALLOWED_USER}" bash -c '
 if [ -n "$BREW_PREFIX" ]; then
   # Register the clean eval command in bashrc
   register_bashrc_entry "Homebrew" "eval \"\$(${BREW_PREFIX}/bin/brew shellenv)\""
-
+  
   # Ensure the environment is available for the rest of this script
   eval "$(${BREW_PREFIX}/bin/brew shellenv)"
 
@@ -50,8 +52,10 @@ if [ -n "$BREW_PREFIX" ]; then
   # Since setup.sh is run as root, we can configure autoupdate without interaction.
   # The --sudo flag tells brew-autoupdate to use sudo for commands that need it.
   sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew autoupdate start 86400 --cleanup --immediate --sudo --upgrade" > /dev/null
-
-  log_success "Homebrew with llmfit and autoupdate configured for ${ALLOWED_USER}."
+  
+  log_success "Homebrew, LLMFit, and Autoupdate configured for ${ALLOWED_USER}."
 else
-  log_warn "Homebrew installation could not be verified. Skipping LLMFit and Autoupdate."
+  log_error "Homebrew installation failed."
 fi
+
+log_success "Essential packages installed."
