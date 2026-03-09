@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 8. Kernel Parameters (GRUB)
+# 9. Kernel Parameters (GRUB)
 # =============================================================================
 log_info "Configuring GRUB kernel parameters..."
 

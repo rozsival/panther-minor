@@ -44,7 +44,8 @@ sudo bash panther-minor/setup.sh
 
 The script will automatically configure:
 
-- **Essential Packages** — `build-essential`, `jq`, `nvtop`, `llmfit`, etc. with auto updates
+- **Essential Packages** — `build-essential`, `jq`, `nvtop`, `htop`, etc. with auto updates
+- **Homebrew** — installs Homebrew and `llmfit` for `vit` user
 - **Docker** — installs Docker Engine and Docker Compose
 - **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
