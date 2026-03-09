@@ -22,7 +22,7 @@ source "${SCRIPTS_PATH}/common.sh"
 cat /dev/null > "$ACTIONS_FILE"
 
 # -- Execution -----------------------------------------------------------------
-echo -e "${BLUE}🐆 ${SERVER_NAME} modular setup starting...${NC}\n"
+echo -e "${BLUE}🐆 ${SERVER_NAME} setup starting...${NC}\n"
 
 for script in "${SCRIPTS_PATH}"/[0-9][0-9]-*.sh; do
   if [[ -x "$script" ]]; then
