@@ -11,5 +11,6 @@ log_info "Configuring Git for ${ALLOWED_USER}..."
 sudo -u "${ALLOWED_USER}" git config --global user.name "${SERVER_NAME}"
 sudo -u "${ALLOWED_USER}" git config --global user.email "${ALLOWED_USER}@${SERVER_NAME}"
 sudo -u "${ALLOWED_USER}" git config --global pull.rebase true
+sudo -u "${ALLOWED_USER}" git config --global credential.helper store
 
 log_success "Git configured for ${ALLOWED_USER}."
