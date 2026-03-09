@@ -6,7 +6,8 @@ source "$(dirname "$0")/common.sh"
 # 1. Essential Packages
 # =============================================================================
 log_info "Updating system and installing essential packages..."
-apt update && apt upgrade -y > /dev/null
+apt update > /dev/null
+apt upgrade -y > /dev/null
 apt install -y \
   augeas-lenses \
   augeas-tools \
