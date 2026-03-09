@@ -55,9 +55,10 @@ The script will automatically configure:
 - **Git** — configures default name, email, and rebase pull strategy
 - **Shell** — sets up a modern shell prompt for `$USER` user
 
-> [!IMPORTANT]
+> [!WARNING]
 > **Reboot is required** after the script completes to load the new kernel drivers and parameters.
-> After reboot, SSH will be available on **port 2222** only.
+> After reboot, SSH will be available on **port 2222** and with **key-based authentication only**.
+>
 > Reconnect with: `ssh -p 2222 <user>@<server-ip>`
 
 ## Tailscale
