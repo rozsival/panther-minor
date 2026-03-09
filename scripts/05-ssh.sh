@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 4. SSH Hardening
+# 5. SSH Hardening
 # =============================================================================
 log_info "Configuring SSH ($SSHD_CONFIG)..."
 

@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 9. Git configuration
+# 10. Git configuration
 # =============================================================================
 log_info "Configuring Git for ${ALLOWED_USER}..."
 

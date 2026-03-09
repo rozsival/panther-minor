@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 6. fail2ban
+# 7. fail2ban
 # =============================================================================
 log_info "Installing fail2ban..."
 apt install -y fail2ban > /dev/null

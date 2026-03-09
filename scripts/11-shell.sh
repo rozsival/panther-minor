@@ -3,10 +3,10 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 10. Shell setup
+# 11. Shell setup
 # =============================================================================
 log_info "Installing Starship prompt..."
-curl -fsSL https://starship.rs/install.sh | sh -s -- --yes > /dev/null
+apt install -y starship > /dev/null
 
-register_bashrc_entry "Starship prompt" 'eval "$(starship init bash)"'
+register_bashrc_entry "Starship" 'eval "$(starship init bash)"'
 log_success "Starship installed."

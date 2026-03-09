@@ -3,7 +3,7 @@ set -euo pipefail
 source "$(dirname "$0")/common.sh"
 
 # =============================================================================
-# 2. Docker & Docker Compose
+# 3. Docker & Docker Compose
 # =============================================================================
 log_info "Installing Docker and Docker Compose..."
 
