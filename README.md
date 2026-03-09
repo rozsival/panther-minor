@@ -4,6 +4,23 @@ The AI Workstation Setup
 
 ## Pre-requisites
 
+### Hardware
+
+- x870e motherboard with 2x PCIe Gen5 x16 slots
+- AMD Ryzen 9 or newer (16+ cores recommended)
+- 192 GB RAM DDR5
+- 2x AMD Radeon Pro with RDNA 4 (32 GB VRAM each)
+- 2 TB NVMe SSD
+
+### BIOS
+
+- Above 4G decoding enabled
+- Resize BAR enabled
+- iGPU disabled
+- PCIe slots set to Gen5 and x8/x8 mode
+
+### Software
+
 - [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
 - Server created with name `panther-minor`
 - User `vit` created during installation
