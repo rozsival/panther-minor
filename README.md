@@ -27,7 +27,7 @@ The script will automatically configure:
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
 - **UFW** — sets up the firewall (ports 2222, 80, 443)
 - **fail2ban** — installs and configures brute-force protection
-- **AMD GPU & ROCm** — installs the latest kernel drivers and ROCm v7
+- **AMD GPU & ROCm** — installs the latest kernel drivers and ROCm
 - **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
 - **Starship** — sets up a modern shell prompt for the `vit` user
 
