@@ -33,11 +33,12 @@ The script will automatically configure:
 > [!IMPORTANT]
 > **Reboot is required** after the script completes to load the new kernel drivers and parameters.
 > After reboot, SSH will be available on **port 2222** only.
-> Reconnect with: `ssh -p 2222 vit@<server-ip>`
+> Connect with: `ssh -p 2222 vit@<server-ip>`
 
 ## Tailscale
 
-After the system setup and reboot, authenticate the server to your Tailscale network:
+After the system setup and reboot, authenticate the server to
+your [Tailscale network](https://login.tailscale.com/admin/):
 
 ```bash
 sudo tailscale up
