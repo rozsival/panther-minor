@@ -14,13 +14,17 @@ if [[ ! -f "${SSHD_CONFIG}.orig" ]]; then
 fi
 
 log_info "Applying SSH hardening via Augeas..."
+# Remove potential overrides from .d directory (common in VMs/cloud images)
+rm -f /etc/ssh/sshd_config.d/*.conf
+
 # augtool commands to update sshd_config
-# -s saves automatically
-# -f reads from stdin
 augtool -s <<EOF
 set /files/etc/ssh/sshd_config/Port "$SSH_PORT"
 set /files/etc/ssh/sshd_config/PasswordAuthentication no
+set /files/etc/ssh/sshd_config/KbdInteractiveAuthentication no
 set /files/etc/ssh/sshd_config/ChallengeResponseAuthentication no
+set /files/etc/ssh/sshd_config/PubkeyAuthentication yes
+set /files/etc/ssh/sshd_config/AuthenticationMethods publickey
 set /files/etc/ssh/sshd_config/UsePAM no
 set /files/etc/ssh/sshd_config/PermitRootLogin no
 set /files/etc/ssh/sshd_config/MaxAuthTries 3

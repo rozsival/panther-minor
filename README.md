@@ -35,7 +35,7 @@ Then, connect to the server via SSH, clone the repository using the PAT and run 
 
 ```bash
 ssh vit@<server-ip>
-git clone https://<PAT>@github.com/rozsival/panther-minor.git
+git clone https://x-access-token:<PAT>@github.com/rozsival/panther-minor.git
 sudo bash panther-minor/setup.sh
 ```
 
