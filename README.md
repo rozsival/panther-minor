@@ -24,7 +24,7 @@ The AI Workstation Setup
 - [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
 - Server created with name `panther-minor`
 - User `$USER` created during installation
-- Server pre-installed with OpenSSH
+- Server pre-installed with OpenSSH (fetch allowed keys from GitHub)
 
 ## Setup
 
