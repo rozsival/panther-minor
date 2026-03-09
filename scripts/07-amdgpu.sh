@@ -46,5 +46,5 @@ apt update > /dev/null
 # 7. Install ROCm
 apt install -y rocm > /dev/null
 
-log_success "AMD GPU and ROCm 7.2 installed."
+log_success "AMD GPU and ROCm installed."
 
