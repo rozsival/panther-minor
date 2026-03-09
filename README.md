@@ -8,6 +8,7 @@ The AI Workstation Setup
 - Server created with name `panther-minor`
 - User `vit` created during installation
 - Server pre-installed with OpenSSH
+- Server SSH key generated and [added to GitHub](https://github.com/settings/keys)
 
 ## Setup
 
