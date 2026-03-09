@@ -8,7 +8,6 @@ The AI Workstation Setup
 - Server created with name `panther-minor`
 - User `$USER` created during installation
 - Server pre-installed with OpenSSH
-- Docker and Docker Compose [installed](https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository)
 
 ## Setup
 
@@ -21,46 +20,39 @@ sudo bash panther-minor/setup.sh
 
 The script will automatically configure:
 
+- **Essential Packages** — `build-essential`, `jq`, `nvtop`, `llmfit`, etc
+- **Docker** — installs Docker Engine and Docker Compose
+- **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
 - **UFW** — sets up the firewall (ports 2222, 80, 443)
 - **fail2ban** — installs and configures brute-force protection
+- **AMD GPU & ROCm** — installs the latest kernel drivers and ROCm v7
+- **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
+- **Starship** — sets up a modern shell prompt for the `$USER` user
 
-> [!NOTE]
-> After the script completes, SSH will be available on **port 2222** only.
+> [!IMPORTANT]
+> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
+> After reboot, SSH will be available on **port 2222** only.
 > Reconnect with: `ssh -p 2222 <user>@<server-ip>`
 
 ## Tailscale
 
-Follow the instructions at [Tailscale Docs](https://tailscale.com/docs/install/ubuntu/ubuntu-2510) to add the server to Tailscale.
+After the system setup and reboot, authenticate the server to your Tailscale network:
 
-Connect to the server via Tailscale:
+```bash
+sudo tailscale up
+```
+
+> [!IMPORTANT]
+> Tailscale authentication requires browser, since the server is headless, it is highly recommended to run the above
+> command on a local machine via SSH to the server.
+
+Follow the link in your browser to complete the authentication. Once connected, you can access the server via its
+Tailscale IP or hostname:
 
 ```bash
 ssh -p 2222 <user>@panther-minor
 ```
-
-> [!IMPORTANT]
-> You need to be connected to Tailscale to access the server every time.
-
-## AMD GPU Kernel with ROCm
-
-> [!WARNING]
-> You should disable the iGPU in the BIOS for ROCm to work properly. Ensure you have a DisplayPort connected to the dedicated GPU.
-
-### Kernel Parameters (RDNA 4)
-
-1. Edit GRUB: `sudo nano /etc/default/grub`
-2. Add `amdgpu.mes=1 iommu=pt` to `GRUB_CMDLINE_LINUX_DEFAULT`.
-3. Update and reboot:
-
-   ```bash
-   sudo update-grub
-   sudo reboot
-   ```
-
-### Install ROCm
-
-Follow the instructions at [AMD Docs](https://rocm.docs.amd.com/projects/install-on-linux/en/latest/install/install-methods/package-manager/package-manager-ubuntu.html) to install ROCm.
 
 ## Ollama Cluster
 
@@ -90,42 +82,19 @@ make ollama-puller-logs
 
 The OpenAI-compatible API is available at `http://panther-minor:8000/v1`.
 
-List loaded models:
-
-```bash
-curl http://panther-minor:8000/v1/models
-```
-
-Chat completion:
-
-```bash
-curl http://panther-minor:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "qwen2.5-coder:14b-instruct",
-    "messages": [{"role": "user", "content": "Hello!"}]
-  }'
-```
-
-Connect any OpenAI-compatible client (OpenCode, QwenCode etc.) to `http://panther-minor:8000/v1` with any API key (auth is not enabled).
-
 ### Browser Tools
 
 | Service               | URL                         | Credentials       |
-| --------------------- | --------------------------- | ----------------- |
+|-----------------------|-----------------------------|-------------------|
 | **Open WebUI** (chat) | `http://panther-minor:8080` | no login required |
 | Grafana (monitoring)  | `http://panther-minor:3000` | `admin` / `admin` |
 | Prometheus            | `http://panther-minor:9090` | —                 |
 
-The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw (both GPUs), CPU/RAM usage, and Ollama request metrics.
-
-> [!NOTE]
-> The AMD GPU exporter metric names shown in the dashboard are based on `rocm/device-metrics-exporter`. If panels show "No data", browse to `http://panther-minor:9090/graph` and explore `amd_*` metrics to find the exact names for your GPU model, then update the dashboard queries accordingly.
+The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw, CPU/RAM usage, and
+Ollama request metrics.
 
 ### Stop
 
 ```bash
 make stop
 ```
-
-Model weights are cached in the `ollama-data` Docker volume and will not be re-downloaded on subsequent starts.

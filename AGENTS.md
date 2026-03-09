@@ -24,6 +24,7 @@ This file provides essential context, architecture details, and guidelines for A
 1. **Inference Engine**: We migrated from vLLM to Ollama due to stability/performance on RDNA 4. Do not revert to vLLM.
 2. **Metrics**: Grafana and Prometheus have been configured to scrape and display Ollama's native Prometheus metrics (`ollama_prompt_eval_count_total`, `ollama_eval_count_total`, etc.). Avoid referencing old vLLM metrics.
 3. **Auto-Pulling**: The stack includes a custom `ollama-puller` container to automatically fetch the configured model (default: `qwen2.5-coder:14b-instruct`) on startup.
+4. **Ubuntu Apt Repository:** Strictly use `apt` instead of `apt-get` for package management to ensure compatibility with the latest Ubuntu releases and avoid potential issues with package caching and dependencies.
 
 ## Git Commit Messages
 
