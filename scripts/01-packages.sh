@@ -6,7 +6,7 @@ source "$(dirname "$0")/common.sh"
 # 1. Essential Packages
 # =============================================================================
 log_info "Updating system and installing essential packages..."
-apt update && apt upgrade -y
+apt update && apt upgrade -y > /dev/null
 apt install -y \
   augeas-lenses \
   augeas-tools \
@@ -40,20 +40,15 @@ BREW_PREFIX=$(sudo -u "${ALLOWED_USER}" bash -c '
 if [ -n "$BREW_PREFIX" ]; then
   # Register the clean eval command in bashrc
   register_bashrc_entry "Homebrew" "eval \"\$(${BREW_PREFIX}/bin/brew shellenv)\""
-  
+  log_success "Homebrew installed at ${BREW_PREFIX} and configured for ${ALLOWED_USER}."
+
   # Ensure the environment is available for the rest of this script
   eval "$(${BREW_PREFIX}/bin/brew shellenv)"
 
   log_info "Installing LLMFit via Homebrew..."
   sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew install llmfit" > /dev/null
 
-  log_info "Configuring Homebrew autoupdate..."
-  sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew tap domt4/autoupdate" > /dev/null
-  # Since setup.sh is run as root, we can configure autoupdate without interaction.
-  # The --sudo flag tells brew-autoupdate to use sudo for commands that need it.
-  sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew autoupdate start 86400 --cleanup --immediate --sudo --upgrade" > /dev/null
-  
-  log_success "Homebrew, LLMFit, and Autoupdate configured for ${ALLOWED_USER}."
+  log_success "LLMFit installed via Homebrew for ${ALLOWED_USER}."
 else
   log_error "Homebrew installation failed."
 fi
