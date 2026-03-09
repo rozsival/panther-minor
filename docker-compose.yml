@@ -32,7 +32,7 @@ services:
       - OLLAMA_HOST=0.0.0.0:8000
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_LLM_LIBRARY=rocm_v7
-      - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-32768}
+      - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-262144}
       - ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-0,1}
     volumes:
       - ollama-data:/root/.ollama
@@ -57,7 +57,7 @@ services:
     networks:
       - ai
     environment:
-      - MODEL=${MODEL:-qwen2.5-coder:14b-instruct}
+      - MODEL=${MODEL:-qwen3-coder:30b-a3b-q8_0}
     command: >
       sh -c '
         echo "Waiting for Ollama API..."
