@@ -45,7 +45,7 @@ printf "${GREEN}║  3. Tailscale: %-30s║${NC}\n" "installed"
 printf "${GREEN}║  4. SSH      : %-30s║${NC}\n" "hardened (port ${SSH_PORT})"
 printf "${GREEN}║  5. UFW      : %-30s║${NC}\n" "active"
 printf "${GREEN}║  6. fail2ban : %-30s║${NC}\n" "active"
-printf "${GREEN}║  7. AMD GPU  : %-30s║${NC}\n" "v7.2 installed"
+printf "${GREEN}║  7. AMD GPU  : %-30s║${NC}\n" "installed"
 printf "${GREEN}║  8. GRUB     : %-30s║${NC}\n" "parameters set"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 
