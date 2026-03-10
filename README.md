@@ -34,7 +34,7 @@ Generate a [Fine-grained token](https://github.com/settings/personal-access-toke
 Then, connect to the server via SSH, clone the repository using the PAT and run the setup script:
 
 > [!WARNING]
-> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
+> **Reboot is required** after the script completes to load new kernel drivers and parameters.
 > After reboot, SSH will be available on **port 2222** and with **key-based authentication only**.
 >
 > Reconnect with: `ssh -p 2222 <user>@<server-ip>`
