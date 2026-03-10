@@ -1,8 +1,15 @@
 global:
   scrape_interval: 15s
+  scrape_timeout: 10s
   evaluation_interval: 15s
+  external_labels:
+    instance: panther-minor
 
 scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
   # Host CPU, RAM, disk, network
   - job_name: node
     static_configs:
@@ -15,6 +22,6 @@ scrape_configs:
 
   # Ollama metrics
   - job_name: ollama
+    metrics_path: /metrics
     static_configs:
       - targets: ["ollama:8000"]
-    metrics_path: /metrics

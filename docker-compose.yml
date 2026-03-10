@@ -16,7 +16,8 @@ services:
   # -- Ollama (llama.cpp wrapper) ---------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   ollama:
-    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:latest
+    # https://github.com/ollama/ollama/pull/13000
+    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:v0.16.2
     privileged: true
     restart: unless-stopped
     devices:
@@ -50,7 +51,7 @@ services:
   # -- Ollama Model Puller ----------------------------------------------------
   # Automatically pulls the requested model on startup if it doesn't exist
   ollama-puller:
-    image: curlimages/curl:latest
+    image: curlimages/curl:8.18.0
     depends_on:
       ollama:
         condition: service_healthy
@@ -103,7 +104,7 @@ services:
 
   # -- Host metrics (CPU, RAM, disk, network) ---------------------------------
   node-exporter:
-    image: prom/node-exporter:latest
+    image: prom/node-exporter:v1.20.2
     restart: unless-stopped
     pid: host
     volumes:
@@ -122,7 +123,7 @@ services:
 
   # -- Prometheus -------------------------------------------------------------
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.10.0
     restart: unless-stopped
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -136,13 +137,19 @@ services:
       - "${PROMETHEUS_PORT:-9090}:9090"
     networks:
       - ai
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q -O- http://localhost:9090/-/healthy >/dev/null || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     depends_on:
       - node-exporter
       - amd-gpu-exporter
 
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:v0.8.10
     restart: unless-stopped
     environment:
       # Point directly at the local Ollama API
@@ -161,11 +168,12 @@ services:
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
-    image: grafana/grafana-oss:latest
+    image: grafana/grafana-oss:12.4.1
     restart: unless-stopped
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: "false"
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: "admin"
+      GF_SECURITY_ADMIN_PASSWORD: "admin"
       GF_USERS_ALLOW_SIGN_UP: "false"
     volumes:
       - grafana-data:/var/lib/grafana
@@ -176,4 +184,5 @@ services:
     networks:
       - ai
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
