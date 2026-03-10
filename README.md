@@ -88,11 +88,7 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 ### Configuration
 
-Copy the example env file and [pick a model](https://ollama.com/search):
-
-```bash
-cp .env.example .env
-```
+See `.env` for configurable parameters. Defaults are provided for all variables.
 
 ### Start
 
@@ -106,19 +102,19 @@ The first start will pull the model from the Ollama registry via the auto-puller
 make ollama-puller-logs
 ```
 
-### API
+### Services
 
-The OpenAI-compatible API is available at `http://panther-minor:8000/v1`.
+| Service               | URL                            | Credentials       |
+|-----------------------|--------------------------------|-------------------|
+| OpenAI-compatible API | `http://panther-minor:8000/v1` | —                 |
+| Open WebUI (chat)     | `http://panther-minor:8080`    | —                 |
+| Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
+| Prometheus            | `http://panther-minor:9090`    | —                 |
 
-### Browser Tools
+> [!NOTE]
+> Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
 
-| Service               | URL                         | Credentials       |
-|-----------------------|-----------------------------|-------------------|
-| **Open WebUI** (chat) | `http://panther-minor:8080` | no login required |
-| Grafana (monitoring)  | `http://panther-minor:3000` | `admin` / `admin` |
-| Prometheus            | `http://panther-minor:9090` | —                 |
-
-The **Panther Minor** dashboard in Grafana shows GPU utilisation, VRAM, temperature, power draw, CPU/RAM usage, and
+The **Panther Minor** dashboard in Grafana shows GPU utilization, VRAM, temperature, power draw, CPU/RAM usage, and
 Ollama request metrics.
 
 ### Stop

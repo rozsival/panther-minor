@@ -10,9 +10,12 @@ log_info "Configuring UFW..."
 ufw --force reset > /dev/null          # start from a clean state
 ufw default deny incoming
 ufw default allow outgoing
-ufw allow "${SSH_PORT}/tcp"
-ufw allow 80/tcp
-ufw allow 443/tcp
+
+# Essential services (AI/monitoring services are localhost-only via docker-compose)
+ufw allow "${SSH_PORT}/tcp" comment 'SSH'
+ufw allow 80/tcp comment 'HTTP'
+ufw allow 443/tcp comment 'HTTPS'
+
 ufw --force enable
 
-log_success "UFW enabled. Open ports: ${SSH_PORT}/tcp, 80/tcp, 443/tcp"
+log_success "UFW enabled. Open ports: SSH(${SSH_PORT}), HTTP(80), HTTPS(443). AI/monitoring services accessible via localhost/Tailscale only."

@@ -1,11 +1,11 @@
 name: panther-minor
 
-# -- Shared network -------------------------------------------------------------
+# -- Shared network -----------------------------------------------------------
 networks:
   ai:
     driver: bridge
 
-# -- Persistent volumes ---------------------------------------------------------
+# -- Persistent volumes -------------------------------------------------------
 volumes:
   prometheus-data:
   grafana-data:
@@ -13,7 +13,7 @@ volumes:
   open-webui-data:
 
 services:
-  # -- Ollama (llama.cpp wrapper) ----------------------------------------------
+  # -- Ollama (llama.cpp wrapper) ---------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   ollama:
     image: ghcr.io/rjmalagon/ollama-linux-amd-apu:latest
@@ -27,13 +27,13 @@ services:
       - video
       - render
     environment:
-      - HSA_OVERRIDE_GFX_VERSION=12.0.0
+      - HSA_OVERRIDE_GFX_VERSION=${ROCM_GFX_VERSION:-12.0.1}
       - OLLAMA_FLASH_ATTENTION=true
       - OLLAMA_HOST=0.0.0.0:8000
       - OLLAMA_KEEP_ALIVE=24h
-      - OLLAMA_LLM_LIBRARY=rocm_v7
+      - OLLAMA_LLM_LIBRARY=rocm_${ROCM_VERSION:-v7}
       - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-262144}
-      - ROCR_VISIBLE_DEVICES=${ROCR_VISIBLE_DEVICES:-0,1}
+      - ROCR_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
     volumes:
       - ollama-data:/root/.ollama
     ports:
@@ -41,13 +41,13 @@ services:
     networks:
       - ai
     healthcheck:
-      test: ["CMD-SHELL", "ollama --version || exit 1"]
+      test: [ "CMD-SHELL", "ollama --version || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
 
-  # -- Ollama Model Puller -----------------------------------------------------
+  # -- Ollama Model Puller ----------------------------------------------------
   # Automatically pulls the requested model on startup if it doesn't exist
   ollama-puller:
     image: curlimages/curl:latest
@@ -60,14 +60,32 @@ services:
       - MODEL=${MODEL:-qwen3-coder:30b-a3b-q8_0}
     command: >
       sh -c '
-        echo "Waiting for Ollama API..."
-        until curl -s http://ollama:8000/api/tags > /dev/null; do sleep 2; done;
-        echo "Pulling model $$MODEL..."
-        curl -X POST http://ollama:8000/api/pull -d "{\"name\": \"$$MODEL\"}"
-        echo "Model pull complete."
+        echo "Checking if model $$MODEL is already available..."
+        if curl -s http://ollama:8000/api/tags | grep -q "\"name\":\"$$MODEL\""; then
+          echo "Model $$MODEL already exists, skipping pull."
+          exit 0
+        fi
+
+        echo "Pulling model $$MODEL (this may take several minutes)..."
+        curl -X POST http://ollama:8000/api/pull -d "{\"name\": \"$$MODEL\"}" --no-buffer 2>&1 | while IFS= read -r line; do
+          echo "$$line"
+          if echo "$$line" | grep -q "\"status\":\"success\""; then
+            echo "Model pull completed successfully."
+            exit 0
+          fi
+        done
+
+        echo "Verifying model availability..."
+        if curl -s http://ollama:8000/api/tags | grep -q "\"name\":\"$$MODEL\""; then
+          echo "Model $$MODEL is now available."
+          exit 0
+        else
+          echo "ERROR: Model pull may have failed."
+          exit 1
+        fi
       '
 
-  # -- AMD GPU metrics exporter --------------------------------------------------
+  # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
     image: rocm/device-metrics-exporter:v1.5.0-beta.0
     restart: unless-stopped
@@ -102,7 +120,7 @@ services:
     networks:
       - ai
 
-  # -- Prometheus ----------------------------------------------------------------
+  # -- Prometheus -------------------------------------------------------------
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
@@ -122,7 +140,7 @@ services:
       - node-exporter
       - amd-gpu-exporter
 
-  # -- Open WebUI (chat interface) -----------------------------------------------
+  # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     restart: unless-stopped
@@ -135,13 +153,13 @@ services:
     volumes:
       - open-webui-data:/app/backend/data
     ports:
-      - "8080:8080"
+      - "${OPEN_WEBUI_PORT:-8080}:8080"
     networks:
       - ai
     depends_on:
       - ollama
 
-  # -- Grafana -------------------------------------------------------------------
+  # -- Grafana ----------------------------------------------------------------
   grafana:
     image: grafana/grafana-oss:latest
     restart: unless-stopped
