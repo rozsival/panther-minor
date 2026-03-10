@@ -28,7 +28,7 @@ The AI Workstation Setup
 
 ## Setup
 
-Generate a [Fine-grained token](https://github.com/settings/personal-access-tokens) with Read/Write access to
+Generate a [Fine-grained token](https://github.com/settings/personal-access-tokens) with Read access to
 `panther-minor` repository.
 
 Then, connect to the server via SSH, clone the repository using the PAT and run the setup script:
