@@ -67,13 +67,13 @@ The script will automatically configure:
 After the system setup and reboot, authenticate the server to
 your [Tailscale network](https://login.tailscale.com/admin/):
 
-```bash
-sudo tailscale up
-```
-
 > [!IMPORTANT]
 > Tailscale authentication requires browser, since the server is headless, it is highly recommended to run the above
 > command on a local machine via SSH to the server.
+
+```bash
+sudo tailscale up
+```
 
 Follow the link in your browser to complete the authentication. Once connected, you can access the server via its
 Tailscale IP or hostname:
