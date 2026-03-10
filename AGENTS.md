@@ -18,8 +18,7 @@ for monitoring GPU and node performance.
 
 ## Critical Rules
 
-1. **Use Ollama only** — `ghcr.io/rjmalagon/ollama-linux-amd-apu:latest` with ROCm v7 and `gfx1201` support
-   (waiting for https://github.com/ollama/ollama/pull/13000)
+1. **Use Ollama only** — `ghcr.io/rjmalagon/ollama-linux-amd-apu` with ROCm v7 and `gfx1201` support
 2. **Package manager** — `apt` only (never `apt-get`)
 3. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation
 4. **Ollama config** — `OLLAMA_HOST=0.0.0.0:8000`, ROCm v7 lib, flash attention enabled
