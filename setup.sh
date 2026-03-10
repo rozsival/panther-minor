@@ -24,6 +24,15 @@ cat /dev/null > "$ACTIONS_FILE"
 # -- Execution -----------------------------------------------------------------
 echo -e "${BLUE}🐆 ${SERVER_NAME} setup starting...${NC}\n"
 
+log_info "Configuring .env..."
+ENV_FILE="${SCRIPT_DIR}/.env"
+if [[ ! -f "$ENV_FILE" ]]; then
+  cp "${SCRIPT_DIR}/.env.example" "$ENV_FILE"
+  log_info "Using default .env configuration."
+else
+  log_info "Using existing .env configuration."
+fi
+
 for script in "${SCRIPTS_PATH}"/[0-9][0-9]-*.sh; do
   if [[ -x "$script" ]]; then
     "$script"
