@@ -33,6 +33,12 @@ Generate a [Fine-grained token](https://github.com/settings/personal-access-toke
 
 Then, connect to the server via SSH, clone the repository using the PAT and run the setup script:
 
+> [!WARNING]
+> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
+> After reboot, SSH will be available on **port 2222** and with **key-based authentication only**.
+>
+> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
+
 ```bash
 ssh <user>@<server-ip>
 git clone https://x-access-token:<PAT>@github.com/rozsival/panther-minor.git
@@ -55,12 +61,6 @@ The script will automatically configure:
 - **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
 - **Git** — configures default name, email, and rebase pull strategy
 - **Shell** — sets up a modern shell prompt for `$USER` user
-
-> [!WARNING]
-> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
-> After reboot, SSH will be available on **port 2222** and with **key-based authentication only**.
->
-> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
 
 ## Tailscale
 
