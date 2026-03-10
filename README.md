@@ -107,7 +107,7 @@ make ollama-puller-logs
 | Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
 | Prometheus            | `http://panther-minor:9090`    | —                 |
 
-> [!NOTE]
+> [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
 
 The **Panther Minor** dashboard in Grafana shows GPU utilization, VRAM, temperature, power draw, CPU/RAM usage, and
