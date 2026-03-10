@@ -11,6 +11,9 @@ volumes:
   open-webui-data:
   prometheus-data:
   grafana-data:
+  ollama-data:
+  open-webui-data:
+  openfang-data:
 
 services:
   # -- llama.cpp --------------------------------------------------------------
@@ -196,3 +199,20 @@ services:
       - open-webui
       - grafana
       - prometheus
+
+  # -- OpenFang ---------------------------------------------------------------
+  openfang:
+    build:
+      context: ./openfang
+      args:
+        - MODEL=${MODEL:-qwen3-coder:30b-a3b-q8_0}
+    restart: unless-stopped
+    ports:
+      - "${OPENFANG_PORT:-4200}:4200"
+    volumes:
+      - openfang-data:/home/openfang/.openfang/data
+    networks:
+      - ai
+    depends_on:
+      ollama:
+        condition: service_healthy
