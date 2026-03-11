@@ -1,52 +1,43 @@
-# Load runtime settings from .env (or fallback to .env.example)
-ifneq (,$(wildcard .env))
-include .env
-else
-include .env.example
-endif
-export
-
-OLLAMA_SERVICE ?= ollama
-
+# Start Ollama cluster
 start:
 	docker compose up -d
 
+# Stop Ollama cluster
 stop:
 	docker compose down
 
+# Remove all Docker resources associated with the Ollama cluster
 cleanup: stop
 	docker network prune
 	docker volume prune
 	docker container prune
 	docker image prune
 
+# View logs for Ollama service
 ollama-logs:
 	docker compose logs -f ollama
 
-ollama-puller-logs:
-	docker compose logs -f ollama-puller
+# View logs for Ollama model initialization
+ollama-model-init-logs:
+	docker compose logs -f ollama-model-init
 
+# View logs for Open WebUI
 webui-logs:
 	docker compose logs -f open-webui
 
+# View logs for Prometheus
 prometheus-logs:
 	docker compose logs -f prometheus
 
+# View logs for Grafana
 grafana-logs:
 	docker compose logs -f grafana
 
+# View logs for Node Exporter
 node-exporter-logs:
 	docker compose logs -f node-exporter
 
+# View logs for AMD GPU Exporter
 amd-gpu-exporter-logs:
 	docker compose logs -f amd-gpu-exporter
 
-ollama-model-run:
-	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q $(OLLAMA_SERVICE) | grep -q . || (echo "Service '$(OLLAMA_SERVICE)' is not running" && exit 1)
-	docker compose exec $(OLLAMA_SERVICE) ollama run "$(MODEL)"
-
-ollama-model-stop:
-	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q $(OLLAMA_SERVICE) | grep -q . || (echo "Service '$(OLLAMA_SERVICE)' is not running" && exit 1)
-	docker compose exec $(OLLAMA_SERVICE) ollama stop "$(MODEL)"

@@ -62,6 +62,7 @@ The script will automatically configure:
 - **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
 - **Git** — configures default name, email, and rebase pull strategy
 - **Shell** — sets up a modern shell prompt for `vit` user
+- **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
 
 ### Tailscale
 
@@ -87,24 +88,25 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 See `.env` for configurable parameters. Defaults are provided for all variables.
 
-> [!IMPORTANT]
-> Ensure `VIDEO_GID` and `RENDER_GID` match the `video` and `render` group IDs on your system to allow GPU access inside
-> containers. You can check these with:
-> ```bash
-> getent group video
-> getent group render
-> ```
-
 ### Start
 
 ```bash
 make start
 ```
 
-The first start will pull the model from the Ollama registry via the auto-puller service. Watch progress with:
+The first start will create/update the selected model from `./models/${MODEL}/Modelfile` via `ollama-model-init`.
+Watch progress with:
 
 ```bash
-make ollama-puller-logs
+make ollama-model-init-logs
+```
+
+### Ollama CLI
+
+You can interact with Ollama using the [CLI](https://docs.ollama.com/cli) tool:
+
+```bash
+docker compose exec ollama ollama <command>
 ```
 
 ### Services
