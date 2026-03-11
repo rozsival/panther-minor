@@ -20,6 +20,8 @@ See [`Modelfile` reference](https://docs.ollama.com/modelfile) for syntax detail
 
 ## Usage
 
+All targets use the `MODEL` value from `.env`
+
 ```bash
 # Build/update a model from its Modelfile
 make model-create
@@ -30,6 +32,4 @@ make model-stop
 # Delete from Ollama
 make model-remove
 ```
-
-All targets use the `MODEL` value from `.env`.
 
