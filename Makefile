@@ -1,3 +1,11 @@
+# Load runtime settings from .env (or fallback to .env.example)
+ifneq (,$(wildcard .env))
+include .env
+else
+include .env.example
+endif
+export
+
 # Start Ollama cluster
 start:
 	docker compose up -d
