@@ -28,25 +28,25 @@ cleanup: stop
 # Create/update the model from its local Modelfile inside the running Ollama service
 model-create:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
+	@docker compose up -d ollama
 	docker compose exec ollama ollama create "$(MODEL)" -f "/models/$(MODEL)/Modelfile"
 
 # Run model directly in Ollama CLI with verbose output
 model-run:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
+	@docker compose up -d ollama
 	docker compose exec ollama ollama run --verbose "$(MODEL)"
 
 # Unload the model from memory
 model-stop:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
+	@docker compose up -d ollama
 	docker compose exec ollama ollama stop "$(MODEL)"
 
 # Remove the model from Ollama
 model-remove:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
-	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
+	@docker compose up -d ollama
 	docker compose exec ollama ollama rm "$(MODEL)"
 
 # -- Logs ---------------------------------------------------------------------
