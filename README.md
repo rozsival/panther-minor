@@ -101,14 +101,16 @@ See `.env` for configurable parameters. Defaults are provided for all variables.
 
 ### Start
 
-```bash
-make start
-```
-
 On first start, register the model from its local `Modelfile` (see [Models](./models/README.md)):
 
 ```bash
 make model-create
+```
+
+Then, start the Ollama cluster:
+
+```bash
+make start
 ```
 
 #### Model Management
