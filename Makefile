@@ -31,6 +31,14 @@ model-create:
 	@docker compose up -d ollama
 	docker compose exec ollama ollama create "$(MODEL)" -f "/models/$(MODEL)/Modelfile"
 
+# List available local models (directories under ./models with a Modelfile)
+model-list:
+	@set -e; \
+	for f in models/*/Modelfile; do \
+		[ -e "$$f" ] || continue; \
+		basename "$$(dirname "$$f")"; \
+	done
+
 # Run model directly in Ollama CLI with verbose output
 model-run:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
