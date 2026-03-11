@@ -20,7 +20,7 @@ The AI Workstation Setup
 - PCIe slots set to Gen4 and x8/x8 mode
 - M2_1 slot set to Gen4 for NVMe SSD
 
-> [!IMPORTANT]
+> [!NOTE]
 > Gen4 is the sweet spot for system stability in heavy GPU workloads. Gen5 performance gains are marginal but the two
 > GPUs and NVMe drive at Gen5 can cause instability under load.
 
@@ -50,7 +50,7 @@ git clone https://x-access-token:<PAT>@github.com/rozsival/panther-minor.git
 sudo bash panther-minor/setup.sh
 ```
 
-> [!NOTE]
+> [!TIP]
 > You can discover the server IP after login on the host machine using `ip a` command.
 
 The script will automatically configure:
@@ -90,6 +90,10 @@ Tailscale IP or hostname:
 ```bash
 ssh -p 2222 <user>@panther-minor
 ```
+
+> [!TIP]
+> You most likely want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
+> in Tailscale to avoid losing access.
 
 ## Ollama Cluster
 
