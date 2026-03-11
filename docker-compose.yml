@@ -34,7 +34,8 @@ services:
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_LLM_LIBRARY=rocm_${ROCM_VERSION:-v7}
       - OLLAMA_NUM_CTX=${MODEL_CONTEXT_SIZE:-262144}
-      - OLLAMA_SCHED_SPREAD=1
+      - OLLAMA_SCHED_SPREAD=${MODEL_SCHED_SPREAD:-true}
+      - OLLAMA_MAX_LOADED_MODELS=${MODEL_MAX_COUNT:-1}
       - ROCR_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
     volumes:
       - ollama-data:/root/.ollama
