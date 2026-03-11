@@ -8,21 +8,21 @@ source "$(dirname "$0")/common.sh"
 log_info "Installing Docker and Docker Compose..."
 
 # Add Docker's official GPG key:
-apt update > /dev/null
-apt install -y ca-certificates curl > /dev/null
+apt update
+apt install -y ca-certificates curl
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the repository to Apt sources:
-tee /etc/apt/sources.list.d/docker.sources <<EOF > /dev/null
+tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
 URIs: https://download.docker.com/linux/ubuntu
 Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
 Components: stable
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
-apt update > /dev/null
+apt update
 
 # Install the Docker packages:
 apt install -y \
@@ -30,10 +30,10 @@ apt install -y \
   docker-ce-cli \
   containerd.io \
   docker-buildx-plugin \
-  docker-compose-plugin > /dev/null
+  docker-compose-plugin
 
 # Verify installation
-if docker --version >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+if docker --version && docker compose version; then
   log_success "Docker installed."
 else
   log_error "Docker installation failed."

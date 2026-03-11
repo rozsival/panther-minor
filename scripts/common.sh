@@ -29,7 +29,7 @@ register_bashrc_entry() {
   local user="${3:-$ALLOWED_USER}"
   local bashrc="/home/$user/.bashrc"
 
-  if ! grep -qF "$cmd" "$bashrc" 2>/dev/null; then
+  if ! grep -qF "$cmd" "$bashrc"; then
     log_info "Adding $label to $bashrc..."
     echo -e "\n# $label\n$cmd" >> "$bashrc"
     chown "$user:$user" "$bashrc"

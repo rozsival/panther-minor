@@ -12,7 +12,7 @@ mkdir -p /home/linuxbrew/.linuxbrew
 chown -R "${ALLOWED_USER}:${ALLOWED_USER}" /home/linuxbrew
 
 # Install Homebrew as the allowed user
-sudo -u "${ALLOWED_USER}" bash -c 'NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"' > /dev/null
+sudo -u "${ALLOWED_USER}" bash -c 'NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
 
 # Determine the brew prefix for the allowed user
 BREW_PREFIX=$(sudo -u "${ALLOWED_USER}" bash -c '
@@ -32,7 +32,7 @@ if [ -n "$BREW_PREFIX" ]; then
   eval "$(${BREW_PREFIX}/bin/brew shellenv)"
 
   log_info "Installing LLMFit via Homebrew..."
-  sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew install llmfit" > /dev/null
+  sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew install llmfit"
 
   log_success "LLMFit installed via Homebrew for user ${ALLOWED_USER}."
 else

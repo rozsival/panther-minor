@@ -30,7 +30,7 @@ if [[ "$CURRENT_CMDLINE" != "$UPDATED_CMDLINE" ]]; then
 set /files/etc/default/grub/GRUB_CMDLINE_LINUX_DEFAULT "'$UPDATED_CMDLINE'"
 EOF
   log_info "Running update-grub..."
-  update-grub > /dev/null
+  update-grub
   log_success "GRUB configuration updated."
 else
   log_success "GRUB kernel parameters already set."
