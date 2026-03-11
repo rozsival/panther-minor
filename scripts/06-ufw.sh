@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Configure UFW firewall (reset and re-apply rules)."
 
 # =============================================================================
 # 6. Firewall (UFW)

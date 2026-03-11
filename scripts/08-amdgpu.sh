@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Install AMD GPU kernel drivers and ROCm."
 
 # =============================================================================
 # 8. AMD GPU & ROCm

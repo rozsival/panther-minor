@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Install Starship shell prompt."
 
 # =============================================================================
 # 11. Shell setup

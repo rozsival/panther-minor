@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Update GRUB kernel parameters."
 
 # =============================================================================
 # 9. Kernel Parameters (GRUB)

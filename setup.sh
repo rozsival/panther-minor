@@ -10,16 +10,20 @@
 set -euo pipefail
 
 # -- Initial Checks ------------------------------------------------------------
-[[ $EUID -ne 0 ]] && { echo "[ERROR] This script must be run as root (use sudo)." >&2; exit 1; }
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SCRIPTS_PATH="${SCRIPT_DIR}/scripts"
 
 # Source common config
 source "${SCRIPTS_PATH}/common.sh"
 
+require_root
+confirm "This will configure the full ${SERVER_NAME} workstation setup."
+
 # Clear previous actions if any
 : > "$ACTIONS_FILE"
+
+# Signal to all sub-scripts that confirmation was already granted
+export PANTHER_CONFIRMED=1
 
 # -- Execution -----------------------------------------------------------------
 echo -e "${BLUE}🐆 ${SERVER_NAME} setup starting...${NC}\n"
@@ -48,6 +52,7 @@ echo ""
 echo -e "${GREEN}╔══════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║  🐆 ${SERVER_NAME} setup complete!            ║${NC}"
 echo -e "${GREEN}╠══════════════════════════════════════════════╣${NC}"
+printf "${GREEN}║  0. Disk     : %-30s║${NC}\n" "allocated"
 printf "${GREEN}║  1. Packages : %-30s║${NC}\n" "installed"
 printf "${GREEN}║  2. Brew     : %-30s║${NC}\n" "ready"
 printf "${GREEN}║  3. Docker   : %-30s║${NC}\n" "ready"
@@ -77,8 +82,8 @@ rm -f "$ACTIONS_FILE"
 
 # -- Reboot Prompt -------------------------------------------------------------
 echo ""
-read -p "System reboot is required to apply all changes. Reboot now? (y/N): " confirm
-if [[ "$confirm" =~ ^[Yy]$ ]]; then
+read -p "System reboot is required to apply all changes. Reboot now? (y/N): " _reboot
+if [[ "$_reboot" =~ ^[Yy]$ ]]; then
   log_info "Rebooting system in 5 seconds..."
   sleep 5
   reboot

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Harden SSH configuration (port ${SSH_PORT}, key-only auth)."
 
 # =============================================================================
 # 5. SSH Hardening

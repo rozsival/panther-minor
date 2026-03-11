@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
+require_root
+confirm "Install Homebrew and LLMFit."
 
 # =============================================================================
 # 2. Homebrew
