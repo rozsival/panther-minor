@@ -2,7 +2,7 @@
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 require_root
-confirm "Sync .env GPU group IDs (VIDEO_GID/RENDER_GID)."
+confirm "Set up env vars and sync GPU group IDs."
 
 # =============================================================================
 # 12. Environment
@@ -19,5 +19,5 @@ fi
 
 log_info "Syncing VIDEO_GID and RENDER_GID in $ENV_FILE from host groups..."
 sync_env_gpu_gids "$ENV_FILE"
-log_success "Environment ready (.env created if needed, GPU group IDs synced)."
+log_success "Env vars ready."
 
