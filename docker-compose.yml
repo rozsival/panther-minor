@@ -39,6 +39,7 @@ services:
       - ROCR_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
     volumes:
       - ollama-data:/root/.ollama
+      - ./models:/models:ro
     ports:
       - "${OLLAMA_PORT:-8000}:8000"
     networks:
@@ -49,38 +50,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-
-  # -- Ollama Model Init ------------------------------------------------------
-  # Builds/updates the requested model from ./models/${MODEL}/Modelfile
-  ollama-model-init:
-    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:v0.16.2
-    restart: "no"
-    depends_on:
-      ollama:
-        condition: service_healthy
-    networks:
-      - ai
-    environment:
-      - MODEL=${MODEL:-panther-coder}
-      - OLLAMA_HOST=http://ollama:8000
-    volumes:
-      - ./models:/models:ro
-    command: >
-      sh -c '
-        MODFILE="/models/$$MODEL/Modelfile"
-
-        if [ ! -f "$$MODFILE" ]; then
-          echo "ERROR: Modelfile not found at $$MODFILE"
-          exit 1
-        fi
-
-        echo "Creating/updating model $$MODEL from $$MODFILE..."
-        ollama create "$$MODEL" -f "$$MODFILE"
-
-        echo "Verifying model availability..."
-        ollama show "$$MODEL" >/dev/null
-        echo "Model $$MODEL is ready."
-      '
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:

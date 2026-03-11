@@ -28,9 +28,9 @@ for monitoring GPU and node performance.
 
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
+- `models/README.md` — overview for custom Ollama models with `Modelfile` configuration and management commands
 - `setup.sh` — orchestrates all `scripts/*.sh` to configure host system (kernel, ROCm, SSH, Git, shell)
 - `scripts/common.sh` — shared config (SSH_PORT=2222, user, colors)
-- `scripts/06-ufw.sh` — firewall (dynamically configures all service ports)
 - `docker-compose.yml` — service definitions with health checks
 - `monitoring/prometheus.yml` — scrapes Ollama metrics (`ollama_*`), node-exporter, GPU exporter
 - `monitoring/grafana/dashboards/system.json` — pre-configured dashboard for system and Ollama metrics

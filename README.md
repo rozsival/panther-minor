@@ -100,16 +100,23 @@ See `.env` for configurable parameters. Defaults are provided for all variables.
 make start
 ```
 
-The first start will create/update the selected model from `./models/${MODEL}/Modelfile` via `ollama-model-init`.
-Watch progress with:
+On first start, register the model from its local `Modelfile` (see [Models](./models/README.md)):
 
 ```bash
-make ollama-model-init-logs
+make model-create
 ```
+
+#### Model Management
+
+| Target              | Command         | Effect                      |
+|---------------------|-----------------|-----------------------------|
+| `make model-create` | `ollama create` | Build/update from Modelfile |
+| `make model-stop`   | `ollama stop`   | Unload from memory          |
+| `make model-remove` | `ollama rm`     | Delete from Ollama          |
 
 ### Ollama CLI
 
-You can interact with Ollama using the [CLI](https://docs.ollama.com/cli) tool:
+Run any [Ollama CLI](https://docs.ollama.com/cli) command inside the running service:
 
 ```bash
 docker compose exec ollama ollama <command>
