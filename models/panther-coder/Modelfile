@@ -3,13 +3,14 @@ FROM qwen3-coder:30b-a3b-q8_0
 
 # --- BEHAVIOR CONFIGURATION ---
 # Low temperature for maximum logical precision and determinism
-PARAMETER temperature 0.2
+PARAMETER temperature 0.0
 # Prevents looping without degrading key syntax (import, export)
 PARAMETER repeat_penalty 1.1
 # Limits "wandering" into low-probability tokens
 PARAMETER top_p 0.9
 # Context size allocation (adjust based on your actual VRAM usage/needs)
-PARAMETER num_ctx 262144
+PARAMETER num_ctx 131072
+PARAMETER num_predict 16384
 
 # --- SYSTEM PROMPT (PANTHER IDENTITY) ---
 SYSTEM """
