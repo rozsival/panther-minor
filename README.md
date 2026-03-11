@@ -87,6 +87,14 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 See `.env` for configurable parameters. Defaults are provided for all variables.
 
+> [!IMPORTANT]
+> Ensure `VIDEO_GID` and `RENDER_GID` match the `video` and `render` group IDs on your system to allow GPU access inside
+> containers. You can check these with:
+> ```bash
+> getent group video
+> getent group render
+> ```
+
 ### Start
 
 ```bash
