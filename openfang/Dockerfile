@@ -23,7 +23,7 @@ RUN mkdir -p ./.openfang/agents
 RUN mkdir -p ./.openfang/data
 
 # Configure OpenFang
-ARG MODEL="qwen3-coder:30b-a3b-q8_0"
+ARG MODEL=""
 COPY --chown="openfang" config.toml ./.openfang/
 RUN echo "model = \"${MODEL}\"" >> ./.openfang/config.toml
 

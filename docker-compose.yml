@@ -205,7 +205,7 @@ services:
     build:
       context: ./openfang
       args:
-        - MODEL=${MODEL:-qwen3-coder:30b-a3b-q8_0}
+        - MODEL=${MODEL:-panther-coder}
     restart: unless-stopped
     ports:
       - "${OPENFANG_PORT:-4200}:4200"
