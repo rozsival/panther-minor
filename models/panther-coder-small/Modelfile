@@ -1,7 +1,6 @@
 # Fast variant for small coding tasks
 FROM qwen3-coder:30b-a3b-q8_0
 
-# Keep the same behavior profile as the default variant.
 PARAMETER temperature 0.0
 PARAMETER repeat_penalty 1.1
 PARAMETER top_p 0.9

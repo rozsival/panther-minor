@@ -1,9 +1,9 @@
 # General-purpose balanced model for common knowledge and daily assistant tasks
-FROM qwen3:30b-a3b-q8_0
+FROM qwen3:30b-a3b-instruct-2507-q8_0
 
 # Balanced defaults for broad usage.
-PARAMETER num_ctx 42944
-PARAMETER num_predict 4096
+PARAMETER num_ctx 131072
+PARAMETER num_predict 16384
 
 SYSTEM """
 You are Panther, a precise and practical general-purpose assistant.
