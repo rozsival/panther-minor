@@ -64,11 +64,11 @@ The script will automatically configure:
 - **Shell** — sets up a modern shell prompt for `vit` user
 - **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
 
-You can also run individual scripts from `scripts/` for specific configurations, e.g. to re-run SSH hardening:
-
-```bash
-sudo bash panther-minor/scripts/05-ssh.sh
-```
+> [!TIP]
+> You can also run individual scripts from `scripts/` for specific configurations, e.g. to re-run SSH hardening:
+> ```bash
+> sudo bash panther-minor/scripts/05-ssh.sh
+> ```
 
 ### Tailscale
 
