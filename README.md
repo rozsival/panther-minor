@@ -111,6 +111,7 @@ make model-create
 | Target              | Command         | Effect                      |
 |---------------------|-----------------|-----------------------------|
 | `make model-create` | `ollama create` | Build/update from Modelfile |
+| `make model-run`    | `ollama run`    | Interactive run (verbose)   |
 | `make model-stop`   | `ollama stop`   | Unload from memory          |
 | `make model-remove` | `ollama rm`     | Delete from Ollama          |
 

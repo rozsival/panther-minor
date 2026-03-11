@@ -1,10 +1,12 @@
-# Load runtime settings from .env (or fallback to .env.example)
+# -- .env ---------------------------------------------------------------------
 ifneq (,$(wildcard .env))
 include .env
 else
 include .env.example
 endif
 export
+
+# -- Ollama cluster -----------------------------------------------------------
 
 # Start Ollama cluster
 start:
@@ -14,11 +16,26 @@ start:
 stop:
 	docker compose down
 
+# Remove all Docker resources associated with the Ollama cluster
+cleanup: stop
+	docker network prune
+	docker volume prune
+	docker container prune
+	docker image prune
+
+# -- Model management ---------------------------------------------------------
+
 # Create/update the model from its local Modelfile inside the running Ollama service
 model-create:
 	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
 	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
 	docker compose exec ollama ollama create "$(MODEL)" -f "/models/$(MODEL)/Modelfile"
+
+# Run model directly in Ollama CLI with verbose output
+model-run:
+	@test -n "$(MODEL)" || (echo "MODEL is not set in .env" && exit 1)
+	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
+	docker compose exec ollama ollama run --verbose "$(MODEL)"
 
 # Unload the model from memory
 model-stop:
@@ -32,12 +49,7 @@ model-remove:
 	@docker compose ps -q ollama | grep -q . || (echo "Service 'ollama' is not running" && exit 1)
 	docker compose exec ollama ollama rm "$(MODEL)"
 
-# Remove all Docker resources associated with the Ollama cluster
-cleanup: stop
-	docker network prune
-	docker volume prune
-	docker container prune
-	docker image prune
+# -- Logs ---------------------------------------------------------------------
 
 # View logs for Ollama service
 ollama-logs:
