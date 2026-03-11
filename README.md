@@ -64,6 +64,12 @@ The script will automatically configure:
 - **Shell** — sets up a modern shell prompt for `$USER` user
 - **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
 
+You can also run individual scripts from `scripts/` for specific configurations, e.g. to re-run SSH hardening:
+
+```bash
+sudo bash panther-minor/scripts/05-ssh.sh
+```
+
 ### Tailscale
 
 After the system setup and reboot, authenticate the server to
