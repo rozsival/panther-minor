@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+
+# -- Config -------------------------------------------------------------------
+SERVER_NAME=$HOSTNAME
+ALLOWED_USER=$USER
+SSH_PORT=2222
+SSHD_CONFIG=/etc/ssh/sshd_config
+FAIL2BAN_JAIL=/etc/fail2ban/jail.local
+
 # -- Colour helpers -----------------------------------------------------------
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
 log_info()    { echo -e "${BLUE}[INFO]${NC}  $*"; }
@@ -20,13 +28,6 @@ confirm() {
   read -r -p "         Proceed? (y/N): " _reply
   [[ "$_reply" =~ ^[Yy]$ ]] || { log_warn "Aborted."; exit 0; }
 }
-
-# -- Config -------------------------------------------------------------------
-SERVER_NAME=$HOSTNAME
-ALLOWED_USER=$USER
-SSH_PORT=2222
-SSHD_CONFIG=/etc/ssh/sshd_config
-FAIL2BAN_JAIL=/etc/fail2ban/jail.local
 
 # -- Deferred Actions ---------------------------------------------------------
 # A file to store actions that need user attention at the end
@@ -50,3 +51,47 @@ register_bashrc_entry() {
     chown "$user:$user" "$bashrc"
   fi
 }
+
+# -- Env Helpers --------------------------------------------------------------
+detect_group_gid() {
+  local group_name="$1"
+  getent group "$group_name" | awk -F: '{print $3}'
+}
+
+upsert_env_key() {
+  local env_file="$1"
+  local key="$2"
+  local value="$3"
+
+  if command -v augtool >/dev/null 2>&1; then
+    # Use Augeas Shellvars lens for idempotent updates.
+    augtool -A -L <<EOF
+set /files${env_file}/${key} "${value}"
+save
+EOF
+    return 0
+  fi
+
+  # Fallback for environments without augtool.
+  if grep -qE "^${key}=" "$env_file"; then
+    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+  else
+    printf '%s=%s\n' "$key" "$value" >> "$env_file"
+  fi
+}
+
+sync_env_gpu_gids() {
+  local env_file="$1"
+  [[ -f "$env_file" ]] || log_error "Missing env file: $env_file"
+
+  local video_gid render_gid
+  video_gid="$(detect_group_gid video || true)"
+  render_gid="$(detect_group_gid render || true)"
+
+  [[ -n "$video_gid" ]] || log_error "Could not detect 'video' group GID"
+  [[ -n "$render_gid" ]] || log_error "Could not detect 'render' group GID"
+
+  upsert_env_key "$env_file" "VIDEO_GID" "$video_gid"
+  upsert_env_key "$env_file" "RENDER_GID" "$render_gid"
+}
+
