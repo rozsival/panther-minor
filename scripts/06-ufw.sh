@@ -7,7 +7,7 @@ source "$(dirname "$0")/common.sh"
 # =============================================================================
 log_info "Configuring UFW..."
 
-ufw --force reset > /dev/null          # start from a clean state
+ufw --force reset          # start from a clean state
 ufw default deny incoming
 ufw default allow outgoing
 

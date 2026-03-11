@@ -19,7 +19,7 @@ SCRIPTS_PATH="${SCRIPT_DIR}/scripts"
 source "${SCRIPTS_PATH}/common.sh"
 
 # Clear previous actions if any
-cat /dev/null > "$ACTIONS_FILE"
+: > "$ACTIONS_FILE"
 
 # -- Execution -----------------------------------------------------------------
 echo -e "${BLUE}🐆 ${SERVER_NAME} setup starting...${NC}\n"
