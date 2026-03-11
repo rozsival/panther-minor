@@ -25,8 +25,8 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/renderD129:/dev/dri/renderD129
     group_add:
-      - video
-      - render
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-992}"
     environment:
       - HSA_OVERRIDE_GFX_VERSION=${ROCM_GFX_VERSION:-12.0.1}
       - OLLAMA_FLASH_ATTENTION=true
@@ -95,8 +95,8 @@ services:
       - /dev/dri/renderD128:/dev/dri/renderD128
       - /dev/dri/renderD129:/dev/dri/renderD129
     group_add:
-      - video
-      - render
+      - "${VIDEO_GID:-44}"
+      - "${RENDER_GID:-992}"
     ports:
       - "${GPU_EXPORTER_PORT:-5000}:5000"
     networks:
