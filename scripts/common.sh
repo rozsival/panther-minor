@@ -6,6 +6,21 @@ log_success() { echo -e "${GREEN}[OK]${NC}    $*"; }
 log_warn()    { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 log_error()   { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
+# -- Guards -------------------------------------------------------------------
+require_root() {
+  [[ $EUID -eq 0 ]] || log_error "This script must be run as root (use sudo)."
+}
+
+# Prompt for confirmation unless already confirmed by a parent (e.g. setup.sh).
+# Usage: confirm "Description of what is about to run"
+confirm() {
+  [[ "${PANTHER_CONFIRMED:-0}" == "1" ]] && return 0
+  local msg="${1:-Are you sure you want to continue?}"
+  echo -e "${YELLOW}[CONFIRM]${NC} $msg"
+  read -r -p "         Proceed? (y/N): " _reply
+  [[ "$_reply" =~ ^[Yy]$ ]] || { log_warn "Aborted."; exit 0; }
+}
+
 # -- Config -------------------------------------------------------------------
 SERVER_NAME=panther-minor
 ALLOWED_USER=vit
