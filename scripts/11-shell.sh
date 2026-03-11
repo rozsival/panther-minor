@@ -2,7 +2,7 @@
 set -euo pipefail
 source "$(dirname "$0")/common.sh"
 require_root
-confirm "Install Starship shell prompt."
+confirm "Set up shell with Starship prompt for ${ALLOWED_USER}."
 
 # =============================================================================
 # 11. Shell setup
