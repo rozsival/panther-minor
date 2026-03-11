@@ -1,5 +1,5 @@
 # General-purpose balanced model for common knowledge and daily assistant tasks
-FROM qwen3.5:35b-a3b-q8_0
+FROM qwen3:30b-a3b-thinking-2507-q8_0
 
 # Balanced defaults for broad usage.
 PARAMETER num_ctx 131072
