@@ -60,7 +60,7 @@ services:
     networks:
       - ai
     depends_on:
-      - ollama
+      - llama-cpp
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
