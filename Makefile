@@ -68,7 +68,7 @@ ollama-exporter-logs:
 	docker compose logs -f ollama-exporter
 
 # View logs for Open WebUI
-webui-logs:
+open-webui-logs:
 	docker compose logs -f open-webui
 
 # View logs for Prometheus
