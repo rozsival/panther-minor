@@ -26,7 +26,7 @@ HF_FILE=$(jq -r '.file' <<< "$MODEL_CONFIG")
 MODEL_NAME=$(jq -r '.name' <<< "$MODEL_CONFIG")
 
 # Use hf CLI to download the model files
-hf download "$HF_REPOSITORY" --include "$HF_FILE" --output-dir "$HF_DIR"
+hf download "$HF_REPOSITORY" "$HF_FILE" --local-dir "$HF_DIR"
 # Rename the downloaded file to the model name
 mv "$HF_DIR/$HF_FILE" "$HF_DIR/$MODEL_NAME.gguf"
 echo "Model '$MODEL_NAME' ready for use"
