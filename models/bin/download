@@ -12,6 +12,15 @@ fi
 
 assert_supported_model "$MODEL"
 
+# Load .env file to get the Hugging Face API token
+ENV_FILE="$MODELS_DIR/../.env"
+
+if [[ -f "$ENV_FILE" ]]; then
+  export "$(grep -v '^#' "$ENV_FILE" | xargs)"
+else
+  echo "Warning: .env file not found"
+fi
+
 # Extract the model object form `models` array in `config.json` file
 MODEL_CONFIG=$(jq -r --arg MODEL "$MODEL" '.models[] | select(.name == $MODEL)' "$CONFIG_FILE")
 
