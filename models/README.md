@@ -4,8 +4,8 @@
 |-----------------------|------------------------------------|----------------:|--------------:|--------------------------------------------------------------------------|
 | `panther-minor`       | `qwen3:30b-a3b-instruct-2507-q8_0` | `131072` (128k) | `16384` (16k) | Balanced general-purpose model for common knowledge and daily assistance |
 | `panther-coder`       | `qwen3-coder:30b-a3b-q8_0`         | `131072` (128k) | `16384` (16k) | Balanced default for daily coding work                                   |
-| `panther-coder-small` | `qwen3-coder:30b-a3b-q8_0`         |   `65536` (64k) |   `8192` (8k) | Fast responses for smaller coding tasks                                  |
-| `panther-coder-large` | `qwen3-coder:30b-a3b-q8_0`         | `262144` (256k) | `32768` (32k) | Heavy, highest precision for complex coding tasks                        |
+| `panther-coder-small` | `panter-coder`                     |   `65536` (64k) |   `8192` (8k) | Fast responses for smaller coding tasks                                  |
+| `panther-coder-large` | `panther-coder`                    | `262144` (256k) | `32768` (32k) | Heavy, highest precision for complex coding tasks                        |
 
 ## Usage
 
