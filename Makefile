@@ -63,6 +63,10 @@ model-remove:
 ollama-logs:
 	docker compose logs -f ollama
 
+# View logs for Ollama Metrics proxy
+ollama-metrics-logs:
+	docker compose logs -f ollama-metrics
+
 # View logs for Open WebUI
 webui-logs:
 	docker compose logs -f open-webui
