@@ -12,9 +12,18 @@ fi
 
 assert_supported_model "$MODEL"
 
-HF_REPOSITORY=$(jq -r '.repository' "$MODEL_FILE")
-HF_FILE=$(jq -r '.file' "$MODEL_FILE")
-MODEL_NAME=$(jq -r '.name' "$MODEL_FILE")
+# Extract the model object form `models` array in `config.json` file
+MODEL_CONFIG=$(jq -r --arg MODEL "$MODEL" '.models[] | select(.name == $MODEL)' "$CONFIG_FILE")
+
+if [[ -z "$MODEL_CONFIG" ]]; then
+  echo "Error: Model '$MODEL' not found in 'config.json'"
+  exit 1
+fi
+
+# Extract the repository and file information from the model configuration
+HF_REPOSITORY=$(jq -r '.repository' <<< "$MODEL_CONFIG")
+HF_FILE=$(jq -r '.file' <<< "$MODEL_CONFIG")
+MODEL_NAME=$(jq -r '.name' <<< "$MODEL_CONFIG")
 
 # Use hf CLI to download the model files
 hf downlod "$HF_REPOSITORY" --include "$HF_FILE" --output-dir "$HF_DIR"

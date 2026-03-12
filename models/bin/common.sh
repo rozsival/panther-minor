@@ -2,12 +2,13 @@
 DIR=$(dirname "$(realpath "$0")")
 MODELS_DIR="$DIR/.."
 HF_DIR="$MODELS_DIR/.huggingface"
+CONFIG_FILE="$MODELS_DIR/config.json"
 
 # List of supported models
 SUPPORTED_MODELS=()
 while IFS= read -r model; do
   SUPPORTED_MODELS+=("$model")
-done < <(jq -r '.models[] | .name' "$MODELS_DIR/config.json")
+done < <(jq -r '.models[] | .name' "$CONFIG_FILE")
 
 # Function to check if a model is supported
 function assert_supported_model() {
