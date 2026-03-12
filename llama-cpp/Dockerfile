@@ -14,8 +14,6 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     -DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \
     && cmake --build build --config Release -j$(nproc)
 
-WORKDIR /opt/llama-cpp/build
-
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
