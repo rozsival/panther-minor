@@ -21,14 +21,15 @@
 
 ### Tailscale/Local Only
 
-| Port | Service       | Config Variable     |
-|------|---------------|---------------------|
-| 8000 | Ollama API    | `OLLAMA_PORT`       |
-| 8080 | Open WebUI    | `OPEN_WEBUI_PORT`   |
-| 3000 | Grafana       | `GRAFANA_PORT`      |
-| 9090 | Prometheus    | `PROMETHEUS_PORT`   |
-| 5000 | GPU Exporter  | `OPEN_WEBUI_PORT`   |
-| 9100 | Node Exporter | Docker network only |
+| Port  | Service         | Config Variable     |
+|-------|-----------------|---------------------|
+| 8000  | Ollama API      | `OLLAMA_PORT`       |
+| 8080  | Open WebUI      | `OPEN_WEBUI_PORT`   |
+| 3000  | Grafana         | `GRAFANA_PORT`      |
+| 9090  | Prometheus      | `PROMETHEUS_PORT`   |
+| 5000  | GPU Exporter    | `GPU_EXPORTER_PORT` |
+| 9100  | Node Exporter   | Docker network only |
+| 11434 | Ollama Metrics  | Docker network only |
 
 ## Access
 
