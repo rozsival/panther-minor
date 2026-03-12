@@ -14,12 +14,19 @@ assert_supported_model "$MODEL"
 
 # Remove the model file
 if [[ -f "$HF_DIR/$MODEL.gguf" ]]; then
-  rm "$HF_DIR/$MODEL.gguf"
-elses
+  read -p "Model '$MODEL_NAME' already exists. Do you want to overwrite it? (y/n) " -n 1 -r
+  echo
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborting removal"
+    exit 0
+  fi
+else
   echo "Error: Model '$MODEL' not found in local directory"
   exit 1
 fi
 
+rm "$HF_DIR/$MODEL.gguf"
 echo "Model '$MODEL' removed"
 
 
