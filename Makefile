@@ -12,6 +12,13 @@ stop:
 cleanup:
 	docker compose down -v --rmi all --remove-orphans
 
+# Build Docker images for the cluster
+build:
+	docker compose build
+
+build-no-cache:
+	docker compose build --no-cache
+
 # -- Logs ---------------------------------------------------------------------
 
 # View logs for llama.cpp service
