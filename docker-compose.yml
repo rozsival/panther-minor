@@ -49,7 +49,7 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.8.10
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: http://llama-cpp:8080/v1
+      OPENAI_API_BASE_URL: http://llama-cpp:8000/v1
       OPENAI_API_KEY: "llama-cpp"
       WEBUI_AUTH: "false"
     volumes:

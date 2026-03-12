@@ -92,10 +92,10 @@ ssh -p 2222 vit@panther-minor
 ```
 
 > [!TIP]
-> You most likely want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
+> Most likely you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
 > in Tailscale to avoid losing access.
 
-## Ollama Cluster
+## llama.cpp Cluster
 
 Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
 
@@ -103,45 +103,38 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 See `.env` for configurable parameters. Defaults are provided for all variables.
 
-### Start
+> [!NOTE]
+> It is highly recommended to set `HF_TOKEN` in `.env` with a [valid token](https://huggingface.co/settings/tokens) to
+> avoid rate limits when downloading models from Hugging Face.
 
-On first start, register the model from its local `Modelfile` (see [Models](./models/README.md)):
+### Model Management
 
-```bash
-make model-create
-```
+See [Models](./models/README.md) for supported models and their usage.
 
-Then, start the Ollama cluster:
+### Run the Cluster
+
+To build and start the cluster, run:
 
 ```bash
 make start
 ```
 
-#### Model Management
-
-| Target              | Command         | Effect                      |
-|---------------------|-----------------|-----------------------------|
-| `make model-create` | `ollama create` | Build/update from Modelfile |
-| `make model-run`    | `ollama run`    | Interactive run (verbose)   |
-| `make model-stop`   | `ollama stop`   | Unload from memory          |
-| `make model-remove` | `ollama rm`     | Delete from Ollama          |
-
-### Ollama CLI
-
-Run any [Ollama CLI](https://docs.ollama.com/cli) command inside the running service:
+To only rebuild the cluster without starting:
 
 ```bash
-docker compose exec ollama ollama <command>
+make build
+# or without cache (e.g. after config changes):
+make build-no-cache
 ```
 
 ### Services
 
-| Service               | URL                             | Credentials       |
-|-----------------------|---------------------------------|-------------------|
-| OpenAI-compatible API | `http://panther-minor:11434/v1` | —                 |
-| Open WebUI (chat)     | `http://panther-minor:8080`     | —                 |
-| Grafana (monitoring)  | `http://panther-minor:3000`     | `admin` / `admin` |
-| Prometheus            | `http://panther-minor:9090`     | —                 |
+| Service               | URL                            | Credentials       |
+|-----------------------|--------------------------------|-------------------|
+| OpenAI-compatible API | `http://panther-minor:8000/v1` | —                 |
+| Open WebUI (chat)     | `http://panther-minor:8080`    | —                 |
+| Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
+| Prometheus            | `http://panther-minor:9090`    | —                 |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
