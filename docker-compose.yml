@@ -7,74 +7,51 @@ networks:
 
 # -- Persistent volumes -------------------------------------------------------
 volumes:
+  llama-cpp-data:
+  open-webui-data:
   prometheus-data:
   grafana-data:
-  ollama-data:
-  open-webui-data:
 
 services:
-  # -- Ollama (llama.cpp wrapper) ---------------------------------------------
+  # -- llama.cpp ---------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
-  ollama:
+  llama-cpp:
     # https://github.com/ollama/ollama/pull/13000
-    image: ghcr.io/rjmalagon/ollama-linux-amd-apu:v0.16.2
+    build:
+      context: ./models
     privileged: true
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
-      - /dev/dri/renderD128:/dev/dri/renderD128
-      - /dev/dri/renderD129:/dev/dri/renderD129
+      - /dev/dri:/dev/dri
     group_add:
       - "${VIDEO_GID:-44}"
       - "${RENDER_GID:-992}"
     environment:
-      - HSA_OVERRIDE_GFX_VERSION=${ROCM_GFX_VERSION:-12.0.1}
-      - OLLAMA_FLASH_ATTENTION=true
-      - OLLAMA_HOST=0.0.0.0:11434
-      - OLLAMA_KEEP_ALIVE=24h
-      - OLLAMA_LLM_LIBRARY=rocm_${ROCM_VERSION:-v7}
-      - OLLAMA_SCHED_SPREAD=${MODEL_SCHED_SPREAD:-true}
-      - OLLAMA_MAX_LOADED_MODELS=${MODEL_MAX_COUNT:-1}
-      - ROCR_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
+      - HF_TOKEN=${HF_TOKEN:-}
+      - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
+    command: [ "${MODEL:-panther-minor" ]
     volumes:
-      - ollama-data:/root/.ollama
-      - ./models:/models:ro
+      - llama-cpp-data:/root/.cache/huggingface
+      - ./models:/models
     ports:
-      - "11434:11434"
+      - "8000:8000"
     networks:
       - ai
     healthcheck:
-      test: [ "CMD-SHELL", "ollama --version || exit 1" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 60s
-
-  # -- Ollama exporter ------------------
-  ollama-metrics:
-    image: lucabecker42/ollama-exporter:1.0.1
-    restart: unless-stopped
-    environment:
-      - API_TIMEOUT=30
-      - INTERVAL=15
-      - LOG_LEVEL=info
-      - OLLAMA_HOST=http://ollama:11434
-      - PORT=8000
-    expose:
-      - 8000
-    networks:
-      - ai
-    depends_on:
-      ollama:
-        condition: service_healthy
 
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
     image: ghcr.io/open-webui/open-webui:v0.8.10
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: http://ollama:11434/v1
-      OPENAI_API_KEY: "ollama"
+      OPENAI_API_BASE_URL: http://llama-cpp:8080/v1
+      OPENAI_API_KEY: "llama-cpp"
       WEBUI_AUTH: "false"
     volumes:
       - open-webui-data:/app/backend/data
@@ -84,7 +61,6 @@ services:
       - ai
     depends_on:
       - ollama
-      - ollama-metrics
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
@@ -146,7 +122,6 @@ services:
     depends_on:
       - node-exporter
       - amd-gpu-exporter
-      - ollama-metrics
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
