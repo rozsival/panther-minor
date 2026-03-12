@@ -30,7 +30,7 @@ services:
     environment:
       - HF_TOKEN=${HF_TOKEN:-}
       - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
-    command: [ "${MODEL:-panther-minor" ]
+    command: [ "${MODEL:-panther-minor}" ]
     volumes:
       - llama-cpp-data:/root/.cache/huggingface
       - ./models:/models
