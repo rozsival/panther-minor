@@ -1,4 +1,4 @@
-# -- llama.cpp build for AMD ROCm 7 -------------------------------------------------
+# -- llama.cpp build for AMD ROCm 7 and gfx1201 -------------------------------
 FROM rocm/dev-ubuntu-24.04:7.0-complete
 
 RUN apt update
