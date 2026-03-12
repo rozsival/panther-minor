@@ -11,9 +11,6 @@ volumes:
   open-webui-data:
   prometheus-data:
   grafana-data:
-  ollama-data:
-  open-webui-data:
-  openfang-data:
 
 services:
   # -- llama.cpp --------------------------------------------------------------
@@ -98,6 +95,23 @@ services:
       - ai
     depends_on:
       - llama-cpp
+
+  # -- OpenFang ---------------------------------------------------------------
+  openfang:
+    build:
+      context: ./openfang
+      args:
+        - MODEL=${MODEL:-panther-coder}
+    restart: unless-stopped
+    ports:
+      - "50051:50051"
+    volumes:
+      - openfang-data:/home/openfang/.openfang/data
+    networks:
+      - ai
+    depends_on:
+      llama-cpp:
+        condition: service_healthy
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
@@ -199,20 +213,3 @@ services:
       - open-webui
       - grafana
       - prometheus
-
-  # -- OpenFang ---------------------------------------------------------------
-  openfang:
-    build:
-      context: ./openfang
-      args:
-        - MODEL=${MODEL:-panther-coder}
-    restart: unless-stopped
-    ports:
-      - "${OPENFANG_PORT:-4200}:4200"
-    volumes:
-      - openfang-data:/home/openfang/.openfang/data
-    networks:
-      - ai
-    depends_on:
-      ollama:
-        condition: service_healthy

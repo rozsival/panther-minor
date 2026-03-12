@@ -6,29 +6,28 @@ RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
         ca-certificates \
         curl \
-        dpkg
+        dpkg \
+    	libssl3
 RUN rm -rf /var/lib/apt/lists/*
 
 # Create openfang user and set up home directory
 RUN useradd -m openfang
 USER openfang
-WORKDIR /home/openfang
+WORKDIR /home/openfang/.openfang
 
 # Install OpenFang and make the binary available on PATH
 RUN curl -fsSL https://openfang.sh/install | sh
 ENV PATH="/home/openfang/.openfang/bin:${PATH}"
 
 # Prepare workspace
-RUN mkdir -p ./.openfang/agents
-RUN mkdir -p ./.openfang/data
+RUN mkdir -p ./agents
+RUN mkdir -p ./data
 
 # Configure OpenFang
-ARG MODEL=""
-COPY --chown="openfang" config.toml ./.openfang/
-RUN echo "model = \"${MODEL}\"" >> ./.openfang/config.toml
+COPY --chown=openfang config.toml .
 
 # Run OpenFang
-EXPOSE 4200/tcp
-#ENTRYPOINT ["openfang"]
-#CMD ["start"]
-CMD ["sh", "-c", "echo 'OpenFang'"]
+WORKDIR /home/openfang
+EXPOSE 50051/tcp
+ENTRYPOINT ["openfang"]
+CMD ["start"]
