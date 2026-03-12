@@ -17,12 +17,11 @@ The AI Workstation Setup
 - Above 4G decoding enabled
 - Resize BAR enabled
 - iGPU disabled
-- PCIe slots set to Gen4 and x8/x8 mode
+- PCIe slots set to Gen5 and x8/x8 mode
 - M2_1 slot set to Gen4 for NVMe SSD
 
 > [!NOTE]
-> Gen4 is the sweet spot for system stability in heavy GPU workloads. Gen5 performance gains are marginal but the two
-> GPUs and NVMe drive at Gen5 can cause instability under load.
+> Gen5 GPU vs Gen4 SSD is the sweet spot for maximizing GPU performance while maintaining system stability.
 
 ### Software
 

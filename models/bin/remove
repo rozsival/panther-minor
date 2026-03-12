@@ -13,7 +13,13 @@ fi
 assert_supported_model "$MODEL"
 
 # Remove the model file
-rm -f "$HF_DIR/$MODEL_NAME"
-echo "Model '$MODEL_NAME' removed"
+if [[ -f "$HF_DIR/$MODEL.gguf" ]]; then
+  rm "$HF_DIR/$MODEL.gguf"
+elses
+  echo "Error: Model '$MODEL' not found in local directory"
+  exit 1
+fi
+
+echo "Model '$MODEL' removed"
 
 
