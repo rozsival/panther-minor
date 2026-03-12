@@ -1,4 +1,9 @@
+# IDE
 .idea
 .vscode
+
+# Environment
 .env
+
+# Hugging Face cache
 /models/.huggingface
