@@ -18,7 +18,7 @@ services:
   llama-cpp:
     # https://github.com/ollama/ollama/pull/13000
     build:
-      context: ./models
+      context: ./llama-cpp
     privileged: true
     restart: unless-stopped
     devices:
