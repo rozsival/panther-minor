@@ -1,7 +1,7 @@
 # -- llama.cpp cluster --------------------------------------------------------
 
 # Start cluster
-start:
+start: build
 	docker compose up -d
 
 # Stop cluster

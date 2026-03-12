@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# -- Remove previously downloaded model from the local directory --------------
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+
+MODEL=${1:-}
+
+if [[ -z "$MODEL" ]]; then
+  echo "Usage: $0 <model-name>"
+  exit 1
+fi
+
+assert_supported_model "$MODEL"
+
+# Remove the model file
+rm -f "$HF_DIR/$MODEL_NAME"
+echo "Model '$MODEL_NAME' removed"
+
+
