@@ -4,22 +4,47 @@
     {
       "name": "panther-minor",
       "repository": "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF",
-      "file": "Qwen3-30B-A3B-Instruct-2507-Q8_0.gguf"
+      "file": "Qwen3-30B-A3B-Instruct-2507-Q8_0.gguf",
+      "params": {
+        "ctx-size": 131072,
+        "n-predict": 16384
+      }
     },
     {
       "name": "panther-coder",
       "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
+      "params": {
+        "ctx-size": 131072,
+        "n-predict": 16384,
+        "temp": 0.0,
+        "top-p": 0.9,
+        "repetition-penalty": 1.1
+      }
     },
     {
       "name": "panther-coder-small",
       "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
+      "params": {
+        "ctx-size": 65536,
+        "n-predict": 8192,
+        "temp": 0.0,
+        "top-p": 0.9,
+        "repetition-penalty": 1.1
+      }
     },
     {
       "name": "panther-coder-large",
       "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
+      "params": {
+        "ctx-size": 262144,
+        "n-predict": 32768,
+        "temp": 0.0,
+        "top-p": 0.9,
+        "repetition-penalty": 1.1
+      }
     }
   ]
 }
