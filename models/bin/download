@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# -- Download a model from Hugging Face ---------------------------------------
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+
+MODEL=${1:-}
+
+if [[ -z "$MODEL" ]]; then
+  echo "Usage: $0 <model-name>"
+  exit 1
+fi
+
+assert_supported_model "$MODEL"
+
+HF_REPOSITORY=$(jq -r '.repository' "$MODEL_FILE")
+HF_FILE=$(jq -r '.file' "$MODEL_FILE")
+MODEL_NAME=$(jq -r '.name' "$MODEL_FILE")
+
+# Use hf CLI to download the model files
+hf downlod "$HF_REPOSITORY" --include "$HF_FILE" --output-dir "$HF_DIR"
+# Rename the downloaded file to the model name
+mv "$HF_DIR/$HF_FILE" "$HF_DIR/$MODEL_NAME.gguf"
+echo "Model '$MODEL_NAME' ready for use"

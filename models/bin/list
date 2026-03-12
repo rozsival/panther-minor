@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# -- List supported models ----------------------------------------------------
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+
+echo "Supported models:"
+for model in "${SUPPORTED_MODELS[@]}"; do
+  echo "- $model"
+done
+
+

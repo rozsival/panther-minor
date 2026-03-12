@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "models": [
+    {
+      "name": "panther-minor",
+      "repository": "unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF",
+      "file": "Qwen3-30B-A3B-Instruct-2507-Q8_0.gguf"
+    },
+    {
+      "name": "panther-coder",
+      "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+    },
+    {
+      "name": "panther-coder-small",
+      "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+    },
+    {
+      "name": "panther-coder-large",
+      "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
+      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf"
+    }
+  ]
+}
