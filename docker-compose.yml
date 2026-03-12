@@ -68,6 +68,24 @@ services:
       ollama:
         condition: service_healthy
 
+  # -- Open WebUI (chat interface) --------------------------------------------
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:v0.8.10
+    restart: unless-stopped
+    environment:
+      OPENAI_API_BASE_URL: http://ollama:11434/v1
+      OPENAI_API_KEY: "ollama"
+      WEBUI_AUTH: "false"
+    volumes:
+      - open-webui-data:/app/backend/data
+    ports:
+      - "8080:8080"
+    networks:
+      - ai
+    depends_on:
+      - ollama
+      - ollama-metrics
+
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
     image: rocm/device-metrics-exporter:v1.5.0-beta.0
@@ -128,26 +146,6 @@ services:
     depends_on:
       - node-exporter
       - amd-gpu-exporter
-      - ollama-metrics
-
-  # -- Open WebUI (chat interface) --------------------------------------------
-  open-webui:
-    image: ghcr.io/open-webui/open-webui:v0.8.10
-    restart: unless-stopped
-    environment:
-      # Route through the metrics sidecar so token stats are captured
-      OPENAI_API_BASE_URL: http://ollama-metrics:11434/v1
-      OPENAI_API_KEY: "ollama"
-      # Disable login — this is a private local server
-      WEBUI_AUTH: "false"
-    volumes:
-      - open-webui-data:/app/backend/data
-    ports:
-      - "8080:8080"
-    networks:
-      - ai
-    depends_on:
-      - ollama
       - ollama-metrics
 
   # -- Grafana ----------------------------------------------------------------
