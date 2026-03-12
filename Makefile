@@ -15,6 +15,9 @@ stop-volumes:
 cleanup:
 	docker compose down -v --rmi all --remove-orphans
 
+# Restart cluster
+restart: stop start
+
 # Build Docker images for the cluster
 build:
 	docker compose build
