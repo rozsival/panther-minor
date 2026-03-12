@@ -21,12 +21,12 @@
 
 ### Tailscale/Local Only
 
-| Port  | Service      |
-|-------|--------------|
-| 11434 | Ollama API   |
-| 8080  | Open WebUI   |
-| 3000  | Grafana      |
-| 9090  | Prometheus   |
+| Port | Service              |
+|------|----------------------|
+| 8000 | llama.cpp server API |
+| 8080 | Open WebUI           |
+| 3000 | Grafana              |
+| 9090 | Prometheus           |
 
 ## Access
 
@@ -53,7 +53,6 @@ curl http://localhost:11434/v1/models
 
 ## Config Files
 
-- `.env` - port configuration
 - `docker-compose.yml` - service definitions
 - `scripts/06-ufw.sh` - firewall rules
 - `scripts/common.sh` - SSH port

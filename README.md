@@ -95,7 +95,7 @@ ssh -p 2222 <user>@panther-minor
 > Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
 > in Tailscale to avoid losing access.
 
-## llama.cpp Cluster
+## LLaMA.cpp Cluster
 
 Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
 
@@ -138,9 +138,6 @@ make build-no-cache
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
-
-The **Panther Minor** dashboard in Grafana shows GPU utilization, VRAM, temperature, power draw, CPU/RAM usage, and
-Ollama request metrics.
 
 ### Stop
 

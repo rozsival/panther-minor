@@ -16,7 +16,6 @@ services:
   # -- llama.cpp ---------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   llama-cpp:
-    # https://github.com/ollama/ollama/pull/13000
     build:
       context: ./llama-cpp
     privileged: true
