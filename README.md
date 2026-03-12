@@ -57,7 +57,7 @@ The script will automatically configure:
 
 - **Disk** — extends LVM logical volume to full disk capacity (`ubuntu-vg/ubuntu-lv`)
 - **Essential Packages** — `build-essential`, `jq`, `nvtop`, `htop`, etc. with auto updates
-- **Homebrew** — installs Homebrew and `llmfit` for `vit` user
+- **Homebrew** — installs Homebrew,`llmfit` and `huggingface-cli` for `vit` user
 - **Docker** — installs Docker Engine and Docker Compose
 - **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
@@ -92,7 +92,7 @@ ssh -p 2222 vit@panther-minor
 ```
 
 > [!TIP]
-> Most likely you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
+> Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
 > in Tailscale to avoid losing access.
 
 ## llama.cpp Cluster

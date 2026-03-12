@@ -35,8 +35,11 @@ if [ -n "$BREW_PREFIX" ]; then
 
   log_info "Installing LLMFit via Homebrew..."
   sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew install llmfit"
-
   log_success "LLMFit installed via Homebrew for user ${ALLOWED_USER}."
+
+  log_info "Installing Hugging Face CLI via Homebrew..."
+  sudo -u "${ALLOWED_USER}" bash -c "${BREW_PREFIX}/bin/brew install huggingface-cli"
+  log_success "Hugging Face CLI installed via Homebrew for user ${ALLOWED_USER}."
 else
   log_error "Homebrew installation failed."
 fi
