@@ -27,4 +27,4 @@ while IFS=$'\t' read -r key value; do
 done < <(jq -r '.params | to_entries | .[] | "\(.key)\t\(.value)"' "$CONFIG_FILE")
 
 echo "Launching llama-server with dynamic args: $ARGS"
-exec /app/llama-server --host 0.0.0.0 --port 8000 --flash-attn on --numa distribute --split-mode layer -- "$ARGS"
+exec /app/llama-server --host 0.0.0.0 --port 8000 --flash-attn on --numa distribute --split-mode layer "$ARGS"
