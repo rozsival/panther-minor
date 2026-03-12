@@ -30,8 +30,8 @@ services:
       - HF_TOKEN=${HF_TOKEN:-}
       - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
     volumes:
-      - llama-cpp-data:/root/.cache/huggingface
-      - ./models:/models
+      - llama-cpp-data:/root/.cache
+      - ./models:/models:ro
     ports:
       - "8000:8000"
     networks:
@@ -100,8 +100,8 @@ services:
     image: prom/prometheus:v3.10.0
     restart: unless-stopped
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus-data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus"
