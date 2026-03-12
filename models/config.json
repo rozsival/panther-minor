@@ -3,8 +3,8 @@
   "models": [
     {
       "name": "panther-minor",
-      "repository": "unsloth/Qwen3.5-35B-A3B-GGUF",
-      "file": "Qwen3.5-35B-A3B-Q8_0.gguf"
+      "repository": "unsloth/Llama-3.3-70B-Instruct-GGUF",
+      "file": "Llama-3.3-70B-Instruct-Q4_0.gguf"
     },
     {
       "name": "panther-coder",
