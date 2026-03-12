@@ -30,7 +30,7 @@ services:
     environment:
       - HSA_OVERRIDE_GFX_VERSION=${ROCM_GFX_VERSION:-12.0.1}
       - OLLAMA_FLASH_ATTENTION=true
-      - OLLAMA_HOST=0.0.0.0:8000
+      - OLLAMA_HOST=0.0.0.0:11434
       - OLLAMA_KEEP_ALIVE=24h
       - OLLAMA_LLM_LIBRARY=rocm_${ROCM_VERSION:-v7}
       - OLLAMA_SCHED_SPREAD=${MODEL_SCHED_SPREAD:-true}
@@ -39,8 +39,8 @@ services:
     volumes:
       - ollama-data:/root/.ollama
       - ./models:/models:ro
-    expose:
-      - 8000
+    ports:
+      - "11434:11434"
     networks:
       - ai
     healthcheck:
@@ -50,20 +50,23 @@ services:
       retries: 5
       start_period: 60s
 
-  # -- Ollama metrics sidecar (proxy + Prometheus exporter) ------------------
-  # Transparently proxies all Ollama API traffic and exposes /metrics
+  # -- Ollama exporter ------------------
   ollama-metrics:
-    image: ghcr.io/norskhelsenett/ollama-metrics:latest
+    image: lucabecker42/ollama-exporter:1.0.1
     restart: unless-stopped
     environment:
-      - OLLAMA_HOST=http://ollama:8000
-      - PORT=11434
-    ports:
-      - "11434:11434"
+      - API_TIMEOUT=30
+      - INTERVAL=15
+      - LOG_LEVEL=info
+      - OLLAMA_HOST=http://ollama:11434
+      - PORT=8000
+    expose:
+      - 8000
     networks:
       - ai
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:

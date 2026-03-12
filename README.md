@@ -136,12 +136,12 @@ docker compose exec ollama ollama <command>
 
 ### Services
 
-| Service               | URL                            | Credentials       |
-|-----------------------|--------------------------------|-------------------|
-| OpenAI-compatible API | `http://panther-minor:8000/v1` | —                 |
-| Open WebUI (chat)     | `http://panther-minor:8080`    | —                 |
-| Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
-| Prometheus            | `http://panther-minor:9090`    | —                 |
+| Service               | URL                             | Credentials       |
+|-----------------------|---------------------------------|-------------------|
+| OpenAI-compatible API | `http://panther-minor:11434/v1` | —                 |
+| Open WebUI (chat)     | `http://panther-minor:8080`     | —                 |
+| Grafana (monitoring)  | `http://panther-minor:3000`     | `admin` / `admin` |
+| Prometheus            | `http://panther-minor:9090`     | —                 |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
