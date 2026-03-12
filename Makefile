@@ -8,6 +8,9 @@ start:
 stop:
 	docker compose down
 
+stop-volumes:
+	docker compose down -v
+
 # Remove all Docker resources associated with the cluster
 cleanup:
 	docker compose down -v --rmi all --remove-orphans
