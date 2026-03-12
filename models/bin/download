@@ -34,8 +34,19 @@ HF_REPOSITORY=$(jq -r '.repository' <<< "$MODEL_CONFIG")
 HF_FILE=$(jq -r '.file' <<< "$MODEL_CONFIG")
 MODEL_NAME=$(jq -r '.name' <<< "$MODEL_CONFIG")
 
+# If model file already exists, prompt the user to confirm overwriting it
+if [[ -f "$HF_DIR/$MODEL_NAME.gguf" ]]; then
+  read -p "Model '$MODEL_NAME' already exists. Do you want to overwrite it? (y/n) " -n 1 -r
+  echo
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborting download"
+    exit 0
+  fi
+fi
+
 # Use hf CLI to download the model files
 hf download "$HF_REPOSITORY" "$HF_FILE" --local-dir "$HF_DIR"
-# Rename the downloaded file to the model name
-mv "$HF_DIR/$HF_FILE" "$HF_DIR/$MODEL_NAME.gguf"
+# Rename the downloaded file to the model name (with overwrite if it already exists)
+mv -f "$HF_DIR/$HF_FILE" "$HF_DIR/$MODEL_NAME.gguf"
 echo "Model '$MODEL_NAME' ready for use"
