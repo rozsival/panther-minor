@@ -13,30 +13,27 @@
 
 ### Public Internet Access
 
-| Port | Service | Description                   |
-|------|---------|-------------------------------|
-| 2222 | SSH     | Hardened (key-only, fail2ban) |
-| 80   | HTTP    | Future web services           |
-| 443  | HTTPS   | Future web services           |
+| Port | Service |
+|------|---------|
+| 2222 | SSH     |
+| 80   | HTTP    |
+| 443  | HTTPS   |
 
 ### Tailscale/Local Only
 
-| Port  | Service         | Config Variable     |
-|-------|-----------------|---------------------|
-| 8000  | Ollama API      | `OLLAMA_PORT`       |
-| 8080  | Open WebUI      | `OPEN_WEBUI_PORT`   |
-| 3000  | Grafana         | `GRAFANA_PORT`      |
-| 9090  | Prometheus      | `PROMETHEUS_PORT`   |
-| 5000  | GPU Exporter    | `GPU_EXPORTER_PORT` |
-| 9100  | Node Exporter   | Docker network only |
-| 11434 | Ollama Metrics  | Docker network only |
+| Port  | Service      |
+|-------|--------------|
+| 11434 | Ollama API   |
+| 8080  | Open WebUI   |
+| 3000  | Grafana      |
+| 9090  | Prometheus   |
 
 ## Access
 
 ### Via Tailscale (Recommended)
 
 ```bash
-curl http://panther-minor:8000/v1/models
+curl http://panther-minor:11434/v1/models
 open http://panther-minor:8080
 ssh -p 2222 vit@panther-minor
 ```
@@ -51,7 +48,7 @@ open http://localhost:8080
 ### Direct (On Host)
 
 ```bash
-curl http://localhost:8000/v1/models
+curl http://localhost:11434/v1/models
 ```
 
 ## Config Files

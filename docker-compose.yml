@@ -39,8 +39,8 @@ services:
     volumes:
       - ollama-data:/root/.ollama
       - ./models:/models:ro
-    ports:
-      - "${OLLAMA_PORT:-8000}:8000"
+    expose:
+      - 8000
     networks:
       - ai
     healthcheck:
@@ -58,8 +58,8 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:8000
       - PORT=11434
-    expose:
-      - 11434
+    ports:
+      - "11434:11434"
     networks:
       - ai
     depends_on:
@@ -76,8 +76,8 @@ services:
     group_add:
       - "${VIDEO_GID:-44}"
       - "${RENDER_GID:-992}"
-    ports:
-      - "${GPU_EXPORTER_PORT:-5000}:5000"
+    expose:
+      - 5000
     networks:
       - ai
 
@@ -140,7 +140,7 @@ services:
     volumes:
       - open-webui-data:/app/backend/data
     ports:
-      - "${OPEN_WEBUI_PORT:-8080}:8080"
+      - "8080:8080"
     networks:
       - ai
     depends_on:
@@ -161,7 +161,7 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     ports:
-      - "${GRAFANA_PORT:-3000}:3000"
+      - "3000:3000"
     networks:
       - ai
     depends_on:
