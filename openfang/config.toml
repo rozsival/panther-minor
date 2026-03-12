@@ -1,4 +1,5 @@
 [default_model]
 provider = "ollama"
 api_key_env = ""
-base_url = "http://ollama:8080/v1"
+base_url = "http://llama-cpp:8000/v1"
+model = "panther-minor"
