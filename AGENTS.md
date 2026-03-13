@@ -20,7 +20,7 @@ for monitoring GPU and node performance.
 
 1. **Use llama.cpp only** — custom build in `llama-cpp/Dockerfile` with ROCm v7 and `gfx1201` support
 2. **Package manager** — `apt` only (never `apt-get`)
-3. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation
+3. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
 
 ## Key Files
 
