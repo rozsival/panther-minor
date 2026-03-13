@@ -8,6 +8,7 @@ confirm "Install essential packages."
 # 1. Essential Packages
 # =============================================================================
 log_info "Updating system and installing essential packages..."
+
 apt update
 apt upgrade -y
 apt install -y \
