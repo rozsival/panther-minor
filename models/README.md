@@ -2,7 +2,7 @@
 
 | Model           | Base                                | Context         | Purpose                                                                  |
 |-----------------|-------------------------------------|-----------------|--------------------------------------------------------------------------|
-| `panther-minor` | `Qwen3-Next-80B-A3B-Instruct-Q4_0`  | `65536` (64k)   | Balanced general-purpose model for common knowledge and daily assistance |
+| `panther-minor` | `Qwen3-30B-A3B-Instruct-2507-Q8_0`  | `131072` (128k) | Balanced general-purpose model for common knowledge and daily assistance |
 | `panther-coder` | `Qwen3-Coder-30B-A3B-Instruct-Q8_0` | `131072` (128k) | Balanced default for daily coding work                                   |
 
 ## Usage
