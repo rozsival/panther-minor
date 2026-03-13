@@ -4,7 +4,7 @@
 | ------------------------- | ------------------------------------------- | ---- | --- | ------------------------------------------------------------------------ |
 | `panther-minor`           | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 128k | 8   | Balanced general-purpose model for common knowledge and daily assistance |
 | `panther-minor-thinking`  | `panther-minor`                             | –    | –   | 🧠                                                                       |
-| `panther-blazer`          | `unsloth/Qwen3.5-4B-GGUF`                   | 128k | 8   | Light-weight general-purpose model for fast inference                    |
+| `panther-blazer`          | `unsloth/Qwen3.5-2B-GGUF`                   | 128k | 8   | Light-weight general-purpose model for fast inference                    |
 | `panther-blazer-thinking` | `panther-blazer`                            | –    | –   | 🧠                                                                       |
 | `panther-coder`           | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 128k | 8   | Balanced default for daily coding work                                   |
 | `panther-coder-next`      | `unsloth/Qwen3-Coder-Next-GGUF`             | 128k | 4   | Powerful model for complex coding tasks and planning                     |
