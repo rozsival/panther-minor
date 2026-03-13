@@ -104,7 +104,7 @@ services:
         - MODEL=${MODEL:-panther-coder}
     restart: unless-stopped
     ports:
-      - "50051:50051"
+      - "4200:4200"
     volumes:
       - openfang-data:/home/openfang/.openfang/data
     networks:
