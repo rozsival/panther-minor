@@ -28,6 +28,6 @@ COPY --chown=openfang config.toml .
 
 # Run OpenFang
 WORKDIR /home/openfang
-EXPOSE 50051/tcp
+EXPOSE 4200/tcp
 ENTRYPOINT ["openfang"]
 CMD ["start"]
