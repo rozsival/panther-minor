@@ -1,9 +1,13 @@
 # Models
 
-| Model           | Base                                | Context         | Purpose                                                                  |
-| --------------- | ----------------------------------- | --------------- | ------------------------------------------------------------------------ |
-| `panther-minor` | `Qwen3-30B-A3B-Instruct-2507-Q8_0`  | `131072` (128k) | Balanced general-purpose model for common knowledge and daily assistance |
-| `panther-coder` | `Qwen3-Coder-30B-A3B-Instruct-Q8_0` | `131072` (128k) | Balanced default for daily coding work                                   |
+| Model                     | Base                                        | Ctx  | Q   | Purpose                                                                  |
+| ------------------------- | ------------------------------------------- | ---- | --- | ------------------------------------------------------------------------ |
+| `panther-minor`           | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 128k | 8   | Balanced general-purpose model for common knowledge and daily assistance |
+| `panther-minor-thinking`  | `panther-minor`                             | –    | –   | 🧠                                                                       |
+| `panther-blazer`          | `unsloth/Qwen3.5-9B-GGUF`                   | 128k | 8   | Light-weight general-purpose model for fast inference                    |
+| `panther-blazer-thinking` | `panther-blazer`                            | –    | –   | 🧠                                                                       |
+| `panther-coder`           | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 128k | 8   | Balanced default for daily coding work                                   |
+| `panther-coder-next`      | `unsloth/Qwen3-Coder-Next-GGUF`             | 128k | 4   | Slow but powerful model for complex coding tasks and planning            |
 
 ## Usage
 
