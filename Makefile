@@ -25,6 +25,10 @@ build:
 build-no-cache:
 	docker compose build --no-cache
 
+# Update repo from upstream
+update:
+	git pull --rebase
+
 # -- Logs ---------------------------------------------------------------------
 
 # View logs for llama.cpp service
