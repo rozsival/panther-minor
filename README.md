@@ -70,6 +70,7 @@ The script will automatically configure:
 
 > [!TIP]
 > You can also run individual scripts from `scripts/` for specific configurations, e.g. to re-run SSH hardening:
+>
 > ```bash
 > sudo bash panther-minor/scripts/05-ssh.sh
 > ```
@@ -129,7 +130,7 @@ make build-no-cache
 ### Services
 
 | Service               | URL                            | Credentials       |
-|-----------------------|--------------------------------|-------------------|
+| --------------------- | ------------------------------ | ----------------- |
 | OpenAI-compatible API | `http://panther-minor:8000/v1` | —                 |
 | Open WebUI (chat)     | `http://panther-minor:8080`    | —                 |
 | Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
