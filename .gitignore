@@ -5,5 +5,8 @@
 # Environment
 .env
 
+# NPM
+node_modules
+
 # Hugging Face cache
 /models/.huggingface
