@@ -1,11 +1,9 @@
 # Models
 
-| Model                 | Base                                | Context         | Output        | Purpose                                                                  |
-|-----------------------|-------------------------------------|-----------------|---------------|--------------------------------------------------------------------------|
-| `panther-minor`       | `Llama-3.3-70B-Instruct-Q4_0`       | `131072` (128k) | `32768` (32k) | Balanced general-purpose model for common knowledge and daily assistance |
-| `panther-coder`       | `Qwen3-Coder-30B-A3B-Instruct-Q8_0` | `131072` (128k) | `16384` (16k) | Balanced default for daily coding work                                   |
-| `panther-coder-small` | `panther-coder`                     | `65536` (64k)   | `8192` (8k)   | Fast responses for smaller coding tasks                                  |
-| `panther-coder-large` | `panther-coder`                     | `262144` (256k) | `32768` (32k) | Heavy, highest precision for complex coding tasks                        |
+| Model           | Base                                | Context         | Purpose                                                                  |
+|-----------------|-------------------------------------|-----------------|--------------------------------------------------------------------------|
+| `panther-minor` | `Qwen3-Next-80B-A3B-Instruct-Q4_0`  | `65536` (64k)   | Balanced general-purpose model for common knowledge and daily assistance |
+| `panther-coder` | `Qwen3-Coder-30B-A3B-Instruct-Q8_0` | `131072` (128k) | Balanced default for daily coding work                                   |
 
 ## Usage
 
