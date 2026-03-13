@@ -1,14 +1,18 @@
 # -- llama.cpp build for AMD ROCm 7 and gfx1201 -------------------------------
 FROM rocm/dev-ubuntu-24.04:7.0-complete
 
+ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp
+ARG LLAMA_CPP_REF=b8312
+ARG LLAMA_CPP_ROCM_ARCH=gfx1201
+
 RUN apt update
 RUN apt install -y cmake git libcurl4-openssl-dev nano
 RUN rm -rf /var/lib/apt/lists/*
 
-RUN git clone https://github.com/ROCm/llama.cpp /opt/llama-cpp
+RUN git clone "$LLAMA_CPP_REPO" /opt/llama-cpp
 WORKDIR /opt/llama-cpp
+RUN git checkout "$LLAMA_CPP_REF"
 
-ENV LLAMACPP_ROCM_ARCH=gfx1201
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="$LLAMACPP_ROCM_ARCH" \
     -DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \

@@ -18,6 +18,8 @@ Then, `llama-cpp` service runs server
 in [router mode](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#using-multiple-models) serving models
 via `preset.ini` [configuration](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#model-presets).
 
+The bundled `llama-cpp` image is pinned to an official `ggml-org/llama.cpp` release.
+
 ### Model Management
 
 Use the following commands in [`./bin`](./bin) to manage models in the `.huggingface` cache:
