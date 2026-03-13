@@ -8,8 +8,8 @@
     },
     {
       "name": "panther-blazer",
-      "repository": "unsloth/Qwen3.5-4B-GGUF",
-      "file": "Qwen3.5-4B-Q8_0.gguf"
+      "repository": "unsloth/Qwen3.5-2B-GGUF",
+      "file": "Qwen3.5-2B-Q8_0.gguf"
     },
     {
       "name": "panther-coder",
