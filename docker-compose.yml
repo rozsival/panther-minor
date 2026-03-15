@@ -123,6 +123,38 @@ services:
     depends_on:
       - node-exporter
       - amd-gpu-exporter
+      - llama-metrics-exporter
+
+  # -- llama.cpp metrics exporter ---------------------------------------------
+  llama-metrics-exporter:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    command: ["python3", "/app/llama_metrics_exporter.py"]
+    environment:
+      LLAMA_SERVER_URL: http://llama-cpp:8000
+      EXPORTER_PORT: "9101"
+      CACHE_TTL_SECONDS: "5"
+      UPSTREAM_TIMEOUT_SECONDS: "4"
+    volumes:
+      - ./monitoring/llama_metrics_exporter.py:/app/llama_metrics_exporter.py:ro
+    expose:
+      - 9101
+    networks:
+      - ai
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:9101/healthz', timeout=2).read()",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      - llama-cpp
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
