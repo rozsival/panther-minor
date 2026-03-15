@@ -51,6 +51,10 @@ node-exporter-logs:
 amd-gpu-exporter-logs:
 	docker compose logs -f amd-gpu-exporter
 
+# View Nginx proxy logs
+proxy-logs:
+	docker compose logs -f proxy
+
 # -- Utils --------------------------------------------------------------------
 
 # Update repo from upstream
