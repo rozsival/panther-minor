@@ -55,4 +55,5 @@ amd-gpu-exporter-logs:
 
 # Update repo from upstream
 update:
+	git fetch --prune
 	git pull --rebase
