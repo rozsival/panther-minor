@@ -25,10 +25,6 @@ build:
 build-no-cache:
 	docker compose build --no-cache
 
-# Update repo from upstream
-update:
-	git pull --rebase
-
 # -- Logs ---------------------------------------------------------------------
 
 # View logs for llama.cpp service
@@ -54,3 +50,9 @@ node-exporter-logs:
 # View logs for AMD GPU Exporter
 amd-gpu-exporter-logs:
 	docker compose logs -f amd-gpu-exporter
+
+# -- Utils --------------------------------------------------------------------
+
+# Update repo from upstream
+update:
+	git pull --rebase
