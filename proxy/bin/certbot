@@ -3,6 +3,7 @@
 DOMAIN="panther.<domain>"
 CHALLENGE_RECORD="_acme-challenge.panther"
 PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CREDENTIALS_FILE="$PROXY_DIR/acme/dns-credentials.json"
 
 # Handle force option
 FORCE=false
@@ -19,22 +20,41 @@ if [[ "$1" == "--force" ]]; then
   fi
 fi
 
-echo "Registering with acme-dns..."
-RESPONSE=$(curl -s -X POST https://auth.acme-dns.io/register)
+if [ "$FORCE" = true ] || [ ! -f "$CREDENTIALS_FILE" ]; then
+  echo "Registering with acme-dns..."
+  RESPONSE=$(curl -fsS -X POST https://auth.acme-dns.io/register)
 
-if [ -z "$RESPONSE" ]; then
-  echo "Error: Empty response from acme-dns API."
-  exit 1
-fi
+  if [ -z "$RESPONSE" ]; then
+    echo "Error: Empty response from acme-dns API."
+    exit 1
+  fi
 
-USERNAME=$(echo "$RESPONSE" | jq -r '.username')
-PASSWORD=$(echo "$RESPONSE" | jq -r '.password')
-FULLDOMAIN=$(echo "$RESPONSE" | jq -r '.fulldomain')
-SUBDOMAIN=$(echo "$RESPONSE" | jq -r '.subdomain')
+  USERNAME=$(echo "$RESPONSE" | jq -r '.username')
+  PASSWORD=$(echo "$RESPONSE" | jq -r '.password')
+  FULLDOMAIN=$(echo "$RESPONSE" | jq -r '.fulldomain')
+  SUBDOMAIN=$(echo "$RESPONSE" | jq -r '.subdomain')
 
-if [ "$USERNAME" == "null" ] || [ -z "$USERNAME" ]; then
-  echo "Error: Failed to parse credentials."
-  exit 1
+  if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
+    echo "Error: Failed to parse credentials."
+    exit 1
+  fi
+
+  printf '%s\n' "$RESPONSE" > "$CREDENTIALS_FILE"
+  chmod 600 "$CREDENTIALS_FILE"
+  echo "Saved acme-dns credentials to $CREDENTIALS_FILE"
+else
+  echo "Using existing acme-dns credentials from $CREDENTIALS_FILE"
+
+  USERNAME=$(jq -r '.username' "$CREDENTIALS_FILE")
+  PASSWORD=$(jq -r '.password' "$CREDENTIALS_FILE")
+  FULLDOMAIN=$(jq -r '.fulldomain' "$CREDENTIALS_FILE")
+  SUBDOMAIN=$(jq -r '.subdomain' "$CREDENTIALS_FILE")
+
+  if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
+    echo "Error: Invalid credentials file at $CREDENTIALS_FILE"
+    echo "Run again with --force to register fresh acme-dns credentials."
+    exit 1
+  fi
 fi
 
 echo ""
@@ -52,13 +72,18 @@ echo "Pulling acme.sh Docker image..."
 docker pull neilpang/acme.sh:latest
 
 echo "Issuing certificate..."
+ISSUE_ARGS=(--issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt)
+if [ "$FORCE" = true ]; then
+  ISSUE_ARGS+=(--force)
+fi
+
 docker run --rm -it \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -e ACMEDNS_UPDATE_URL="https://auth.acme-dns.io/update" \
   -e ACMEDNS_USERNAME="$USERNAME" \
   -e ACMEDNS_PASSWORD="$PASSWORD" \
   -e ACMEDNS_SUBDOMAIN="$SUBDOMAIN" \
-  neilpang/acme.sh --issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt
+  neilpang/acme.sh "${ISSUE_ARGS[@]}"
 
 echo "Installing certificate to SSL directory..."
 docker run --rm -it \
