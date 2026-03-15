@@ -21,20 +21,20 @@
 
 ### Tailscale/Local Only
 
-| Port | Service              |
-| ---- | -------------------- |
-| 8000 | llama.cpp server API |
-| 8080 | Open WebUI           |
-| 3000 | Grafana              |
-| 9090 | Prometheus           |
+| Port | Service       |
+| ---- | ------------- |
+| 8000 | llama.cpp API |
+| 8080 | Open WebUI    |
+| 3000 | Grafana       |
+| 9090 | Prometheus    |
 
 ## Access
 
 ### Via Tailscale (Recommended)
 
 ```bash
-curl http://panther-minor:11434/v1/models
-open http://panther-minor:8080
+curl https://panther.<domain>:11434/v1/models
+open https://panther.<domain>:8080
 ssh -p 2222 <user>@panther-minor
 ```
 

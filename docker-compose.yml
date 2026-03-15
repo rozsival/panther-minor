@@ -32,8 +32,8 @@ services:
     volumes:
       - llama-cpp-data:/root/.cache
       - ./models:/models:ro
-    ports:
-      - "8000:8000"
+    expose:
+      - 8000
     networks:
       - ai
     healthcheck:
@@ -53,8 +53,8 @@ services:
       WEBUI_AUTH: "false"
     volumes:
       - open-webui-data:/app/backend/data
-    ports:
-      - "8080:8080"
+    expose:
+      - 8080
     networks:
       - ai
     depends_on:
@@ -138,10 +138,27 @@ services:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
-    ports:
-      - "3000:3000"
+    expose:
+      - 3000
     networks:
       - ai
     depends_on:
-      prometheus:
-        condition: service_healthy
+      - prometheus
+
+  # -- Nginx proxy ------------------------------------------------------------
+  proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "8000:8000"
+      - "8080:8080"
+      - "9090:9090"
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./proxy/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - llama-cpp
+      - open-webui
+      - grafana
+      - prometheus

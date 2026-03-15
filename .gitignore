@@ -8,5 +8,9 @@
 # NPM
 node_modules
 
+# SSL
+/proxy/acme
+/proxy/ssl
+
 # Hugging Face cache
 /models/.huggingface
