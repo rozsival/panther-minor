@@ -95,7 +95,7 @@ ssh -p 2222 <user>@panther-minor
 > Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
 > in Tailscale to avoid losing access.
 
-#### SSL
+### SSL
 
 All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL requires manual steps:
 
