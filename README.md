@@ -129,7 +129,7 @@ See `.env` for configurable parameters. Defaults are provided for all variables.
 
 ### Model Management
 
-See [Models](./models/README.md) for supported models and their usage.
+See [Models](./models/README.md) for available LLMs and their usage.
 
 ### Run the Cluster
 
