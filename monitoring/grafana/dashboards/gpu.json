@@ -91,14 +91,13 @@
       "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
       "id": 2,
       "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "pluginVersion": "11.5.1",
       "targets": [
@@ -112,7 +111,7 @@
         }
       ],
       "title": "Temperature",
-      "type": "gauge"
+      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -135,14 +134,13 @@
       "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
       "id": 3,
       "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "pluginVersion": "11.5.1",
       "targets": [
@@ -156,7 +154,7 @@
         }
       ],
       "title": "Power Draw",
-      "type": "gauge"
+      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -181,14 +179,13 @@
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
       "id": 4,
       "options": {
-        "orientation": "auto",
-        "reduceOptions": {
-          "calcs": ["lastNotNull"],
-          "fields": "",
-          "values": false
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "tooltip": { "mode": "multi", "sort": "desc" }
       },
       "pluginVersion": "11.5.1",
       "targets": [
@@ -202,7 +199,7 @@
         }
       ],
       "title": "VRAM Usage",
-      "type": "gauge"
+      "type": "timeseries"
     },
     {
       "collapsed": false,
