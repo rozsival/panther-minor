@@ -164,16 +164,8 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
+          "color": { "mode": "none" },
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "yellow", "value": 43200 },
-              { "color": "red", "value": 3600 }
-            ]
-          },
           "unit": "s"
         },
         "overrides": []
@@ -181,14 +173,15 @@
       "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
       "id": 4,
       "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "justifyMode": "auto",
         "orientation": "auto",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        }
       },
       "pluginVersion": "11.5.1",
       "targets": [
@@ -202,7 +195,7 @@
         }
       ],
       "title": "Uptime",
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "collapsed": false,
@@ -368,6 +361,6 @@
   "timezone": "",
   "title": "Node",
   "uid": "node",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }
