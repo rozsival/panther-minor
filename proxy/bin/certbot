@@ -4,12 +4,25 @@ DOMAIN="panther.<domain>"
 CHALLENGE_RECORD="_acme-challenge.panther"
 PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Handle force option
+if [[ "$1" == "--force" ]]; then
+  read -p "This will overwrite existing ACME DNS credentials. Are you sure? (y/n) " -n 1 -r
+  echo
+
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo "Aborting."
+    exit 0
+  fi
+
+  echo "Forcing new registration..."
+fi
+
 echo "Registering with acme-dns..."
 RESPONSE=$(curl -s -X POST https://auth.acme-dns.io/register)
 
 if [ -z "$RESPONSE" ]; then
-    echo "Error: Empty response from acme-dns API."
-    exit 1
+  echo "Error: Empty response from acme-dns API."
+  exit 1
 fi
 
 USERNAME=$(echo "$RESPONSE" | jq -r '.username')
@@ -18,8 +31,8 @@ FULLDOMAIN=$(echo "$RESPONSE" | jq -r '.fulldomain')
 SUBDOMAIN=$(echo "$RESPONSE" | jq -r '.subdomain')
 
 if [ "$USERNAME" == "null" ] || [ -z "$USERNAME" ]; then
-    echo "Error: Failed to parse credentials."
-    exit 1
+  echo "Error: Failed to parse credentials."
+  exit 1
 fi
 
 echo ""

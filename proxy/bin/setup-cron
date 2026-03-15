@@ -5,14 +5,14 @@ SCRIPT_PATH="$PROXY_BIN_DIR/renew-ssl"
 LOG_PATH="/var/log/renew-ssl.log"
 
 if [ ! -f "$SCRIPT_PATH" ]; then
-    echo "Error: Execution script $SCRIPT_PATH not found."
-    exit 1
+  echo "Error: Execution script $SCRIPT_PATH not found."
+  exit 1
 fi
 
 chmod +x "$SCRIPT_PATH"
 
 if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
-    exit 0
+  exit 0
 fi
 
 (crontab -l 2>/dev/null; echo "0 2 * * * $SCRIPT_PATH >> $LOG_PATH 2>&1") | crontab -
