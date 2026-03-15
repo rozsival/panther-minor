@@ -2,7 +2,8 @@
 # -- Certbot ACME DNS challenge setup for panther.<domain> --------------
 DOMAIN="panther.<domain>"
 CHALLENGE_RECORD="_acme-challenge.panther"
-PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROXY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CREDENTIALS_FILE="$PROXY_DIR/acme/dns-credentials.json"
 
 # Ensure required persistent directories exist before any read/write or docker volume mount.
