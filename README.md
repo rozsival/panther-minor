@@ -99,9 +99,11 @@ ssh -p 2222 vit@panther-minor
 
 All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL requires manual steps:
 
-1. Add DNS type A record for `panther-minor` pointing to the server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
+1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
 
-2. Generate Certbot certificate on the server:
+2. Add DNS type A record for `panther-minor` pointing to the server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
+
+3. Generate Certbot certificate on the server:
 
 > [!IMPORTANT]
 > The script will output required ACME DNS CNAME record value. You MUST add this CNAME record to your DNS provider to complete the certificate issuance. The script will wait for you to confirm you completed this step. Do NOT continue until you have added the CNAME record, otherwise the certificate generation will fail.
@@ -110,7 +112,7 @@ All services in the cluster are configured to use self-signed SSL certificates f
 ./proxy/bin/certbot
 ```
 
-3. Setup certificates auto renewal:
+4. Setup certificates auto renewal:
 
 ```bash
 sudo ./proxy/bin/setup-cron
