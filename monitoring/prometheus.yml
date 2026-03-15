@@ -19,3 +19,9 @@ scrape_configs:
   - job_name: amd-gpu
     static_configs:
       - targets: ["amd-gpu-exporter:5000"]
+
+  # llama.cpp server metrics
+  - job_name: llama-cpp
+    static_configs:
+      - targets: ["llama-cpp:8000"]
+
