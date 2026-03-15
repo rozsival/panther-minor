@@ -66,8 +66,7 @@ services:
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
-      - /dev/dri/renderD128:/dev/dri/renderD128
-      - /dev/dri/renderD129:/dev/dri/renderD129
+      - /dev/dri:/dev/dri
     group_add:
       - "${VIDEO_GID:-44}"
       - "${RENDER_GID:-992}"
