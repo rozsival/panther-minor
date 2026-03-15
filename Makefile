@@ -31,6 +31,10 @@ build-no-cache:
 llama-cpp-logs:
 	docker compose logs -f llama-cpp
 
+# View llama-metrics-exporter logs
+llama-metrics-exporter-logs:
+	docker compose logs -f llama-metrics-exporters
+
 # View logs for Open WebUI
 open-webui-logs:
 	docker compose logs -f open-webui
@@ -38,10 +42,6 @@ open-webui-logs:
 # View logs for Prometheus
 prometheus-logs:
 	docker compose logs -f prometheus
-
-# View llama-metrics-exporter logs
-llama-metrics-exporter-logs:
-	docker compose logs -f llama-metrics-exporter
 
 # View logs for Grafana
 grafana-logs:
