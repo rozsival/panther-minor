@@ -9,6 +9,7 @@ networks:
 volumes:
   llama-cpp-data:
   open-webui-data:
+  openfang-data:
   prometheus-data:
   grafana-data:
 
@@ -103,8 +104,8 @@ services:
       args:
         - MODEL=${MODEL:-panther-coder}
     restart: unless-stopped
-    ports:
-      - "4200:4200"
+    expose:
+      - 8000
     volumes:
       - openfang-data:/home/openfang/.openfang/data
     networks:
