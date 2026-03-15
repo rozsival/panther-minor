@@ -39,6 +39,10 @@ open-webui-logs:
 prometheus-logs:
 	docker compose logs -f prometheus
 
+# View llama-metrics-exporter logs
+llama-metrics-exporter-logs:
+	docker compose logs -f llama-metrics-exporter
+
 # View logs for Grafana
 grafana-logs:
 	docker compose logs -f grafana
