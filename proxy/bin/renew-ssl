@@ -9,4 +9,4 @@ docker run --rm \
   acmesh-official/acme.sh --cron
 
 cd "$PROJECT_DIR" || exit 1
-docker compose exec reverse-proxy nginx -s reload
+docker compose exec proxy nginx -s reload
