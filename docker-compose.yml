@@ -107,8 +107,8 @@ services:
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=30d"
       - "--web.enable-lifecycle"
-    ports:
-      - "${PROMETHEUS_PORT:-9090}:9090"
+    expose:
+      - 9090
     networks:
       - ai
     healthcheck:
