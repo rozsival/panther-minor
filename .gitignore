@@ -14,3 +14,9 @@ node_modules
 
 # Hugging Face cache
 /models/.huggingface
+
+# Temporary files
+log
+logs
+temp
+tmp
