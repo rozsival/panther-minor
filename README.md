@@ -95,6 +95,26 @@ ssh -p 2222 vit@panther-minor
 > Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
 > in Tailscale to avoid losing access.
 
+#### SSL
+
+All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL requires manual steps:
+
+1. Add DNS type A record for `panther-minor` pointing to the server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
+2. Generate Certbot certificate on the server:
+
+   > [!IMPORTANT]
+   > The script will output required ACME DNS CNAME record value. You MUST add this CNAME record to your DNS provider to complete the certificate issuance. The script will wait for you to confirm you completed this step. Do NOT continue until you have added the CNAME record, otherwise the certificate generation will fail.
+
+   ```bash
+   ./proxy/bin/certbot
+   ```
+
+3. Setup certificates auto renewal:
+
+   ```bash
+   sudo ./proxy/bin/setup-cron
+   ```
+
 ## LLaMA.cpp Cluster
 
 Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
@@ -129,12 +149,12 @@ make build-no-cache
 
 ### Services
 
-| Service               | URL                            | Credentials       |
-| --------------------- | ------------------------------ | ----------------- |
-| OpenAI-compatible API | `http://panther-minor:8000/v1` | —                 |
-| Open WebUI (chat)     | `http://panther-minor:8080`    | —                 |
-| Grafana (monitoring)  | `http://panther-minor:3000`    | `admin` / `admin` |
-| Prometheus            | `http://panther-minor:9090`    | —                 |
+| Service               | Credentials       |
+| --------------------- | ----------------- |
+| OpenAI-compatible API | —                 |
+| Open WebUI (chat)     | —                 |
+| Grafana (monitoring)  | `admin` / `admin` |
+| Prometheus            | —                 |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
