@@ -10,6 +10,7 @@
   },
   "scripts": {
     "format": "prettier --check --write .",
+    "test:llama-exporter": "node --test monitoring/llama-metrics-exporter.test.js",
     "postinstall": "is-ci || husky"
   },
   "devDependencies": {
