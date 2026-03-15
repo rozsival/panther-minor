@@ -5,6 +5,9 @@ CHALLENGE_RECORD="_acme-challenge.panther"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROXY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 CREDENTIALS_FILE="$PROXY_DIR/acme/dns-credentials.json"
+CURRENT_UID="$(id -u)"
+CURRENT_GID="$(id -g)"
+CURRENT_OWNER="$CURRENT_UID:$CURRENT_GID"
 
 # Ensure required persistent directories exist before any read/write or docker volume mount.
 if ! mkdir -p "$PROXY_DIR/acme" "$PROXY_DIR/ssl"; then
@@ -75,9 +78,6 @@ echo "=================================================================="
 echo ""
 read -p "Press Enter to continue after DNS propagation..."
 
-echo "Pulling acme.sh Docker image..."
-docker pull neilpang/acme.sh:latest
-
 echo "Issuing certificate..."
 ISSUE_ARGS=(--issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt)
 if [ "$FORCE" = true ]; then
@@ -85,6 +85,7 @@ if [ "$FORCE" = true ]; then
 fi
 
 docker run --rm -it \
+  --user "$CURRENT_OWNER" \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -e ACMEDNS_UPDATE_URL="https://auth.acme-dns.io/update" \
   -e ACMEDNS_USERNAME="$USERNAME" \
@@ -94,10 +95,17 @@ docker run --rm -it \
 
 echo "Installing certificate to SSL directory..."
 docker run --rm -it \
+  --user "$CURRENT_OWNER" \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -v "$PROXY_DIR/ssl:/ssl" \
   neilpang/acme.sh --install-cert -d "$DOMAIN" \
   --key-file /ssl/privkey.pem \
   --fullchain-file /ssl/fullchain.pem
+
+echo "Ensuring host file ownership for current user ($CURRENT_OWNER)..."
+docker run --rm \
+  -v "$PROXY_DIR/acme:/acme.sh" \
+  -v "$PROXY_DIR/ssl:/ssl" \
+  alpine:3.22 sh -c "chown -R $CURRENT_OWNER /acme.sh /ssl"
 
 echo "Process completed."
