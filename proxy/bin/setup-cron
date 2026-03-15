@@ -16,3 +16,4 @@ if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
 fi
 
 (crontab -l 2>/dev/null; echo "0 2 * * * $SCRIPT_PATH >> $LOG_PATH 2>&1") | crontab -
+echo "Cron job added: $SCRIPT_PATH will run daily at 2 AM. Logs will be written to $LOG_PATH"
