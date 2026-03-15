@@ -59,7 +59,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llama_prefill_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_prompt_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_tokens_prompt_total{job=\"llama-cpp\"}[1m]))",
+          "expr": "sum by (model) (rate(llama_prefill_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_prompt_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_tokens_prompt_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -103,7 +103,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llama_decode_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_generated_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_tokens_generated_total{job=\"llama-cpp\"}[1m]))",
+          "expr": "sum by (model) (rate(llama_decode_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_generated_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_tokens_generated_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -166,7 +166,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llama_prefill_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_prompt_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_tokens_prompt_total{job=\"llama-cpp\"}[1m]))",
+          "expr": "sum by (model) (rate(llama_prefill_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_prompt_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_tokens_prompt_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -222,7 +222,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llama_decode_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_generated_tokens_total{job=\"llama-cpp\"}[1m])) or sum by (model) (rate(llama_tokens_generated_total{job=\"llama-cpp\"}[1m]))",
+          "expr": "sum by (model) (rate(llama_decode_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_generated_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m])) or sum by (model) (rate(llama_tokens_generated_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[1m]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -236,12 +236,57 @@
   "refresh": "10s",
   "schemaVersion": 40,
   "tags": ["llama-cpp", "llm", "throughput"],
-  "templating": { "list": [] },
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values({job=\"llama-cpp\"}, instance)",
+        "includeAll": true,
+        "label": "Instance",
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "query": "label_values({job=\"llama-cpp\"}, instance)",
+          "refId": "PrometheusVariableQueryEditor-Instance"
+        },
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "definition": "label_values({job=\"llama-cpp\", instance=~\"$instance\"}, model)",
+        "includeAll": true,
+        "label": "Model",
+        "multi": true,
+        "name": "model",
+        "options": [],
+        "query": {
+          "query": "label_values({job=\"llama-cpp\", instance=~\"$instance\"}, model)",
+          "refId": "PrometheusVariableQueryEditor-Model"
+        },
+        "refresh": 1,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "",
   "title": "llama.cpp",
   "uid": "llama-cpp",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

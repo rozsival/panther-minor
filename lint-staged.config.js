@@ -1,3 +1,3 @@
 export default {
-  "*.*": "prettier --write",
+  "*.{ini,js,json,md,yml}": "prettier --write",
 };
