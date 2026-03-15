@@ -111,8 +111,7 @@ services:
     networks:
       - ai
     depends_on:
-      llama-cpp:
-        condition: service_healthy
+      - llama-cpp
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
