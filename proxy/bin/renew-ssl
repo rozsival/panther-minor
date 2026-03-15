@@ -6,7 +6,7 @@ PROJECT_DIR="$(dirname "$PROXY_DIR")"
 docker run --rm \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -v "$PROXY_DIR/ssl:/ssl" \
-  acmesh-official/acme.sh --cron
+  neilpang/acme.sh --cron
 
 cd "$PROJECT_DIR" || exit 1
 docker compose exec proxy nginx -s reload

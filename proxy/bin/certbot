@@ -34,7 +34,7 @@ echo ""
 read -p "Press Enter to continue after DNS propagation..."
 
 echo "Pulling acme.sh Docker image..."
-docker pull acmesh-official/acme.sh:latest
+docker pull neilpang/acme.sh:latest
 
 echo "Issuing certificate..."
 docker run --rm -it \
@@ -43,13 +43,13 @@ docker run --rm -it \
   -e ACMEDNS_USERNAME="$USERNAME" \
   -e ACMEDNS_PASSWORD="$PASSWORD" \
   -e ACMEDNS_SUBDOMAIN="$SUBDOMAIN" \
-  acmesh-official/acme.sh --issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt
+  neilpang/acme.sh --issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt
 
 echo "Installing certificate to SSL directory..."
 docker run --rm -it \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -v "$PROXY_DIR/ssl:/ssl" \
-  acmesh-official/acme.sh --install-cert -d "$DOMAIN" \
+  neilpang/acme.sh --install-cert -d "$DOMAIN" \
   --key-file /ssl/privkey.pem \
   --fullchain-file /ssl/fullchain.pem
 
