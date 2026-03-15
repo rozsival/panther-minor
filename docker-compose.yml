@@ -13,7 +13,7 @@ volumes:
   grafana-data:
 
 services:
-  # -- llama.cpp ---------------------------------------------
+  # -- llama.cpp --------------------------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   llama-cpp:
     build:
