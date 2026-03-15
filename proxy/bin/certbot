@@ -5,6 +5,12 @@ CHALLENGE_RECORD="_acme-challenge.panther"
 PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CREDENTIALS_FILE="$PROXY_DIR/acme/dns-credentials.json"
 
+# Ensure required persistent directories exist before any read/write or docker volume mount.
+if ! mkdir -p "$PROXY_DIR/acme" "$PROXY_DIR/ssl"; then
+  echo "Error: Failed to create required directories under $PROXY_DIR"
+  exit 1
+fi
+
 # Handle force option
 FORCE=false
 if [[ "$1" == "--force" ]]; then
