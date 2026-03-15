@@ -5,16 +5,18 @@ CHALLENGE_RECORD="_acme-challenge.panther"
 PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Handle force option
+FORCE=false
 if [[ "$1" == "--force" ]]; then
   read -p "This will overwrite existing ACME DNS credentials. Are you sure? (y/n) " -n 1 -r
   echo
 
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborting."
-    exit 0
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+    echo "Forcing new registration..."
+    FORCE=true
+  else
+    echo "Running without '--force'. Existing credentials will be used if available."
+    FORCE=false
   fi
-
-  echo "Forcing new registration..."
 fi
 
 echo "Registering with acme-dns..."
