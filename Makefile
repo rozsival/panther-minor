@@ -33,7 +33,7 @@ llama-cpp-logs:
 
 # View llama-metrics-exporter logs
 llama-metrics-exporter-logs:
-	docker compose logs -f llama-metrics-exporters
+	docker compose logs -f llama-metrics-exporter
 
 # View logs for Open WebUI
 open-webui-logs:
