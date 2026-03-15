@@ -29,6 +29,7 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 - Server installed with name `panther-minor`
 - User `$USER` created during installation
 - Server installed with OpenSSH (fetch allowed keys from GitHub)
+- [Tailscale](https://tailscale.com/) account for secure remote access
 
 ## Setup
 
