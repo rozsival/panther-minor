@@ -157,6 +157,8 @@ services:
     volumes:
       - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./proxy/ssl:/etc/nginx/ssl:ro
+    networks:
+      - ai
     depends_on:
       - llama-cpp
       - open-webui
