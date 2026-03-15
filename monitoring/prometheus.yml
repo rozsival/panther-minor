@@ -25,29 +25,7 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 5s
     static_configs:
-      # Router mode requires ?model=<preset_name> on /metrics.
-      - targets: ["llama-cpp:8000"]
+      # Router mode is scraped through a sidecar exporter to avoid model load/unload thrashing.
+      - targets: ["llama-metrics-exporter:9101"]
         labels:
-          scrape_model: panther-minor
-      - targets: ["llama-cpp:8000"]
-        labels:
-          scrape_model: panther-minor-thinking
-      - targets: ["llama-cpp:8000"]
-        labels:
-          scrape_model: panther-blazer
-      - targets: ["llama-cpp:8000"]
-        labels:
-          scrape_model: panther-blazer-thinking
-      - targets: ["llama-cpp:8000"]
-        labels:
-          scrape_model: panther-coder
-      - targets: ["llama-cpp:8000"]
-        labels:
-          scrape_model: panther-coder-next
-    relabel_configs:
-      - source_labels: [scrape_model]
-        target_label: __param_model
-      - source_labels: [scrape_model]
-        target_label: model
-      - action: labeldrop
-        regex: scrape_model
+          instance: llama-cpp:8000
