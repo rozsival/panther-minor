@@ -1,59 +1,46 @@
 #!/usr/bin/env node
 
-import { createServer } from "node:http";
-import { readFileSync, existsSync } from "node:fs";
-import { basename, extname } from "node:path";
+import { createServer } from 'node:http';
+import { readFileSync, existsSync } from 'node:fs';
+import { basename, extname } from 'node:path';
 
-const LLAMA_SERVER_URL = (
-  process.env.LLAMA_SERVER_URL ?? "http://llama-cpp:8000"
-).replace(/\/$/, "");
-const EXPORTER_PORT = Number.parseInt(process.env.EXPORTER_PORT ?? "9101", 10);
-const CACHE_TTL_SECONDS = Number.parseFloat(
-  process.env.CACHE_TTL_SECONDS ?? "5",
-);
-const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(
-  process.env.UPSTREAM_TIMEOUT_SECONDS ?? "4",
-);
-const LLAMA_PRESET_FILE = process.env.LLAMA_PRESET_FILE ?? "/models/preset.ini";
+const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
+const EXPORTER_PORT = Number.parseInt(process.env.EXPORTER_PORT ?? '9101', 10);
+const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
+const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
+const LLAMA_PRESET_FILE = process.env.LLAMA_PRESET_FILE ?? '/models/preset.ini';
 
-const MODEL_KEYS = [
-  "model_alias",
-  "model_id",
-  "alias",
-  "model_name",
-  "model",
-  "model_path",
-];
+const MODEL_KEYS = ['model_alias', 'model_id', 'alias', 'model_name', 'model', 'model_path'];
 const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
 const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
 const PATH_LIKE_RE = /[\\/]|\.gguf$/i;
 
 const cache = {
   timestampMs: 0,
-  payload: "",
+  payload: '',
 };
 
 export function loadPresetAliasesFromText(text) {
   const aliasesByModelPath = new Map();
   const knownAliases = new Set();
 
-  let currentSection = "";
+  let currentSection = '';
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim();
-    if (!line || line.startsWith("#") || line.startsWith(";")) {
+    if (!line || line.startsWith('#') || line.startsWith(';')) {
       continue;
     }
 
     const sectionMatch = line.match(/^\[(.+)]$/);
     if (sectionMatch) {
       currentSection = sectionMatch[1].trim();
-      if (currentSection && currentSection !== "*") {
+      if (currentSection && currentSection !== '*') {
         knownAliases.add(currentSection);
       }
       continue;
     }
 
-    if (!currentSection || currentSection === "*") {
+    if (!currentSection || currentSection === '*') {
       continue;
     }
 
@@ -64,7 +51,7 @@ export function loadPresetAliasesFromText(text) {
 
     const key = kvMatch[1].trim();
     const value = kvMatch[2].trim();
-    if (key !== "model" || !value) {
+    if (key !== 'model' || !value) {
       continue;
     }
 
@@ -80,28 +67,26 @@ export function loadPresetAliasesFromFile(filePath) {
   if (!existsSync(filePath)) {
     return { aliasesByModelPath: new Map(), knownAliases: new Set() };
   }
-  const text = readFileSync(filePath, "utf8");
+  const text = readFileSync(filePath, 'utf8');
   return loadPresetAliasesFromText(text);
 }
 
-const {
-  aliasesByModelPath: ALIASES_BY_MODEL_PATH,
-  knownAliases: KNOWN_ALIASES,
-} = loadPresetAliasesFromFile(LLAMA_PRESET_FILE);
+const { aliasesByModelPath: ALIASES_BY_MODEL_PATH, knownAliases: KNOWN_ALIASES } =
+  loadPresetAliasesFromFile(LLAMA_PRESET_FILE);
 
 export function iterSlotObjects(payload) {
   if (Array.isArray(payload)) {
-    return payload.filter((item) => item && typeof item === "object");
+    return payload.filter((item) => item && typeof item === 'object');
   }
 
-  if (!payload || typeof payload !== "object") {
+  if (!payload || typeof payload !== 'object') {
     return [];
   }
 
-  for (const key of ["slots", "data", "items", "models"]) {
+  for (const key of ['slots', 'data', 'items', 'models']) {
     const value = payload[key];
     if (Array.isArray(value)) {
-      return value.filter((item) => item && typeof item === "object");
+      return value.filter((item) => item && typeof item === 'object');
     }
   }
 
@@ -113,16 +98,16 @@ export function modelCandidatesForSlot(slot) {
 
   for (const key of MODEL_KEYS) {
     const value = slot[key];
-    if (typeof value === "string" && value.trim()) {
+    if (typeof value === 'string' && value.trim()) {
       candidates.push(value.trim());
     }
   }
 
   const params = slot.params;
-  if (params && typeof params === "object") {
-    for (const key of ["model", "model_alias"]) {
+  if (params && typeof params === 'object') {
+    for (const key of ['model', 'model_alias']) {
       const value = params[key];
-      if (typeof value === "string" && value.trim()) {
+      if (typeof value === 'string' && value.trim()) {
         candidates.push(value.trim());
       }
     }
@@ -167,34 +152,23 @@ export function normalizeModelCandidate(
   return deduped;
 }
 
-export function extractLoadedModels(
-  payload,
-  aliasesByModelPath = ALIASES_BY_MODEL_PATH,
-  knownAliases = KNOWN_ALIASES,
-) {
+export function extractLoadedModels(payload, aliasesByModelPath = ALIASES_BY_MODEL_PATH, knownAliases = KNOWN_ALIASES) {
   const models = [];
   const seen = new Set();
 
   for (const slot of iterSlotObjects(payload)) {
-    const state = String(slot.state ?? "").toLowerCase();
+    const state = String(slot.state ?? '').toLowerCase();
     const isLoaded = slot.loaded;
-    if (
-      ["empty", "idle_unloaded", "unloaded"].includes(state) ||
-      isLoaded === false
-    ) {
+    if (['empty', 'idle_unloaded', 'unloaded'].includes(state) || isLoaded === false) {
       continue;
     }
 
     for (const rawCandidate of modelCandidatesForSlot(slot)) {
-      if (["none", "null", "-"].includes(rawCandidate.toLowerCase())) {
+      if (['none', 'null', '-'].includes(rawCandidate.toLowerCase())) {
         continue;
       }
 
-      const candidates = normalizeModelCandidate(
-        rawCandidate,
-        aliasesByModelPath,
-        knownAliases,
-      );
+      const candidates = normalizeModelCandidate(rawCandidate, aliasesByModelPath, knownAliases);
       let accepted = false;
       for (const model of candidates) {
         if (seen.has(model)) {
@@ -215,10 +189,7 @@ export function extractLoadedModels(
 }
 
 export function escapeLabelValue(value) {
-  return value
-    .replaceAll("\\", "\\\\")
-    .replaceAll("\n", "\\n")
-    .replaceAll('"', '\\"');
+  return value.replaceAll('\\', '\\\\').replaceAll('\n', '\\n').replaceAll('"', '\\"');
 }
 
 export function injectModelLabel(metricLine, model) {
@@ -228,7 +199,7 @@ export function injectModelLabel(metricLine, model) {
   }
 
   const [, metricName, labels, suffix] = match;
-  if (labels && labels.includes("model=")) {
+  if (labels && labels.includes('model=')) {
     return metricLine;
   }
 
@@ -241,18 +212,16 @@ export function injectModelLabel(metricLine, model) {
 
 export function mergeMetricsForModels(modelToMetrics) {
   const lines = [
-    "# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.",
-    "# TYPE panther_llama_metrics_exporter_up gauge",
-    "panther_llama_metrics_exporter_up 1",
-    "# HELP panther_llama_metrics_exporter_loaded_models Number of currently loaded models discovered via /slots.",
-    "# TYPE panther_llama_metrics_exporter_loaded_models gauge",
+    '# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.',
+    '# TYPE panther_llama_metrics_exporter_up gauge',
+    'panther_llama_metrics_exporter_up 1',
+    '# HELP panther_llama_metrics_exporter_loaded_models Number of currently loaded models discovered via /slots.',
+    '# TYPE panther_llama_metrics_exporter_loaded_models gauge',
     `panther_llama_metrics_exporter_loaded_models ${Object.keys(modelToMetrics).length}`,
   ];
 
   const seenHeaders = new Set();
-  const modelEntries = Object.entries(modelToMetrics).sort((a, b) =>
-    a[0].localeCompare(b[0]),
-  );
+  const modelEntries = Object.entries(modelToMetrics).sort((a, b) => a[0].localeCompare(b[0]));
 
   for (const [model, payload] of modelEntries) {
     for (const rawLine of payload.split(/\r?\n/)) {
@@ -272,7 +241,7 @@ export function mergeMetricsForModels(modelToMetrics) {
         continue;
       }
 
-      if (line.startsWith("#")) {
+      if (line.startsWith('#')) {
         continue;
       }
 
@@ -280,19 +249,19 @@ export function mergeMetricsForModels(modelToMetrics) {
     }
   }
 
-  return `${lines.join("\n")}\n`;
+  return `${lines.join('\n')}\n`;
 }
 
 function metricsForNoModels() {
   return [
-    "# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.",
-    "# TYPE panther_llama_metrics_exporter_up gauge",
-    "panther_llama_metrics_exporter_up 1",
-    "# HELP panther_llama_metrics_exporter_loaded_models Number of currently loaded models discovered via /slots.",
-    "# TYPE panther_llama_metrics_exporter_loaded_models gauge",
-    "panther_llama_metrics_exporter_loaded_models 0",
-    "",
-  ].join("\n");
+    '# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.',
+    '# TYPE panther_llama_metrics_exporter_up gauge',
+    'panther_llama_metrics_exporter_up 1',
+    '# HELP panther_llama_metrics_exporter_loaded_models Number of currently loaded models discovered via /slots.',
+    '# TYPE panther_llama_metrics_exporter_loaded_models gauge',
+    'panther_llama_metrics_exporter_loaded_models 0',
+    '',
+  ].join('\n');
 }
 
 async function fetchJson(pathname) {
@@ -300,9 +269,7 @@ async function fetchJson(pathname) {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
   if (!response.ok) {
-    throw new Error(
-      `upstream json request failed: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`upstream json request failed: ${response.status} ${response.statusText}`);
   }
   return response.json();
 }
@@ -319,15 +286,13 @@ async function fetchText(pathname, query = undefined) {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
   if (!response.ok) {
-    throw new Error(
-      `upstream text request failed: ${response.status} ${response.statusText}`,
-    );
+    throw new Error(`upstream text request failed: ${response.status} ${response.statusText}`);
   }
   return response.text();
 }
 
 export async function buildMetricsPayload() {
-  const slotsPayload = await fetchJson("/slots");
+  const slotsPayload = await fetchJson('/slots');
   const models = extractLoadedModels(slotsPayload);
 
   if (models.length === 0) {
@@ -336,7 +301,7 @@ export async function buildMetricsPayload() {
 
   const modelToMetrics = {};
   for (const model of models) {
-    modelToMetrics[model] = await fetchText("/metrics", { model });
+    modelToMetrics[model] = await fetchText('/metrics', { model });
   }
 
   return mergeMetricsForModels(modelToMetrics);
@@ -344,24 +309,24 @@ export async function buildMetricsPayload() {
 
 function staleSuffix() {
   return [
-    "# HELP panther_llama_metrics_exporter_stale Whether cached data is being served after an upstream error.",
-    "# TYPE panther_llama_metrics_exporter_stale gauge",
-    "panther_llama_metrics_exporter_stale 1",
-    "",
-  ].join("\n");
+    '# HELP panther_llama_metrics_exporter_stale Whether cached data is being served after an upstream error.',
+    '# TYPE panther_llama_metrics_exporter_stale gauge',
+    'panther_llama_metrics_exporter_stale 1',
+    '',
+  ].join('\n');
 }
 
 export function startServer() {
   const server = createServer(async (req, res) => {
-    const path = new URL(req.url ?? "/", "http://localhost").pathname;
+    const path = new URL(req.url ?? '/', 'http://localhost').pathname;
 
-    if (path === "/healthz") {
-      res.writeHead(200, { "content-type": "text/plain; charset=utf-8" });
-      res.end("ok\n");
+    if (path === '/healthz') {
+      res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
+      res.end('ok\n');
       return;
     }
 
-    if (path !== "/metrics") {
+    if (path !== '/metrics') {
       res.writeHead(404);
       res.end();
       return;
@@ -370,7 +335,7 @@ export function startServer() {
     const nowMs = Date.now();
     if (cache.payload && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
       res.writeHead(200, {
-        "content-type": "text/plain; version=0.0.4; charset=utf-8",
+        'content-type': 'text/plain; version=0.0.4; charset=utf-8',
       });
       res.end(cache.payload);
       return;
@@ -381,34 +346,34 @@ export function startServer() {
       cache.payload = payload;
       cache.timestampMs = nowMs;
       res.writeHead(200, {
-        "content-type": "text/plain; version=0.0.4; charset=utf-8",
+        'content-type': 'text/plain; version=0.0.4; charset=utf-8',
       });
       res.end(payload);
     } catch (error) {
       if (cache.payload) {
         const payload = `${cache.payload}${staleSuffix()}`;
         res.writeHead(200, {
-          "content-type": "text/plain; version=0.0.4; charset=utf-8",
+          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
         });
         res.end(payload);
         return;
       }
 
       const payload = [
-        "# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.",
-        "# TYPE panther_llama_metrics_exporter_up gauge",
-        "panther_llama_metrics_exporter_up 0",
-        `# upstream_error ${error?.name ?? "Error"}: ${error?.message ?? String(error)}`,
-        "",
-      ].join("\n");
+        '# HELP panther_llama_metrics_exporter_up Whether the router-safe llama metrics exporter succeeded.',
+        '# TYPE panther_llama_metrics_exporter_up gauge',
+        'panther_llama_metrics_exporter_up 0',
+        `# upstream_error ${error?.name ?? 'Error'}: ${error?.message ?? String(error)}`,
+        '',
+      ].join('\n');
       res.writeHead(503, {
-        "content-type": "text/plain; version=0.0.4; charset=utf-8",
+        'content-type': 'text/plain; version=0.0.4; charset=utf-8',
       });
       res.end(payload);
     }
   });
 
-  server.listen(EXPORTER_PORT, "0.0.0.0", () => {
+  server.listen(EXPORTER_PORT, '0.0.0.0', () => {
     console.log(
       `[llama-metrics-exporter] listening on 0.0.0.0:${EXPORTER_PORT}, ` +
         `upstream=${LLAMA_SERVER_URL}, cache_ttl=${CACHE_TTL_SECONDS}s`,
