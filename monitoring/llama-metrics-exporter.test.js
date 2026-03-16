@@ -74,13 +74,13 @@ test('exporterStatusLines reports discovered and loaded states', () => {
     true,
   ).join('\n');
 
-  assert.match(lines, /panther_llama_metrics_exporter_discovered_models 2/);
-  assert.match(lines, /panther_llama_metrics_exporter_loaded_models 1/);
-  assert.match(lines, /panther_llama_metrics_exporter_metrics_scrape_up 1/);
-  assert.match(lines, /panther_llama_metrics_exporter_model_loaded\{model="panther-minor"} 1/);
-  assert.match(lines, /panther_llama_metrics_exporter_model_loaded\{model="panther-coder"} 0/);
-  assert.match(lines, /panther_llama_metrics_exporter_model_up\{model="panther-minor"} 1/);
-  assert.match(lines, /panther_llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
+  assert.match(lines, /llama_metrics_exporter_discovered_models 2/);
+  assert.match(lines, /llama_metrics_exporter_loaded_models 1/);
+  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 1/);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="panther-minor"} 1/);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="panther-coder"} 0/);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-minor"} 1/);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
 });
 
 test('buildMetricsPayload scrapes metrics only for the single loaded model', async () => {
@@ -114,8 +114,8 @@ test('buildMetricsPayload scrapes metrics only for the single loaded model', asy
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.deepEqual(calls, ['http://llama-cpp:8000/v1/models', 'http://llama-cpp:8000/metrics?model=panther-minor']);
-  assert.match(payload, /panther_llama_metrics_exporter_discovered_models 2/);
-  assert.match(payload, /panther_llama_metrics_exporter_loaded_models 1/);
+  assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
+  assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
   assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="panther-coder"}/);
 });
@@ -144,9 +144,9 @@ test('buildMetricsPayload skips metrics scrape when no model is loaded', async (
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.deepEqual(calls, ['http://llama-cpp:8000/v1/models']);
-  assert.match(payload, /panther_llama_metrics_exporter_loaded_models 0/);
-  assert.match(payload, /panther_llama_metrics_exporter_metrics_scrape_up 0/);
-  assert.match(payload, /panther_llama_metrics_exporter_model_up\{model="panther-minor"} 0/);
-  assert.match(payload, /panther_llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
+  assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
+  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="panther-minor"} 0/);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
 });
