@@ -1,13 +1,11 @@
 #!/usr/bin/env node
 
 import { createServer } from 'node:http';
-import { existsSync, readFileSync } from 'node:fs';
 
-const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
-const PORT = Number.parseInt(process.env.PORT ?? '9101', 10);
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
+const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
+const PORT = 9091;
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
-const LLAMA_MODELS_CONFIG_FILE = '/app/config.json';
 
 const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
 const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
@@ -17,43 +15,27 @@ const cache = {
   payload: '',
 };
 
-export function loadModelsConfigFromText(text) {
-  const parsed = JSON.parse(text);
-  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.models)) {
-    throw new Error('models config must contain a models array');
-  }
-  return parsed;
-}
-
-export function expandModelNames(models) {
-  const names = [];
+export function normalizeModelsPayload(payload) {
+  const data = Array.isArray(payload?.data) ? payload.data : [];
+  const models = [];
   const seen = new Set();
 
-  for (const model of models) {
-    const baseName = typeof model?.name === 'string' ? model.name.trim() : '';
-    if (!baseName) {
+  for (const item of data) {
+    const id = typeof item?.id === 'string' ? item.id.trim() : '';
+    if (!id || seen.has(id)) {
       continue;
     }
 
-    for (const name of [baseName, model.thinking === true ? `${baseName}-thinking` : '']) {
-      if (!name || seen.has(name)) {
-        continue;
-      }
-      seen.add(name);
-      names.push(name);
-    }
+    const statusValue = typeof item?.status?.value === 'string' ? item.status.value.trim().toLowerCase() : 'unknown';
+    seen.add(id);
+    models.push({ id, status: statusValue });
   }
 
-  return names;
+  return models;
 }
 
-export function loadModelNamesFromFile(filePath = LLAMA_MODELS_CONFIG_FILE) {
-  if (!existsSync(filePath)) {
-    throw new Error(`models config file not found: ${filePath}`);
-  }
-
-  const text = readFileSync(filePath, 'utf8');
-  return expandModelNames(loadModelsConfigFromText(text).models);
+export function pickLoadedModel(models) {
+  return models.find((model) => model.status === 'loaded') ?? null;
 }
 
 export function escapeLabelValue(value) {
@@ -112,29 +94,61 @@ export function mergeMetricsForModels(modelToMetrics) {
   return lines;
 }
 
-export function exporterStatusLines(modelNames, resultsByModel) {
-  const successfulModels = modelNames.filter((model) => resultsByModel[model]?.ok).length;
+export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
+  const loadedCount = models.filter((model) => model.status === 'loaded').length;
   const lines = [
     '# HELP panther_llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
     '# TYPE panther_llama_metrics_exporter_up gauge',
     'panther_llama_metrics_exporter_up 1',
-    '# HELP panther_llama_metrics_exporter_configured_models Number of configured router models.',
-    '# TYPE panther_llama_metrics_exporter_configured_models gauge',
-    `panther_llama_metrics_exporter_configured_models ${modelNames.length}`,
-    '# HELP panther_llama_metrics_exporter_successful_models Number of models whose /metrics scrape succeeded.',
-    '# TYPE panther_llama_metrics_exporter_successful_models gauge',
-    `panther_llama_metrics_exporter_successful_models ${successfulModels}`,
-    '# HELP panther_llama_metrics_exporter_model_up Whether the /metrics scrape succeeded for a model.',
+    '# HELP panther_llama_metrics_exporter_discovered_models Number of models discovered via /v1/models.',
+    '# TYPE panther_llama_metrics_exporter_discovered_models gauge',
+    `panther_llama_metrics_exporter_discovered_models ${models.length}`,
+    '# HELP panther_llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /v1/models.',
+    '# TYPE panther_llama_metrics_exporter_loaded_models gauge',
+    `panther_llama_metrics_exporter_loaded_models ${loadedCount}`,
+    '# HELP panther_llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics for the selected loaded model succeeded.',
+    '# TYPE panther_llama_metrics_exporter_metrics_scrape_up gauge',
+    `panther_llama_metrics_exporter_metrics_scrape_up ${metricsScrapeOk ? 1 : 0}`,
+    '# HELP panther_llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
+    '# TYPE panther_llama_metrics_exporter_model_loaded gauge',
+    '# HELP panther_llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
     '# TYPE panther_llama_metrics_exporter_model_up gauge',
   ];
 
-  for (const model of modelNames) {
+  for (const model of models) {
+    const isLoaded = model.status === 'loaded';
     lines.push(
-      `panther_llama_metrics_exporter_model_up{model="${escapeLabelValue(model)}"} ${resultsByModel[model]?.ok ? 1 : 0}`,
+      `panther_llama_metrics_exporter_model_loaded{model="${escapeLabelValue(model.id)}"} ${isLoaded ? 1 : 0}`,
+    );
+    lines.push(
+      `panther_llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${
+        metricsScrapeOk && loadedModelId === model.id ? 1 : 0
+      }`,
     );
   }
 
   return lines;
+}
+
+async function fetchJson(pathname, fetchImpl = fetch) {
+  const url = new URL(`${LLAMA_SERVER_URL}${pathname}`);
+  const response = await fetchImpl(url, {
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
+  });
+
+  if (!response.ok) {
+    const error = new Error(`upstream json request failed: ${response.status} ${response.statusText}`);
+    error.status = response.status;
+    error.statusText = response.statusText;
+    throw error;
+  }
+
+  return response.json();
+}
+
+export async function fetchModelsList(fetchImpl = fetch) {
+  const payload = await fetchJson('/v1/models', fetchImpl);
+  return normalizeModelsPayload(payload);
 }
 
 export async function fetchMetricsText(model, fetchImpl = fetch) {
@@ -155,20 +169,26 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
   return response.text();
 }
 
-export async function buildMetricsPayload(fetchImpl = fetch, modelNames = loadModelNamesFromFile()) {
-  const resultsByModel = {};
+export async function buildMetricsPayload(fetchImpl = fetch) {
+  const models = await fetchModelsList(fetchImpl);
+  const loadedModel = pickLoadedModel(models);
   const modelToMetrics = {};
+  let metricsScrapeOk = false;
 
-  for (const model of modelNames) {
+  if (loadedModel) {
     try {
-      modelToMetrics[model] = await fetchMetricsText(model, fetchImpl);
-      resultsByModel[model] = { ok: true };
-    } catch (error) {
-      resultsByModel[model] = { ok: false, error };
+      modelToMetrics[loadedModel.id] = await fetchMetricsText(loadedModel.id, fetchImpl);
+      metricsScrapeOk = true;
+    } catch {
+      metricsScrapeOk = false;
     }
   }
 
-  const lines = [...exporterStatusLines(modelNames, resultsByModel), ...mergeMetricsForModels(modelToMetrics), ''];
+  const lines = [
+    ...exporterStatusLines(models, loadedModel?.id ?? '', metricsScrapeOk),
+    ...mergeMetricsForModels(modelToMetrics),
+    '',
+  ];
 
   return lines.join('\n');
 }
@@ -242,7 +262,7 @@ export function startServer() {
   server.listen(PORT, '0.0.0.0', () => {
     console.log(
       `[llama-metrics-exporter] listening on 0.0.0.0:${PORT}, ` +
-        `upstream=${LLAMA_SERVER_URL}, config=${LLAMA_MODELS_CONFIG_FILE}, cache_ttl=${CACHE_TTL_SECONDS}s`,
+        `upstream=${LLAMA_SERVER_URL}, cache_ttl=${CACHE_TTL_SECONDS}s`,
     );
   });
 

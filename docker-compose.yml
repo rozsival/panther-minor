@@ -47,15 +47,13 @@ services:
   llama-metrics-exporter:
     image: node:24-alpine
     restart: unless-stopped
-    command: ['node', '/app/exporter.js']
+    command: ['node', '/app/main.js']
     environment:
       CACHE_TTL_SECONDS: '5'
       LLAMA_SERVER_URL: http://llama-cpp:8000
-      PORT: '9101'
       UPSTREAM_TIMEOUT_SECONDS: '4'
     volumes:
-      - ./monitoring/llama-metrics-exporter.js:/app/exporter.js:ro
-      - ./models/config.json:/app/config.json:ro
+      - ./monitoring/llama-metrics-exporter.js:/app/main.js:ro
     expose:
       - 9101
     networks:
