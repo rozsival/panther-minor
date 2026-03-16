@@ -126,31 +126,29 @@ export function mergeMetricsForModels(modelToMetrics) {
 export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
   const loadedCount = models.filter((model) => model.status === 'loaded').length;
   const lines = [
-    '# HELP panther_llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
-    '# TYPE panther_llama_metrics_exporter_up gauge',
-    'panther_llama_metrics_exporter_up 1',
-    '# HELP panther_llama_metrics_exporter_discovered_models Number of models discovered via /v1/models.',
-    '# TYPE panther_llama_metrics_exporter_discovered_models gauge',
-    `panther_llama_metrics_exporter_discovered_models ${models.length}`,
-    '# HELP panther_llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /v1/models.',
-    '# TYPE panther_llama_metrics_exporter_loaded_models gauge',
-    `panther_llama_metrics_exporter_loaded_models ${loadedCount}`,
-    '# HELP panther_llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics for the selected loaded model succeeded.',
-    '# TYPE panther_llama_metrics_exporter_metrics_scrape_up gauge',
-    `panther_llama_metrics_exporter_metrics_scrape_up ${metricsScrapeOk ? 1 : 0}`,
-    '# HELP panther_llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
-    '# TYPE panther_llama_metrics_exporter_model_loaded gauge',
-    '# HELP panther_llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
-    '# TYPE panther_llama_metrics_exporter_model_up gauge',
+    '# HELP llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
+    '# TYPE llama_metrics_exporter_up gauge',
+    'llama_metrics_exporter_up 1',
+    '# HELP llama_metrics_exporter_discovered_models Number of models discovered via /v1/models.',
+    '# TYPE llama_metrics_exporter_discovered_models gauge',
+    `llama_metrics_exporter_discovered_models ${models.length}`,
+    '# HELP llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /v1/models.',
+    '# TYPE llama_metrics_exporter_loaded_models gauge',
+    `llama_metrics_exporter_loaded_models ${loadedCount}`,
+    '# HELP llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics for the selected loaded model succeeded.',
+    '# TYPE llama_metrics_exporter_metrics_scrape_up gauge',
+    `llama_metrics_exporter_metrics_scrape_up ${metricsScrapeOk ? 1 : 0}`,
+    '# HELP llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
+    '# TYPE llama_metrics_exporter_model_loaded gauge',
+    '# HELP llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
+    '# TYPE llama_metrics_exporter_model_up gauge',
   ];
 
   for (const model of models) {
     const isLoaded = model.status === 'loaded';
+    lines.push(`llama_metrics_exporter_model_loaded{model="${escapeLabelValue(model.id)}"} ${isLoaded ? 1 : 0}`);
     lines.push(
-      `panther_llama_metrics_exporter_model_loaded{model="${escapeLabelValue(model.id)}"} ${isLoaded ? 1 : 0}`,
-    );
-    lines.push(
-      `panther_llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${
+      `llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${
         metricsScrapeOk && loadedModelId === model.id ? 1 : 0
       }`,
     );
@@ -281,9 +279,9 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
 
 function staleSuffix() {
   return [
-    '# HELP panther_llama_metrics_exporter_stale Whether cached data is being served after a scrape error.',
-    '# TYPE panther_llama_metrics_exporter_stale gauge',
-    'panther_llama_metrics_exporter_stale 1',
+    '# HELP llama_metrics_exporter_stale Whether cached data is being served after a scrape error.',
+    '# TYPE llama_metrics_exporter_stale gauge',
+    'llama_metrics_exporter_stale 1',
     '',
   ].join('\n');
 }
@@ -347,9 +345,9 @@ export function startServer() {
       }
 
       const payload = [
-        '# HELP panther_llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
-        '# TYPE panther_llama_metrics_exporter_up gauge',
-        'panther_llama_metrics_exporter_up 0',
+        '# HELP llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
+        '# TYPE llama_metrics_exporter_up gauge',
+        'llama_metrics_exporter_up 0',
         `# upstream_error ${error?.name ?? 'Error'}: ${error?.message ?? String(error)}`,
         '',
       ].join('\n');
