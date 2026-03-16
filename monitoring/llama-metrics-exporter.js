@@ -267,9 +267,11 @@ function staleSuffix() {
 
 export function startServer() {
   const server = createServer(async (req, res) => {
-    const path = new URL(req.url ?? '/', 'http://localhost').pathname;
+    const requestUrl = new URL(req.url ?? '/', 'http://localhost');
+    const path = requestUrl.pathname;
 
     if (path === '/healthz') {
+      log('debug', 'healthz_request');
       res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
       res.end('ok\n');
       return;
@@ -281,9 +283,14 @@ export function startServer() {
       return;
     }
 
+    log('info', 'metrics_request_received', {
+      path,
+      query: requestUrl.search,
+    });
+
     const nowMs = Date.now();
     if (cache.payload && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
-      log('debug', 'scrape_cache_hit', {
+      log('info', 'scrape_cache_hit', {
         ageMs: nowMs - cache.timestampMs,
       });
       res.writeHead(200, {
