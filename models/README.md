@@ -33,3 +33,7 @@ Use the following commands in [`./bin`](./bin) to manage models in the `.hugging
 ### OpenCode
 
 Use `opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode.
+
+```bash
+ln -s ~/projects/panther-minor/models/opencode.json ~/.config/opencode/opencode.json
+```
