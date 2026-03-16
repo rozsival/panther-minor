@@ -51,6 +51,7 @@ services:
     environment:
       CACHE_TTL_SECONDS: 5
       LLAMA_SERVER_URL: http://llama-cpp:8000
+      LOG_LEVEL: info
       PORT: 9101
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
