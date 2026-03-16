@@ -1,9 +1,17 @@
 #!/bin/bash
 # -- Certbot renew script for Dockerized Nginx reverse proxy ------------------
-PROXY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$PROXY_DIR")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROXY_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+PROJECT_DIR="$(cd "$PROXY_DIR/.." && pwd)"
+CURRENT_UID="$(id -u)"
+CURRENT_GID="$(id -g)"
+CURRENT_OWNER="$CURRENT_UID:$CURRENT_GID"
+
+# Ensure host paths exist before bind-mounting so Docker does not create root-owned dirs.
+mkdir -p "$PROXY_DIR/acme" "$PROXY_DIR/ssl"
 
 docker run --rm \
+  --user "$CURRENT_OWNER" \
   -v "$PROXY_DIR/acme:/acme.sh" \
   -v "$PROXY_DIR/ssl:/ssl" \
   neilpang/acme.sh --cron
