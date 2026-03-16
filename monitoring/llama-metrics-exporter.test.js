@@ -2,177 +2,36 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  discoverSlotsPayload,
-  extractLoadedModels,
-  extractLoadedModelTargets,
+  buildMetricsPayload,
+  expandModelNames,
+  exporterStatusLines,
   injectModelLabel,
-  listSlotsQueryModels,
-  loadPresetAliasesFromText,
-  metricsEntriesByLabel,
+  loadModelsConfigFromText,
   mergeMetricsForModels,
 } from './llama-metrics-exporter.js';
 
-test('extractLoadedModels prefers model_alias', () => {
-  const payload = {
-    slots: [
-      {
-        id: 0,
-        model: '/models/.huggingface/panther-minor.gguf',
-        model_alias: 'panther-minor-thinking',
-        loaded: true,
-      },
-    ],
-  };
-
-  const models = extractLoadedModels(payload);
-  assert.deepEqual(models, ['panther-minor-thinking']);
+test('loadModelsConfigFromText parses models array', () => {
+  const config = loadModelsConfigFromText(`{"version":"1","models":[{"name":"panther-minor","thinking":true}]}`);
+  assert.equal(config.models.length, 1);
+  assert.equal(config.models[0].name, 'panther-minor');
 });
 
-test('extractLoadedModels resolves alias from preset mapping', () => {
-  const preset = `
-[*]
-[panther-minor]
-model = /models/.huggingface/panther-minor.gguf
-[panther-coder]
-model = /models/.huggingface/panther-coder.gguf
-`.trim();
-
-  const { aliasesByModelPath, knownAliases } = loadPresetAliasesFromText(preset);
-  const payload = {
-    slots: [
-      {
-        id: 0,
-        model: '/models/.huggingface/panther-coder.gguf',
-        loaded: true,
-      },
-    ],
-  };
-
-  const models = extractLoadedModels(payload, aliasesByModelPath, knownAliases);
-  assert.deepEqual(models, ['panther-coder']);
-});
-
-test('extractLoadedModelTargets keeps raw upstream model and friendly label separate', () => {
-  const preset = `
-[*]
-[panther-coder]
-model = /models/.huggingface/panther-coder.gguf
-`.trim();
-
-  const { aliasesByModelPath, knownAliases } = loadPresetAliasesFromText(preset);
-  const payload = {
-    slots: [
-      {
-        id: 0,
-        model: '/models/.huggingface/panther-coder.gguf',
-        loaded: true,
-      },
-    ],
-  };
-
-  const targets = extractLoadedModelTargets(payload, aliasesByModelPath, knownAliases);
-  assert.deepEqual(targets, [
-    {
-      upstreamModel: '/models/.huggingface/panther-coder.gguf',
-      labelModel: 'panther-coder',
-    },
+test('expandModelNames adds thinking variants from config', () => {
+  const names = expandModelNames([
+    { name: 'panther-minor', thinking: true },
+    { name: 'panther-blazer', thinking: true },
+    { name: 'panther-coder', thinking: false },
+    { name: 'panther-coder-next', thinking: false },
   ]);
-});
 
-test('metricsEntriesByLabel remaps upstream metrics to friendly labels', () => {
-  const entries = metricsEntriesByLabel(
-    [
-      {
-        upstreamModel: '/models/.huggingface/panther-minor.gguf',
-        labelModel: 'panther-minor',
-      },
-    ],
-    {
-      '/models/.huggingface/panther-minor.gguf': 'llamacpp_tokens_predicted_total 123\n',
-    },
-  );
-
-  assert.deepEqual(entries, {
-    'panther-minor': 'llamacpp_tokens_predicted_total 123\n',
-  });
-});
-
-test('listSlotsQueryModels prefers cached model then preset aliases without duplicates', () => {
-  const knownAliases = new Set(['panther-minor', 'panther-coder', 'panther-minor']);
-  assert.deepEqual(listSlotsQueryModels('panther-coder', knownAliases), ['panther-coder', 'panther-minor']);
-});
-
-test('discoverSlotsPayload falls back to model-qualified /slots queries after bare 400', async () => {
-  const preset = `
-[*]
-[panther-minor]
-model = /models/.huggingface/panther-minor.gguf
-[panther-coder]
-model = /models/.huggingface/panther-coder.gguf
-`.trim();
-  const { aliasesByModelPath, knownAliases } = loadPresetAliasesFromText(preset);
-  const calls = [];
-  const fetchJsonImpl = async (pathname, query) => {
-    calls.push({ pathname, query });
-
-    if (!query) {
-      const error = new Error('upstream json request failed: 400 Bad Request');
-      error.status = 400;
-      throw error;
-    }
-
-    if (query.model === 'panther-minor') {
-      return { slots: [] };
-    }
-
-    if (query.model === 'panther-coder') {
-      return {
-        slots: [
-          {
-            id: 0,
-            model_alias: 'panther-coder',
-            model: '/models/.huggingface/panther-coder.gguf',
-            loaded: true,
-          },
-        ],
-      };
-    }
-
-    throw new Error(`unexpected model ${query.model}`);
-  };
-
-  const payload = await discoverSlotsPayload(fetchJsonImpl, aliasesByModelPath, knownAliases);
-  assert.deepEqual(payload, {
-    slots: [
-      {
-        id: 0,
-        model_alias: 'panther-coder',
-        model: '/models/.huggingface/panther-coder.gguf',
-        loaded: true,
-      },
-    ],
-  });
-  assert.deepEqual(calls, [
-    { pathname: '/slots', query: undefined },
-    { pathname: '/slots', query: { model: 'panther-minor' } },
-    { pathname: '/slots', query: { model: 'panther-coder' } },
+  assert.deepEqual(names, [
+    'panther-minor',
+    'panther-minor-thinking',
+    'panther-blazer',
+    'panther-blazer-thinking',
+    'panther-coder',
+    'panther-coder-next',
   ]);
-});
-
-test('discoverSlotsPayload returns empty slots when router mode has no loaded configured model', async () => {
-  const knownAliases = new Set(['panther-minor']);
-  const fetchJsonImpl = async (_pathname, query) => {
-    if (!query) {
-      const error = new Error('upstream json request failed: 400 Bad Request');
-      error.status = 400;
-      throw error;
-    }
-
-    return { slots: [] };
-  };
-
-  const payload = await discoverSlotsPayload(fetchJsonImpl, new Map(), knownAliases);
-  assert.deepEqual(payload, { slots: [] });
 });
 
 test('injectModelLabel adds label for unlabeled series', () => {
@@ -188,7 +47,7 @@ test('injectModelLabel appends label to existing labels', () => {
   );
 });
 
-test('mergeMetricsForModels deduplicates HELP/TYPE headers', () => {
+test('mergeMetricsForModels deduplicates HELP/TYPE headers and labels samples', () => {
   const sample = `# HELP llamacpp_tokens_predicted_total Total predicted tokens
 # TYPE llamacpp_tokens_predicted_total counter
 llamacpp_tokens_predicted_total 100
@@ -197,9 +56,70 @@ llamacpp_tokens_predicted_total 100
   const merged = mergeMetricsForModels({
     'panther-minor': sample,
     'panther-coder': sample.replace('100', '200'),
-  });
+  }).join('\n');
 
   assert.equal((merged.match(/# HELP llamacpp_tokens_predicted_total/g) ?? []).length, 1);
   assert.match(merged, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
   assert.match(merged, /llamacpp_tokens_predicted_total\{model="panther-coder"} 200/);
+});
+
+test('exporterStatusLines reports configured and successful model counts', () => {
+  const lines = exporterStatusLines(['panther-minor', 'panther-minor-thinking'], {
+    'panther-minor': { ok: true },
+    'panther-minor-thinking': { ok: false },
+  }).join('\n');
+
+  assert.match(lines, /panther_llama_metrics_exporter_configured_models 2/);
+  assert.match(lines, /panther_llama_metrics_exporter_successful_models 1/);
+  assert.match(lines, /panther_llama_metrics_exporter_model_up\{model="panther-minor"} 1/);
+  assert.match(lines, /panther_llama_metrics_exporter_model_up\{model="panther-minor-thinking"} 0/);
+});
+
+test('buildMetricsPayload fetches router metrics for every configured model', async () => {
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(url.toString());
+
+    const model = new URL(url).searchParams.get('model');
+    return new Response(
+      `# HELP llamacpp_tokens_predicted_total Total predicted tokens\n` +
+        `# TYPE llamacpp_tokens_predicted_total counter\n` +
+        `llamacpp_tokens_predicted_total ${model === 'panther-minor' ? 100 : 200}\n`,
+      { status: 200 },
+    );
+  };
+
+  const payload = await buildMetricsPayload(fetchImpl, ['panther-minor', 'panther-minor-thinking']);
+
+  assert.deepEqual(calls, [
+    'http://llama-cpp:8000/metrics?model=panther-minor',
+    'http://llama-cpp:8000/metrics?model=panther-minor-thinking',
+  ]);
+  assert.match(payload, /panther_llama_metrics_exporter_successful_models 2/);
+  assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
+  assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor-thinking"} 200/);
+});
+
+test('buildMetricsPayload tolerates per-model failures and exports model_up states', async () => {
+  const fetchImpl = async (url) => {
+    const model = new URL(url).searchParams.get('model');
+    if (model === 'panther-coder') {
+      return new Response('bad request', { status: 400, statusText: 'Bad Request' });
+    }
+
+    return new Response(
+      '# HELP llamacpp_tokens_predicted_total Total predicted tokens\n' +
+        '# TYPE llamacpp_tokens_predicted_total counter\n' +
+        'llamacpp_tokens_predicted_total 321\n',
+      { status: 200 },
+    );
+  };
+
+  const payload = await buildMetricsPayload(fetchImpl, ['panther-minor', 'panther-coder']);
+
+  assert.match(payload, /panther_llama_metrics_exporter_successful_models 1/);
+  assert.match(payload, /panther_llama_metrics_exporter_model_up\{model="panther-minor"} 1/);
+  assert.match(payload, /panther_llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
+  assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 321/);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="panther-coder"}/);
 });
