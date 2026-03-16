@@ -49,22 +49,22 @@ model = /models/.huggingface/panther-coder.gguf
 });
 
 test('injectModelLabel adds label for unlabeled series', () => {
-  const line = 'llamacpp:tokens_predicted_total 123';
-  assert.equal(injectModelLabel(line, 'panther-minor'), 'llamacpp:tokens_predicted_total{model="panther-minor"} 123');
+  const line = 'llamacpp_tokens_predicted_total 123';
+  assert.equal(injectModelLabel(line, 'panther-minor'), 'llamacpp_tokens_predicted_total{model="panther-minor"} 123');
 });
 
 test('injectModelLabel appends label to existing labels', () => {
-  const line = 'llamacpp:tokens_predicted_total{instance="llama-cpp:8000"} 123';
+  const line = 'llamacpp_tokens_predicted_total{instance="llama-cpp:8000"} 123';
   assert.equal(
     injectModelLabel(line, 'panther-minor'),
-    'llamacpp:tokens_predicted_total{instance="llama-cpp:8000",model="panther-minor"} 123',
+    'llamacpp_tokens_predicted_total{instance="llama-cpp:8000",model="panther-minor"} 123',
   );
 });
 
 test('mergeMetricsForModels deduplicates HELP/TYPE headers', () => {
-  const sample = `# HELP llamacpp:tokens_predicted_total Total predicted tokens
-# TYPE llamacpp:tokens_predicted_total counter
-llamacpp:tokens_predicted_total 100
+  const sample = `# HELP llamacpp_tokens_predicted_total Total predicted tokens
+# TYPE llamacpp_tokens_predicted_total counter
+llamacpp_tokens_predicted_total 100
 `;
 
   const merged = mergeMetricsForModels({
@@ -72,7 +72,7 @@ llamacpp:tokens_predicted_total 100
     'panther-coder': sample.replace('100', '200'),
   });
 
-  assert.equal((merged.match(/# HELP llamacpp:tokens_predicted_total/g) ?? []).length, 1);
-  assert.match(merged, /llamacpp:tokens_predicted_total\{model="panther-minor"} 100/);
-  assert.match(merged, /llamacpp:tokens_predicted_total\{model="panther-coder"} 200/);
+  assert.equal((merged.match(/# HELP llamacpp_tokens_predicted_total/g) ?? []).length, 1);
+  assert.match(merged, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
+  assert.match(merged, /llamacpp_tokens_predicted_total\{model="panther-coder"} 200/);
 });
