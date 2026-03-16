@@ -67,7 +67,7 @@
           "refId": "A"
         }
       ],
-      "title": "GPU Utilization",
+      "title": "Shader Clock vs Max",
       "type": "gauge"
     },
     {
@@ -104,7 +104,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_edge_temperature",
+          "expr": "max by (gpu_id) (gpu_edge_temperature)",
           "legendFormat": "GPU {{gpu_id}}",
           "range": true,
           "refId": "A"
@@ -147,7 +147,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_average_package_power",
+          "expr": "max by (gpu_id) (gpu_average_package_power)",
           "legendFormat": "GPU {{gpu_id}}",
           "range": true,
           "refId": "A"
@@ -192,7 +192,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "100 * gpu_used_vram / gpu_total_vram",
+          "expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
           "legendFormat": "GPU {{gpu_id}}",
           "range": true,
           "refId": "A"
@@ -255,7 +255,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_used_vram * 1024 * 1024",
+          "expr": "max by (gpu_id) (gpu_used_vram) * 1024 * 1024",
           "legendFormat": "GPU {{gpu_id}} used",
           "range": true,
           "refId": "A"
@@ -263,7 +263,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_total_vram * 1024 * 1024",
+          "expr": "max by (gpu_id) (gpu_total_vram) * 1024 * 1024",
           "legendFormat": "GPU {{gpu_id}} total",
           "range": true,
           "refId": "B"
@@ -321,7 +321,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "100 * gpu_used_vram / gpu_total_vram",
+          "expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
           "legendFormat": "GPU {{gpu_id}}",
           "range": true,
           "refId": "A"
@@ -392,7 +392,7 @@
           "refId": "A"
         }
       ],
-      "title": "GPU Utilization %",
+      "title": "Shader Clock vs Max %",
       "type": "timeseries"
     },
     {
@@ -506,7 +506,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_average_package_power",
+          "expr": "max by (gpu_id) (gpu_average_package_power)",
           "legendFormat": "GPU {{gpu_id}} instantaneous",
           "range": true,
           "refId": "A"
@@ -514,7 +514,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "avg_over_time(gpu_average_package_power[5m])",
+          "expr": "max by (gpu_id) (avg_over_time(gpu_average_package_power[5m]))",
           "legendFormat": "GPU {{gpu_id}} average",
           "range": true,
           "refId": "B"
@@ -583,7 +583,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_edge_temperature",
+          "expr": "max by (gpu_id) (gpu_edge_temperature)",
           "legendFormat": "GPU {{gpu_id}} core",
           "range": true,
           "refId": "A"
@@ -591,7 +591,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_junction_temperature",
+          "expr": "max by (gpu_id) (gpu_junction_temperature)",
           "legendFormat": "GPU {{gpu_id}} junction",
           "range": true,
           "refId": "B"
@@ -599,7 +599,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "gpu_memory_temperature",
+          "expr": "max by (gpu_id) (gpu_memory_temperature)",
           "legendFormat": "GPU {{gpu_id}} memory",
           "range": true,
           "refId": "C"
@@ -643,7 +643,7 @@
       "id": 11,
       "options": {
         "legend": {
-          "calcs": ["mean", "max"],
+          "calcs": ["lastNotNull", "min"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -655,29 +655,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "100 * gpu_health",
-          "legendFormat": "GPU {{gpu_id}} proc hot",
+          "expr": "100 * max by (gpu_id) (gpu_health)",
+          "legendFormat": "GPU {{gpu_id}}",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "100 * gpu_health",
-          "legendFormat": "GPU {{gpu_id}} socket thermal",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": { "type": "prometheus", "uid": "prometheus" },
-          "editorMode": "code",
-          "expr": "100 * gpu_health",
-          "legendFormat": "GPU {{gpu_id}} power limit",
-          "range": true,
-          "refId": "C"
         }
       ],
-      "title": "Throttling Residency",
+      "title": "GPU Health",
       "type": "timeseries"
     }
   ],
