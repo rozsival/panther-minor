@@ -2,9 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  discoverSlotsPayload,
   extractLoadedModels,
   extractLoadedModelTargets,
   injectModelLabel,
+  listSlotsQueryModels,
   loadPresetAliasesFromText,
   metricsEntriesByLabel,
   mergeMetricsForModels,
@@ -93,6 +95,84 @@ test('metricsEntriesByLabel remaps upstream metrics to friendly labels', () => {
   assert.deepEqual(entries, {
     'panther-minor': 'llamacpp_tokens_predicted_total 123\n',
   });
+});
+
+test('listSlotsQueryModels prefers cached model then preset aliases without duplicates', () => {
+  const knownAliases = new Set(['panther-minor', 'panther-coder', 'panther-minor']);
+  assert.deepEqual(listSlotsQueryModels('panther-coder', knownAliases), ['panther-coder', 'panther-minor']);
+});
+
+test('discoverSlotsPayload falls back to model-qualified /slots queries after bare 400', async () => {
+  const preset = `
+[*]
+[panther-minor]
+model = /models/.huggingface/panther-minor.gguf
+[panther-coder]
+model = /models/.huggingface/panther-coder.gguf
+`.trim();
+  const { aliasesByModelPath, knownAliases } = loadPresetAliasesFromText(preset);
+  const calls = [];
+  const fetchJsonImpl = async (pathname, query) => {
+    calls.push({ pathname, query });
+
+    if (!query) {
+      const error = new Error('upstream json request failed: 400 Bad Request');
+      error.status = 400;
+      throw error;
+    }
+
+    if (query.model === 'panther-minor') {
+      return { slots: [] };
+    }
+
+    if (query.model === 'panther-coder') {
+      return {
+        slots: [
+          {
+            id: 0,
+            model_alias: 'panther-coder',
+            model: '/models/.huggingface/panther-coder.gguf',
+            loaded: true,
+          },
+        ],
+      };
+    }
+
+    throw new Error(`unexpected model ${query.model}`);
+  };
+
+  const payload = await discoverSlotsPayload(fetchJsonImpl, aliasesByModelPath, knownAliases);
+  assert.deepEqual(payload, {
+    slots: [
+      {
+        id: 0,
+        model_alias: 'panther-coder',
+        model: '/models/.huggingface/panther-coder.gguf',
+        loaded: true,
+      },
+    ],
+  });
+  assert.deepEqual(calls, [
+    { pathname: '/slots', query: undefined },
+    { pathname: '/slots', query: { model: 'panther-minor' } },
+    { pathname: '/slots', query: { model: 'panther-coder' } },
+  ]);
+});
+
+test('discoverSlotsPayload returns empty slots when router mode has no loaded configured model', async () => {
+  const knownAliases = new Set(['panther-minor']);
+  const fetchJsonImpl = async (_pathname, query) => {
+    if (!query) {
+      const error = new Error('upstream json request failed: 400 Bad Request');
+      error.status = 400;
+      throw error;
+    }
+
+    return { slots: [] };
+  };
+
+  const payload = await discoverSlotsPayload(fetchJsonImpl, new Map(), knownAliases);
+  assert.deepEqual(payload, { slots: [] });
 });
 
 test('injectModelLabel adds label for unlabeled series', () => {

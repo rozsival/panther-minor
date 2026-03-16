@@ -20,6 +20,8 @@ const cache = {
   payload: '',
 };
 
+let lastSuccessfulSlotsModel = '';
+
 export function loadPresetAliasesFromText(text) {
   const aliasesByModelPath = new Map();
   const knownAliases = new Set();
@@ -233,6 +235,27 @@ export function metricsEntriesByLabel(modelTargets, metricsByUpstreamModel) {
   return entries;
 }
 
+export function listSlotsQueryModels(preferredModel = lastSuccessfulSlotsModel, knownAliases = KNOWN_ALIASES) {
+  const models = [];
+  const seen = new Set();
+
+  for (const candidate of [preferredModel, ...knownAliases]) {
+    if (typeof candidate !== 'string') {
+      continue;
+    }
+
+    const model = candidate.trim();
+    if (!model || seen.has(model)) {
+      continue;
+    }
+
+    seen.add(model);
+    models.push(model);
+  }
+
+  return models;
+}
+
 export function escapeLabelValue(value) {
   return value.replaceAll('\\', '\\\\').replaceAll('\n', '\\n').replaceAll('"', '\\"');
 }
@@ -309,12 +332,22 @@ function metricsForNoModels() {
   ].join('\n');
 }
 
-async function fetchJson(pathname) {
-  const response = await fetch(`${LLAMA_SERVER_URL}${pathname}`, {
+async function fetchJsonWithQuery(pathname, query = undefined) {
+  const url = new URL(`${LLAMA_SERVER_URL}${pathname}`);
+  if (query) {
+    for (const [key, value] of Object.entries(query)) {
+      url.searchParams.set(key, value);
+    }
+  }
+
+  const response = await fetch(url, {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
   if (!response.ok) {
-    throw new Error(`upstream json request failed: ${response.status} ${response.statusText}`);
+    const error = new Error(`upstream json request failed: ${response.status} ${response.statusText}`);
+    error.status = response.status;
+    error.statusText = response.statusText;
+    throw error;
   }
   return response.json();
 }
@@ -331,13 +364,49 @@ async function fetchText(pathname, query = undefined) {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
   if (!response.ok) {
-    throw new Error(`upstream text request failed: ${response.status} ${response.statusText}`);
+    const error = new Error(`upstream text request failed: ${response.status} ${response.statusText}`);
+    error.status = response.status;
+    error.statusText = response.statusText;
+    throw error;
   }
   return response.text();
 }
 
+export async function discoverSlotsPayload(
+  fetchJsonImpl = fetchJsonWithQuery,
+  aliasesByModelPath = ALIASES_BY_MODEL_PATH,
+  knownAliases = KNOWN_ALIASES,
+) {
+  try {
+    const payload = await fetchJsonImpl('/slots');
+    lastSuccessfulSlotsModel = '';
+    return payload;
+  } catch (error) {
+    if (error?.status !== 400) {
+      throw error;
+    }
+  }
+
+  for (const model of listSlotsQueryModels(lastSuccessfulSlotsModel, knownAliases)) {
+    try {
+      const payload = await fetchJsonImpl('/slots', { model });
+      if (extractLoadedModelTargets(payload, aliasesByModelPath, knownAliases).length > 0) {
+        lastSuccessfulSlotsModel = model;
+        return payload;
+      }
+    } catch (error) {
+      if (error?.status === 400) {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  return { slots: [] };
+}
+
 export async function buildMetricsPayload() {
-  const slotsPayload = await fetchJson('/slots');
+  const slotsPayload = await discoverSlotsPayload();
   const modelTargets = extractLoadedModelTargets(slotsPayload);
 
   if (modelTargets.length === 0) {
