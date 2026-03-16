@@ -29,3 +29,7 @@ Use the following commands in [`./bin`](./bin) to manage models in the `.hugging
 ./bin/download <model> # Download model to .huggingface cache
 ./bin/remove <model>   # Remove model from .huggingface cache
 ```
+
+### OpenCode
+
+Use `opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode.
