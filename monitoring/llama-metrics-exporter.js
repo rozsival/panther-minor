@@ -219,7 +219,30 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
 
   log('info', 'model_metrics_request_ok', { model, status: response.status });
 
-  return response.text();
+  const payload = await response.text();
+  const metricNames = [];
+  const seen = new Set();
+  for (const rawLine of payload.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+
+    const metricName = line.split('{', 1)[0].split(' ', 1)[0];
+    if (!metricName || seen.has(metricName)) {
+      continue;
+    }
+    seen.add(metricName);
+    metricNames.push(metricName);
+  }
+
+  log('info', 'model_metrics_payload_received', {
+    model,
+    metricCount: metricNames.length,
+    sampleMetrics: metricNames.slice(0, 10),
+  });
+
+  return payload;
 }
 
 export async function buildMetricsPayload(fetchImpl = fetch) {
