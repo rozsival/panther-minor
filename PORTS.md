@@ -33,7 +33,7 @@
 ### Via Tailscale (Recommended)
 
 ```bash
-curl https://panther.<domain>:11434/v1/models
+curl https://panther.<domain>:8000/v1/models
 open https://panther.<domain>:8080
 ssh -p 2222 <user>@panther-minor
 ```
@@ -48,7 +48,7 @@ open http://localhost:8080
 ### Direct (On Host)
 
 ```bash
-curl http://localhost:11434/v1/models
+curl http://localhost:8000/v1/models
 ```
 
 ## Config Files
