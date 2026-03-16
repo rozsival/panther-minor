@@ -1,5 +1,5 @@
 # -- llama.cpp build for AMD ROCm 7 and gfx1201 -------------------------------
-FROM rocm/dev-ubuntu-24.04:7.0-complete
+FROM rocm/dev-ubuntu-24.04:7.2-complete
 
 ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp
 ARG LLAMA_CPP_REF=b8312
