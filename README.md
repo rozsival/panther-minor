@@ -116,7 +116,7 @@ All services in the cluster are configured to use self-signed SSL certificates f
 4. Setup certificates auto renewal:
 
 ```bash
-sudo ./proxy/bin/setup-cron
+./proxy/bin/setup-cron
 ```
 
 ## LLaMA.cpp Cluster

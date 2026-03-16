@@ -1,8 +1,10 @@
 #!/bin/bash
 # -- Nginx Proxy SSL Renewal Cron Job Setup Script ----------------------------
 PROXY_BIN_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROXY_DIR="$(cd "$PROXY_BIN_DIR/.." && pwd)"
 SCRIPT_PATH="$PROXY_BIN_DIR/renew-ssl"
-LOG_PATH="/var/log/renew-ssl.log"
+TARGET_USER="${SUDO_USER:-$USER}"
+LOG_PATH="$PROXY_DIR/renew-ssl.log"
 
 if [ ! -f "$SCRIPT_PATH" ]; then
   echo "Error: Execution script $SCRIPT_PATH not found."
@@ -11,9 +13,17 @@ fi
 
 chmod +x "$SCRIPT_PATH"
 
-if crontab -l 2>/dev/null | grep -q "$SCRIPT_PATH"; then
+if [ "$(id -u)" -eq 0 ]; then
+  CRONTAB_LIST_CMD=(crontab -u "$TARGET_USER" -l)
+  CRONTAB_INSTALL_CMD=(crontab -u "$TARGET_USER" -)
+else
+  CRONTAB_LIST_CMD=(crontab -l)
+  CRONTAB_INSTALL_CMD=(crontab -)
+fi
+
+if "${CRONTAB_LIST_CMD[@]}" 2>/dev/null | grep -q "$SCRIPT_PATH"; then
   exit 0
 fi
 
-(crontab -l 2>/dev/null; echo "0 2 * * * $SCRIPT_PATH >> $LOG_PATH 2>&1") | crontab -
-echo "Cron job added: $SCRIPT_PATH will run daily at 2 AM. Logs will be written to $LOG_PATH"
+("${CRONTAB_LIST_CMD[@]}" 2>/dev/null; echo "0 2 * * * $SCRIPT_PATH >> $LOG_PATH 2>&1") | "${CRONTAB_INSTALL_CMD[@]}"
+echo "Cron job added for user $TARGET_USER: $SCRIPT_PATH will run daily at 2 AM. Logs will be written to $LOG_PATH"
