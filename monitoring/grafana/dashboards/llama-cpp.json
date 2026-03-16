@@ -59,7 +59,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llamacpp:prompt_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "max by (model) (llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -103,7 +103,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llamacpp:tokens_predicted_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "max by (model) (llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -166,7 +166,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llamacpp:prompt_tokens_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "max by (model) (llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -222,7 +222,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "sum by (model) (rate(llamacpp:tokens_predicted_total{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "max by (model) (llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
