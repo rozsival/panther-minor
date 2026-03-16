@@ -153,8 +153,17 @@ export function normalizeModelCandidate(
 }
 
 export function extractLoadedModels(payload, aliasesByModelPath = ALIASES_BY_MODEL_PATH, knownAliases = KNOWN_ALIASES) {
+  return extractLoadedModelTargets(payload, aliasesByModelPath, knownAliases).map(({ labelModel }) => labelModel);
+}
+
+export function extractLoadedModelTargets(
+  payload,
+  aliasesByModelPath = ALIASES_BY_MODEL_PATH,
+  knownAliases = KNOWN_ALIASES,
+) {
   const models = [];
-  const seen = new Set();
+  const seenUpstream = new Set();
+  const seenLabels = new Set();
 
   for (const slot of iterSlotObjects(payload)) {
     const state = String(slot.state ?? '').toLowerCase();
@@ -163,29 +172,65 @@ export function extractLoadedModels(payload, aliasesByModelPath = ALIASES_BY_MOD
       continue;
     }
 
+    const rawCandidates = [];
     for (const rawCandidate of modelCandidatesForSlot(slot)) {
       if (['none', 'null', '-'].includes(rawCandidate.toLowerCase())) {
         continue;
       }
 
+      rawCandidates.push(rawCandidate);
+    }
+
+    if (rawCandidates.length === 0) {
+      continue;
+    }
+
+    const upstreamModel = rawCandidates[0];
+    if (seenUpstream.has(upstreamModel)) {
+      continue;
+    }
+
+    const labelCandidates = [];
+    for (const rawCandidate of rawCandidates) {
       const candidates = normalizeModelCandidate(rawCandidate, aliasesByModelPath, knownAliases);
-      let accepted = false;
       for (const model of candidates) {
-        if (seen.has(model)) {
+        if (labelCandidates.includes(model)) {
           continue;
         }
-        seen.add(model);
-        models.push(model);
-        accepted = true;
-        break;
-      }
-      if (accepted) {
-        break;
+        labelCandidates.push(model);
       }
     }
+
+    if (!labelCandidates.includes(upstreamModel)) {
+      labelCandidates.push(upstreamModel);
+    }
+
+    const labelModel = labelCandidates.find((candidate) => !seenLabels.has(candidate)) ?? labelCandidates[0];
+    if (!labelModel) {
+      continue;
+    }
+
+    seenUpstream.add(upstreamModel);
+    seenLabels.add(labelModel);
+    models.push({ upstreamModel, labelModel });
   }
 
   return models;
+}
+
+export function metricsEntriesByLabel(modelTargets, metricsByUpstreamModel) {
+  const entries = {};
+
+  for (const { upstreamModel, labelModel } of modelTargets) {
+    const payload = metricsByUpstreamModel[upstreamModel];
+    if (!payload || labelModel in entries) {
+      continue;
+    }
+
+    entries[labelModel] = payload;
+  }
+
+  return entries;
 }
 
 export function escapeLabelValue(value) {
@@ -293,18 +338,18 @@ async function fetchText(pathname, query = undefined) {
 
 export async function buildMetricsPayload() {
   const slotsPayload = await fetchJson('/slots');
-  const models = extractLoadedModels(slotsPayload);
+  const modelTargets = extractLoadedModelTargets(slotsPayload);
 
-  if (models.length === 0) {
+  if (modelTargets.length === 0) {
     return metricsForNoModels();
   }
 
-  const modelToMetrics = {};
-  for (const model of models) {
-    modelToMetrics[model] = await fetchText('/metrics', { model });
+  const metricsByUpstreamModel = {};
+  for (const { upstreamModel } of modelTargets) {
+    metricsByUpstreamModel[upstreamModel] = await fetchText('/metrics', { model: upstreamModel });
   }
 
-  return mergeMetricsForModels(modelToMetrics);
+  return mergeMetricsForModels(metricsEntriesByLabel(modelTargets, metricsByUpstreamModel));
 }
 
 function staleSuffix() {
