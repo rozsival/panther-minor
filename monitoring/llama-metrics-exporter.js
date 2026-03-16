@@ -6,6 +6,35 @@ const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5'
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '9101', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
+const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
+
+const LOG_PRIORITY = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  debug: 3,
+};
+
+function shouldLog(level) {
+  return (LOG_PRIORITY[level] ?? LOG_PRIORITY.info) <= (LOG_PRIORITY[LOG_LEVEL] ?? LOG_PRIORITY.info);
+}
+
+function log(level, message, fields = undefined) {
+  if (!shouldLog(level)) {
+    return;
+  }
+
+  const base = `[llama-metrics-exporter] ${level.toUpperCase()} ${message}`;
+  if (!fields || Object.keys(fields).length === 0) {
+    console.log(base);
+    return;
+  }
+
+  const context = Object.entries(fields)
+    .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+    .join(' ');
+  console.log(`${base} ${context}`);
+}
 
 const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
 const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
@@ -132,56 +161,84 @@ export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
 
 async function fetchJson(pathname, fetchImpl = fetch) {
   const url = new URL(`${LLAMA_SERVER_URL}${pathname}`);
+  log('debug', 'upstream_json_request_start', { url: url.toString() });
   const response = await fetchImpl(url, {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
 
   if (!response.ok) {
+    log('warn', 'upstream_json_request_failed', {
+      url: url.toString(),
+      status: response.status,
+      statusText: response.statusText,
+    });
     const error = new Error(`upstream json request failed: ${response.status} ${response.statusText}`);
     error.status = response.status;
     error.statusText = response.statusText;
     throw error;
   }
 
+  log('debug', 'upstream_json_request_ok', {
+    url: url.toString(),
+    status: response.status,
+  });
+
   return response.json();
 }
 
 export async function fetchModelsList(fetchImpl = fetch) {
   const payload = await fetchJson('/v1/models', fetchImpl);
-  return normalizeModelsPayload(payload);
+  const models = normalizeModelsPayload(payload);
+  log('info', 'models_discovered', {
+    count: models.length,
+    loaded: models.filter((model) => model.status === 'loaded').map((model) => model.id),
+  });
+  return models;
 }
 
 export async function fetchMetricsText(model, fetchImpl = fetch) {
   const url = new URL(`${LLAMA_SERVER_URL}/metrics`);
   url.searchParams.set('model', model);
+  log('info', 'model_metrics_request_start', { model, url: url.toString() });
 
   const response = await fetchImpl(url, {
     signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
   });
 
   if (!response.ok) {
+    log('warn', 'model_metrics_request_failed', {
+      model,
+      status: response.status,
+      statusText: response.statusText,
+    });
     const error = new Error(`upstream metrics request failed for ${model}: ${response.status} ${response.statusText}`);
     error.status = response.status;
     error.statusText = response.statusText;
     throw error;
   }
 
+  log('info', 'model_metrics_request_ok', { model, status: response.status });
+
   return response.text();
 }
 
 export async function buildMetricsPayload(fetchImpl = fetch) {
+  log('info', 'scrape_cycle_start');
   const models = await fetchModelsList(fetchImpl);
   const loadedModel = pickLoadedModel(models);
   const modelToMetrics = {};
   let metricsScrapeOk = false;
 
   if (loadedModel) {
+    log('info', 'loaded_model_selected', { model: loadedModel.id });
     try {
       modelToMetrics[loadedModel.id] = await fetchMetricsText(loadedModel.id, fetchImpl);
       metricsScrapeOk = true;
     } catch {
       metricsScrapeOk = false;
     }
+  } else {
+    log('warn', 'no_loaded_model_reported');
   }
 
   const lines = [
@@ -189,6 +246,12 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
     ...mergeMetricsForModels(modelToMetrics),
     '',
   ];
+
+  log('info', 'scrape_cycle_done', {
+    discoveredModels: models.length,
+    loadedModel: loadedModel?.id ?? null,
+    metricsScrapeOk,
+  });
 
   return lines.join('\n');
 }
@@ -220,6 +283,9 @@ export function startServer() {
 
     const nowMs = Date.now();
     if (cache.payload && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
+      log('debug', 'scrape_cache_hit', {
+        ageMs: nowMs - cache.timestampMs,
+      });
       res.writeHead(200, {
         'content-type': 'text/plain; version=0.0.4; charset=utf-8',
       });
@@ -228,6 +294,7 @@ export function startServer() {
     }
 
     try {
+      log('debug', 'scrape_cache_miss');
       const payload = await buildMetricsPayload();
       cache.payload = payload;
       cache.timestampMs = nowMs;
@@ -236,7 +303,11 @@ export function startServer() {
       });
       res.end(payload);
     } catch (error) {
+      log('error', 'scrape_cycle_failed', {
+        error: error?.message ?? String(error),
+      });
       if (cache.payload) {
+        log('warn', 'serving_stale_payload');
         const payload = `${cache.payload}${staleSuffix()}`;
         res.writeHead(200, {
           'content-type': 'text/plain; version=0.0.4; charset=utf-8',
@@ -260,10 +331,13 @@ export function startServer() {
   });
 
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(
-      `[llama-metrics-exporter] listening on 0.0.0.0:${PORT}, ` +
-        `upstream=${LLAMA_SERVER_URL}, cache_ttl=${CACHE_TTL_SECONDS}s`,
-    );
+    log('info', 'server_started', {
+      listen: `0.0.0.0:${PORT}`,
+      upstream: LLAMA_SERVER_URL,
+      cacheTtlSeconds: CACHE_TTL_SECONDS,
+      timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
+      logLevel: LOG_LEVEL,
+    });
   });
 
   return server;
