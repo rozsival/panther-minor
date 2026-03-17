@@ -6,7 +6,10 @@
       "npm": "@ai-sdk/openai-compatible",
       "name": "Panther Minor",
       "options": {
-        "baseURL": "https://panther.<domain>:8000/v1"
+        "baseURL": "https://panther.<domain>:8000/v1",
+        "chunkTimeout": 30000,
+        "setCacheKey": true,
+        "timeout": 600000
       },
       "models": {
         "panther-coder": {
