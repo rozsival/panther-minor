@@ -98,16 +98,21 @@ ssh -p 2222 <user>@panther-minor
 
 ### SSL
 
-All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL requires manual steps:
+All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL
+requires manual steps:
 
 1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
 
-2. Add DNS type A record for `panther-minor` pointing to the server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
+2. Add DNS type A record for `panther-minor` pointing to the
+	 server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
+	 your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
 
 3. Generate Certbot certificate on the server:
 
 > [!IMPORTANT]
-> The script will output required ACME DNS CNAME record value. You MUST add this CNAME record to your DNS provider to complete the certificate issuance. The script will wait for you to confirm you completed this step. Do NOT continue until you have added the CNAME record, otherwise the certificate generation will fail.
+> The script will output required ACME DNS CNAME record value. You MUST add this CNAME record to your DNS provider to
+> complete the certificate issuance. The script will wait for you to confirm you completed this step. Do NOT continue
+> until you have added the CNAME record, otherwise the certificate generation will fail.
 
 ```bash
 ./proxy/bin/certbot
@@ -154,7 +159,7 @@ make build-no-cache
 ### Services
 
 | Service               | Credentials       |
-| --------------------- | ----------------- |
+|-----------------------|-------------------|
 | OpenAI-compatible API | —                 |
 | Open WebUI (chat)     | —                 |
 | Grafana (monitoring)  | `admin` / `admin` |

@@ -17,8 +17,8 @@ apt update
 apt install -y tailscale
 
 if command -v tailscale; then
-  log_success "Tailscale installed."
-  register_action "Authenticate Tailscale: run 'sudo tailscale up' from your workstation via SSH (GUI with browser needed)."
+	log_success "Tailscale installed."
+	register_action "Authenticate Tailscale: run 'sudo tailscale up' from your workstation via SSH (GUI with browser needed)."
 else
-  log_error "Tailscale installation failed."
+	log_error "Tailscale installation failed."
 fi

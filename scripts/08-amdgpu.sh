@@ -12,7 +12,7 @@ log_info "Installing AMD GPU & ROCm..."
 # 1. Setup AMD packages signing key
 mkdir --parents --mode=0755 /etc/apt/keyrings
 wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | \
-    gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg
+	gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg
 
 # 2. Clean up existing kernel drivers, repositories and cache
 apt autoremove -y amdgpu-dkms || true

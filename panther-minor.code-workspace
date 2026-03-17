@@ -1,10 +1,10 @@
 {
-  "folders": [
-    {
-      "path": ".",
-    },
-  ],
-  "settings": {
-    "makefile.configureOnOpen": true,
-  },
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"makefile.configureOnOpen": true
+	}
 }

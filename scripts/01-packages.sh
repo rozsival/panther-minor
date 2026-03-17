@@ -12,16 +12,16 @@ log_info "Updating system and installing essential packages..."
 apt update
 apt upgrade -y
 apt install -y \
-  augeas-lenses \
-  augeas-tools \
-  build-essential \
-  htop \
-  jq \
-  nvtop \
-  python3-full \
-  python3-pip \
-  tree \
-  unattended-upgrades \
-  unzip
+	augeas-lenses \
+	augeas-tools \
+	build-essential \
+	htop \
+	jq \
+	nvtop \
+	python3-full \
+	python3-pip \
+	tree \
+	unattended-upgrades \
+	unzip
 
 log_success "Essential packages installed."

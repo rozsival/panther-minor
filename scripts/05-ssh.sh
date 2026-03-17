@@ -11,8 +11,8 @@ log_info "Configuring SSH ($SSHD_CONFIG)..."
 
 # Back up original config (once)
 if [[ ! -f "${SSHD_CONFIG}.orig" ]]; then
-  cp "$SSHD_CONFIG" "${SSHD_CONFIG}.orig"
-  log_info "Original sshd_config backed up to ${SSHD_CONFIG}.orig"
+	cp "$SSHD_CONFIG" "${SSHD_CONFIG}.orig"
+	log_info "Original sshd_config backed up to ${SSHD_CONFIG}.orig"
 fi
 
 log_info "Applying SSH hardening via Augeas..."

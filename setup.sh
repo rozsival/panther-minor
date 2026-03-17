@@ -29,11 +29,11 @@ export PANTHER_CONFIRMED=1
 echo -e "${BLUE}🐆 ${SERVER_NAME} setup starting...${NC}\n"
 
 for script in "${SCRIPTS_PATH}"/[0-9][0-9]-*.sh; do
-  if [[ -x "$script" ]]; then
-    "$script"
-  else
-    bash "$script"
-  fi
+	if [[ -x "$script" ]]; then
+		"$script"
+	else
+		bash "$script"
+	fi
 done
 
 # =============================================================================
@@ -59,11 +59,11 @@ printf "${GREEN}║ 12. Env      : %-30s║${NC}\n" "synced"
 echo -e "${GREEN}╚══════════════════════════════════════════════╝${NC}"
 
 if [[ -s "$ACTIONS_FILE" ]]; then
-  echo ""
-  log_warn "⚠  ACTIONS REQUIRED TO FINISH SETUP:"
-  while IFS= read -r line; do
-    echo -e "   ${YELLOW}•${NC} $line"
-  done < "$ACTIONS_FILE"
+	echo ""
+	log_warn "⚠  ACTIONS REQUIRED TO FINISH SETUP:"
+	while IFS= read -r line; do
+		echo -e "   ${YELLOW}•${NC} $line"
+	done < "$ACTIONS_FILE"
 fi
 
 echo ""
@@ -76,11 +76,11 @@ rm -f "$ACTIONS_FILE"
 echo ""
 read -p "System reboot is required to apply all changes. Reboot now? (y/N): " _reboot
 if [[ "$_reboot" =~ ^[Yy]$ ]]; then
-  log_info "Rebooting system in 5 seconds..."
-  sleep 5
-  reboot
+	log_info "Rebooting system in 5 seconds..."
+	sleep 5
+	reboot
 else
-  log_warn "Reboot skipped. Please remember to reboot manually."
-  # Hand off to a fresh login shell as the allowed user
-  exec su - "${ALLOWED_USER}"
+	log_warn "Reboot skipped. Please remember to reboot manually."
+	# Hand off to a fresh login shell as the allowed user
+	exec su - "${ALLOWED_USER}"
 fi

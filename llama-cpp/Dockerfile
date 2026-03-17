@@ -14,9 +14,9 @@ WORKDIR /opt/llama-cpp
 RUN git checkout "$LLAMA_CPP_REF"
 
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-    cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="$LLAMA_CPP_ROCM_ARCH" \
-    -DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \
-    && cmake --build build --config Release -j$(nproc)
+	cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="$LLAMA_CPP_ROCM_ARCH" \
+	-DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \
+	&& cmake --build build --config Release -j$(nproc)
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

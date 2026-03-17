@@ -11,60 +11,60 @@ CURRENT_OWNER="$CURRENT_UID:$CURRENT_GID"
 
 # Ensure required persistent directories exist before any read/write or docker volume mount.
 if ! mkdir -p "$PROXY_DIR/acme" "$PROXY_DIR/ssl"; then
-  echo "Error: Failed to create required directories under $PROXY_DIR"
-  exit 1
+	echo "Error: Failed to create required directories under $PROXY_DIR"
+	exit 1
 fi
 
 # Handle force option
 FORCE=false
 if [[ "$1" == "--force" ]]; then
-  read -p "This will overwrite existing ACME DNS credentials. Are you sure? (y/n) " -n 1 -r
-  echo
+	read -p "This will overwrite existing ACME DNS credentials. Are you sure? (y/n) " -n 1 -r
+	echo
 
-  if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "Forcing new registration..."
-    FORCE=true
-  else
-    echo "Running without '--force'. Existing credentials will be used if available."
-    FORCE=false
-  fi
+	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo "Forcing new registration..."
+		FORCE=true
+	else
+		echo "Running without '--force'. Existing credentials will be used if available."
+		FORCE=false
+	fi
 fi
 
 if [ "$FORCE" = true ] || [ ! -f "$CREDENTIALS_FILE" ]; then
-  echo "Registering with acme-dns..."
-  RESPONSE=$(curl -fsS -X POST https://auth.acme-dns.io/register)
+	echo "Registering with acme-dns..."
+	RESPONSE=$(curl -fsS -X POST https://auth.acme-dns.io/register)
 
-  if [ -z "$RESPONSE" ]; then
-    echo "Error: Empty response from acme-dns API."
-    exit 1
-  fi
+	if [ -z "$RESPONSE" ]; then
+		echo "Error: Empty response from acme-dns API."
+		exit 1
+	fi
 
-  USERNAME=$(echo "$RESPONSE" | jq -r '.username')
-  PASSWORD=$(echo "$RESPONSE" | jq -r '.password')
-  FULLDOMAIN=$(echo "$RESPONSE" | jq -r '.fulldomain')
-  SUBDOMAIN=$(echo "$RESPONSE" | jq -r '.subdomain')
+	USERNAME=$(echo "$RESPONSE" | jq -r '.username')
+	PASSWORD=$(echo "$RESPONSE" | jq -r '.password')
+	FULLDOMAIN=$(echo "$RESPONSE" | jq -r '.fulldomain')
+	SUBDOMAIN=$(echo "$RESPONSE" | jq -r '.subdomain')
 
-  if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
-    echo "Error: Failed to parse credentials."
-    exit 1
-  fi
+	if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
+		echo "Error: Failed to parse credentials."
+		exit 1
+	fi
 
-  printf '%s\n' "$RESPONSE" > "$CREDENTIALS_FILE"
-  chmod 600 "$CREDENTIALS_FILE"
-  echo "Saved acme-dns credentials to $CREDENTIALS_FILE"
+	printf '%s\n' "$RESPONSE" > "$CREDENTIALS_FILE"
+	chmod 600 "$CREDENTIALS_FILE"
+	echo "Saved acme-dns credentials to $CREDENTIALS_FILE"
 else
-  echo "Using existing acme-dns credentials from $CREDENTIALS_FILE"
+	echo "Using existing acme-dns credentials from $CREDENTIALS_FILE"
 
-  USERNAME=$(jq -r '.username' "$CREDENTIALS_FILE")
-  PASSWORD=$(jq -r '.password' "$CREDENTIALS_FILE")
-  FULLDOMAIN=$(jq -r '.fulldomain' "$CREDENTIALS_FILE")
-  SUBDOMAIN=$(jq -r '.subdomain' "$CREDENTIALS_FILE")
+	USERNAME=$(jq -r '.username' "$CREDENTIALS_FILE")
+	PASSWORD=$(jq -r '.password' "$CREDENTIALS_FILE")
+	FULLDOMAIN=$(jq -r '.fulldomain' "$CREDENTIALS_FILE")
+	SUBDOMAIN=$(jq -r '.subdomain' "$CREDENTIALS_FILE")
 
-  if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
-    echo "Error: Invalid credentials file at $CREDENTIALS_FILE"
-    echo "Run again with --force to register fresh acme-dns credentials."
-    exit 1
-  fi
+	if [ "$USERNAME" = "null" ] || [ -z "$USERNAME" ]; then
+		echo "Error: Invalid credentials file at $CREDENTIALS_FILE"
+		echo "Run again with --force to register fresh acme-dns credentials."
+		exit 1
+	fi
 fi
 
 echo ""
@@ -81,31 +81,31 @@ read -p "Press Enter to continue after DNS propagation..."
 echo "Issuing certificate..."
 ISSUE_ARGS=(--issue --dns dns_acmedns -d "$DOMAIN" --server letsencrypt)
 if [ "$FORCE" = true ]; then
-  ISSUE_ARGS+=(--force)
+	ISSUE_ARGS+=(--force)
 fi
 
 docker run --rm -it \
-  --user "$CURRENT_OWNER" \
-  -v "$PROXY_DIR/acme:/acme.sh" \
-  -e ACMEDNS_UPDATE_URL="https://auth.acme-dns.io/update" \
-  -e ACMEDNS_USERNAME="$USERNAME" \
-  -e ACMEDNS_PASSWORD="$PASSWORD" \
-  -e ACMEDNS_SUBDOMAIN="$SUBDOMAIN" \
-  neilpang/acme.sh "${ISSUE_ARGS[@]}"
+	--user "$CURRENT_OWNER" \
+	-v "$PROXY_DIR/acme:/acme.sh" \
+	-e ACMEDNS_UPDATE_URL="https://auth.acme-dns.io/update" \
+	-e ACMEDNS_USERNAME="$USERNAME" \
+	-e ACMEDNS_PASSWORD="$PASSWORD" \
+	-e ACMEDNS_SUBDOMAIN="$SUBDOMAIN" \
+	neilpang/acme.sh "${ISSUE_ARGS[@]}"
 
 echo "Installing certificate to SSL directory..."
 docker run --rm -it \
-  --user "$CURRENT_OWNER" \
-  -v "$PROXY_DIR/acme:/acme.sh" \
-  -v "$PROXY_DIR/ssl:/ssl" \
-  neilpang/acme.sh --install-cert -d "$DOMAIN" \
-  --key-file /ssl/privkey.pem \
-  --fullchain-file /ssl/fullchain.pem
+	--user "$CURRENT_OWNER" \
+	-v "$PROXY_DIR/acme:/acme.sh" \
+	-v "$PROXY_DIR/ssl:/ssl" \
+	neilpang/acme.sh --install-cert -d "$DOMAIN" \
+	--key-file /ssl/privkey.pem \
+	--fullchain-file /ssl/fullchain.pem
 
 echo "Ensuring host file ownership for current user ($CURRENT_OWNER)..."
 docker run --rm \
-  -v "$PROXY_DIR/acme:/acme.sh" \
-  -v "$PROXY_DIR/ssl:/ssl" \
-  alpine:3.22 sh -c "chown -R $CURRENT_OWNER /acme.sh /ssl"
+	-v "$PROXY_DIR/acme:/acme.sh" \
+	-v "$PROXY_DIR/ssl:/ssl" \
+	alpine:3.22 sh -c "chown -R $CURRENT_OWNER /acme.sh /ssl"
 
 echo "Process completed."
