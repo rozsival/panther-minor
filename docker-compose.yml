@@ -101,11 +101,9 @@ services:
   openfang:
     build:
       context: ./openfang
-      args:
-        - MODEL=${MODEL:-panther-coder}
     restart: unless-stopped
     expose:
-      - 8000
+      - 4200
     volumes:
       - openfang-data:/home/openfang/.openfang/data
     networks:
@@ -200,6 +198,7 @@ services:
     restart: unless-stopped
     ports:
       - '3000:3000'
+      - '4200:4200'
       - '8000:8000'
       - '8080:8080'
       - '9090:9090'
@@ -211,5 +210,6 @@ services:
     depends_on:
       - llama-cpp
       - open-webui
+      - openfang
       - grafana
       - prometheus
