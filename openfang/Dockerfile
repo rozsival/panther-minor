@@ -4,10 +4,10 @@ FROM debian:bookworm-slim
 # Install runtime dependencies as root
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends \
-        ca-certificates \
-        curl \
-        dpkg \
-    	libssl3
+		ca-certificates \
+		curl \
+		dpkg \
+		libssl3
 RUN rm -rf /var/lib/apt/lists/*
 
 # Create openfang user and set up home directory
