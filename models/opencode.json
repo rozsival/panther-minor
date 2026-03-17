@@ -19,8 +19,8 @@
         "panther-coder-next": {
           "name": "panther-coder-next",
           "limit": {
-            "context": 204800,
-            "output": 12288
+            "context": 131072,
+            "output": 8192
           }
         }
       }
