@@ -6,8 +6,8 @@ source "$(dirname "$0")/common.sh"
 MODEL=${1:-}
 
 if [[ -z "$MODEL" ]]; then
-  echo "Usage: $0 <model-name>"
-  exit 1
+	echo "Usage: $0 <model-name>"
+	exit 1
 fi
 
 assert_supported_model "$MODEL"
@@ -16,17 +16,17 @@ assert_supported_model "$MODEL"
 ENV_FILE="$MODELS_DIR/../.env"
 
 if [[ -f "$ENV_FILE" ]]; then
-  export "$(grep -v '^#' "$ENV_FILE" | xargs)"
+	export "$(grep -v '^#' "$ENV_FILE" | xargs)"
 else
-  echo "Warning: .env file not found"
+	echo "Warning: .env file not found"
 fi
 
 # Extract the model object form `models` array in `config.json` file
 MODEL_CONFIG=$(jq -r --arg MODEL "$MODEL" '.models[] | select(.name == $MODEL)' "$CONFIG_FILE")
 
 if [[ -z "$MODEL_CONFIG" ]]; then
-  echo "Error: Model '$MODEL' not found in 'config.json'"
-  exit 1
+	echo "Error: Model '$MODEL' not found in 'config.json'"
+	exit 1
 fi
 
 # Extract the repository and file information from the model configuration
@@ -36,13 +36,13 @@ MODEL_NAME=$(jq -r '.name' <<< "$MODEL_CONFIG")
 
 # If model file already exists, prompt the user to confirm overwriting it
 if [[ -f "$HF_DIR/$MODEL_NAME.gguf" ]]; then
-  read -p "Model '$MODEL_NAME' already exists. Do you want to overwrite it? (y/n) " -n 1 -r
-  echo
+	read -p "Model '$MODEL_NAME' already exists. Do you want to overwrite it? (y/n) " -n 1 -r
+	echo
 
-  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-    echo "Aborting download"
-    exit 0
-  fi
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		echo "Aborting download"
+		exit 0
+	fi
 fi
 
 # Use hf CLI to download the model files

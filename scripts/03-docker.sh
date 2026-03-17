@@ -28,17 +28,17 @@ apt update
 
 # Install the Docker packages:
 apt install -y \
-  docker-ce \
-  docker-ce-cli \
-  containerd.io \
-  docker-buildx-plugin \
-  docker-compose-plugin
+	docker-ce \
+	docker-ce-cli \
+	containerd.io \
+	docker-buildx-plugin \
+	docker-compose-plugin
 
 # Verify installation
 if docker --version && docker compose version; then
-  log_success "Docker installed."
+	log_success "Docker installed."
 else
-  log_error "Docker installation failed."
+	log_error "Docker installation failed."
 fi
 
 # Add user to the docker group

@@ -1,32 +1,32 @@
 {
-  "$schema": "https://opencode.ai/config.json",
-  "autoupdate": true,
-  "provider": {
-    "panther-minor": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Panther Minor",
-      "options": {
-        "baseURL": "https://panther.vitrozsival.cz:8000/v1",
-        "chunkTimeout": 30000,
-        "setCacheKey": true,
-        "timeout": 600000
-      },
-      "models": {
-        "panther-coder": {
-          "name": "panther-coder",
-          "limit": {
-            "context": 131072,
-            "output": 6144
-          }
-        },
-        "panther-coder-next": {
-          "name": "panther-coder-next",
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
-        }
-      }
-    }
-  }
+	"$schema": "https://opencode.ai/config.json",
+	"autoupdate": true,
+	"provider": {
+		"panther-minor": {
+			"npm": "@ai-sdk/openai-compatible",
+			"name": "Panther Minor",
+			"options": {
+				"baseURL": "https://panther.vitrozsival.cz:8000/v1",
+				"chunkTimeout": 30000,
+				"setCacheKey": true,
+				"timeout": 600000
+			},
+			"models": {
+				"panther-coder": {
+					"name": "panther-coder",
+					"limit": {
+						"context": 131072,
+						"output": 6144
+					}
+				},
+				"panther-coder-next": {
+					"name": "panther-coder-next",
+					"limit": {
+						"context": 131072,
+						"output": 8192
+					}
+				}
+			}
+		}
+	}
 }

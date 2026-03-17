@@ -18,22 +18,22 @@ CURRENT_CMDLINE=$(augtool -n get /files/etc/default/grub/GRUB_CMDLINE_LINUX_DEFA
 # Check if parameters are already there
 UPDATED_CMDLINE="$CURRENT_CMDLINE"
 for param in $NEW_PARAMS; do
-  if [[ ! "$CURRENT_CMDLINE" =~ "$param" ]]; then
-    UPDATED_CMDLINE="$UPDATED_CMDLINE $param"
-  fi
+	if [[ ! "$CURRENT_CMDLINE" =~ "$param" ]]; then
+		UPDATED_CMDLINE="$UPDATED_CMDLINE $param"
+	fi
 done
 
 # Trim leading/trailing spaces
 UPDATED_CMDLINE=$(echo "$UPDATED_CMDLINE" | xargs)
 
 if [[ "$CURRENT_CMDLINE" != "$UPDATED_CMDLINE" ]]; then
-  log_info "Updating GRUB_CMDLINE_LINUX_DEFAULT to: $UPDATED_CMDLINE"
-  augtool -s <<EOF
+	log_info "Updating GRUB_CMDLINE_LINUX_DEFAULT to: $UPDATED_CMDLINE"
+	augtool -s <<EOF
 set /files/etc/default/grub/GRUB_CMDLINE_LINUX_DEFAULT "'$UPDATED_CMDLINE'"
 EOF
-  log_info "Running update-grub..."
-  update-grub
-  log_success "GRUB configuration updated."
+	log_info "Running update-grub..."
+	update-grub
+	log_success "GRUB configuration updated."
 else
-  log_success "GRUB kernel parameters already set."
+	log_success "GRUB kernel parameters already set."
 fi
