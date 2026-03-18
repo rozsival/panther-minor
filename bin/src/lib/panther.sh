@@ -664,10 +664,17 @@ panther_cluster_build() {
 
 panther_logs_service() {
 	local service="$1"
-	local tail="${args[--tail]:-100}"
+	local -a compose_args=(logs -f)
 
-	panther_log_info "Showing last ${tail} log lines for ${service}..."
-	panther_compose logs --tail "$tail" "$service"
+	if [[ -n ${args[--tail]+x} ]]; then
+		compose_args+=(--tail "${args[--tail]}")
+		panther_log_info "Streaming logs for ${service} (last ${args[--tail]} lines)..."
+	else
+		panther_log_info "Streaming logs for ${service}..."
+	fi
+
+	compose_args+=("$service")
+	panther_compose "${compose_args[@]}"
 }
 
 panther_logs_llama_cpp() {
