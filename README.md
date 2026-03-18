@@ -32,10 +32,7 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 
 ## Setup
 
-Generate a [Fine-grained token](https://github.com/settings/personal-access-tokens) with Read access to
-`panther-minor` repository.
-
-Then, connect to the server via SSH, clone the repository using the PAT and run the setup CLI:
+Clone the repository and run the setup CLI on the server:
 
 > [!WARNING]
 > **Reboot is required** after the script completes to load new kernel drivers and parameters.
@@ -45,7 +42,7 @@ Then, connect to the server via SSH, clone the repository using the PAT and run 
 
 ```bash
 ssh <user>@<server-ip>
-git clone https://x-access-token:<PAT>@github.com/rozsival/panther-minor.git
+git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
 sudo ./bin/cli setup
 ```
