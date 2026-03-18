@@ -35,5 +35,9 @@ Use the Panther Minor CLI to manage models in the `.huggingface` cache:
 Use `opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode.
 
 ```bash
-ln -s ~/projects/panther-minor/models/opencode.json ~/.config/opencode/opencode.json
+cp opencode.json ~/.config/opencode/opencode.json
 ```
+
+> [!IMPORTANT]
+> Replace `<domain>` in `opencode.json` with your actual domain to ensure OpenCode can connect to the API
+> correctly.
