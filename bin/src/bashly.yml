@@ -15,7 +15,7 @@ commands:
             help: Server name for logs and Git config (defaults to host name)
           - long: --allowed-user
             arg: user
-            help: User to configure for host access and tooling (defaults to sudo user or current user)
+            help: User to configure for host access and tooling (defaults to current user)
           - long: --ssh-port
             arg: port
             help: SSH port to configure (defaults to 2222)

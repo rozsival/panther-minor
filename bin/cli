@@ -112,7 +112,7 @@ cli_setup_all_usage() {
 
     # :flag.usage
     printf "  %s\n" "--allowed-user USER"
-    printf "    User to configure for host access and tooling (defaults to sudo user or\n    current user)\n"
+    printf "    User to configure for host access and tooling (defaults to current user)\n"
     echo
 
     # :flag.usage

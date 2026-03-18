@@ -26,7 +26,7 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 ### Software
 
 - [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
-- Server installed with name `panther-minor` and a non-root user with sudo privileges
+- Server installed with name and non-root user (with sudo privileges)
 - Server installed with OpenSSH (fetch allowed keys from GitHub)
 - [Tailscale](https://tailscale.com/) account for secure remote access
 
@@ -89,11 +89,11 @@ Follow the link in your browser to complete the authentication. Once connected, 
 Tailscale IP or hostname:
 
 ```bash
-ssh -p 2222 <user>@panther-minor
+ssh -p 2222 <user>@<server-name>
 ```
 
 > [!TIP]
-> Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for `panther-minor` machine
+> Most likely, you want to [Disable key expiry](https://login.tailscale.com/admin/machines) for the server
 > in Tailscale to avoid losing access.
 
 ### SSL
@@ -103,7 +103,7 @@ requires manual steps:
 
 1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
 
-2. Add DNS type A record for `panther-minor` pointing to the
+2. Add DNS type A record pointing to the
 	 server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
 	 your DNS provider to access the services via `panther.<domain>`.
 

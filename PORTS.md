@@ -35,7 +35,7 @@
 ```bash
 curl https://panther.<domain>:8000/v1/models
 open https://panther.<domain>:8080
-ssh -p 2222 <user>@panther-minor
+ssh -p 2222 <user>@<server-name>
 ```
 
 ### Via SSH Tunnel
