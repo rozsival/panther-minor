@@ -104,7 +104,7 @@ requires manual steps:
 
 2. Add DNS type A record for `panther-minor` pointing to the
 	 server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
-	 your [DNS provider](https://portal.vas-hosting.cz/domain/vitrozsival.cz/dns).
+	 your DNS provider to access the services via `panther.<domain>`.
 
 3. Generate Certbot certificate on the server:
 

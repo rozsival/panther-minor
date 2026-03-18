@@ -30,7 +30,7 @@ cli_usage() {
   printf "  %s   Manage Panther Minor model files\n" "models     "
   printf "  %s   Manage proxy SSL and certificate automation\n" "proxy      "
   printf "  %s   Manage the Panther Minor Docker Compose cluster\n" "cluster    "
-  printf "  %s   Show recent logs for cluster services\n" "logs       "
+  printf "  %s   Stream logs by default or show a one-time tail for cluster services\n" "logs       "
   printf "  %s   Update the repository from upstream\n" "update     "
   printf "  %s   Print the bash completion script for eval\n" "completions"
   echo
@@ -1012,7 +1012,7 @@ cli_cluster_build_usage() {
 
 # :command.usage
 cli_logs_usage() {
-  printf "cli logs - Show recent logs for cluster services\n\n"
+  printf "cli logs - Stream logs by default or show a one-time tail for cluster services\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs COMMAND\n"
@@ -1020,14 +1020,14 @@ cli_logs_usage() {
   echo
   # :command.usage_commands
   printf "%s\n" "Commands:"
-  printf "  %s   Show recent logs for llama.cpp\n" "llama-cpp             "
-  printf "  %s   Show recent logs for llama-metrics-exporter\n" "llama-metrics-exporter"
-  printf "  %s   Show recent logs for Open WebUI\n" "open-webui            "
-  printf "  %s   Show recent logs for Prometheus\n" "prometheus            "
-  printf "  %s   Show recent logs for Grafana\n" "grafana               "
-  printf "  %s   Show recent logs for Node Exporter\n" "node-exporter         "
-  printf "  %s   Show recent logs for AMD GPU Exporter\n" "amd-gpu-exporter      "
-  printf "  %s   Show recent logs for the proxy\n" "proxy                 "
+  printf "  %s   Stream llama.cpp logs or show a one-time tail snapshot\n" "llama-cpp             "
+  printf "  %s   Stream llama-metrics-exporter logs or show a one-time tail snapshot\n" "llama-metrics-exporter"
+  printf "  %s   Stream Open WebUI logs or show a one-time tail snapshot\n" "open-webui            "
+  printf "  %s   Stream Prometheus logs or show a one-time tail snapshot\n" "prometheus            "
+  printf "  %s   Stream Grafana logs or show a one-time tail snapshot\n" "grafana               "
+  printf "  %s   Stream Node Exporter logs or show a one-time tail snapshot\n" "node-exporter         "
+  printf "  %s   Stream AMD GPU Exporter logs or show a one-time tail snapshot\n" "amd-gpu-exporter      "
+  printf "  %s   Stream proxy logs or show a one-time tail snapshot\n" "proxy                 "
   echo
 
   # :command.long_usage
@@ -1045,7 +1045,7 @@ cli_logs_usage() {
 
 # :command.usage
 cli_logs_llama_cpp_usage() {
-  printf "cli logs llama-cpp - Show recent logs for llama.cpp\n\n"
+  printf "cli logs llama-cpp - Stream llama.cpp logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs llama-cpp [OPTIONS]\n"
@@ -1060,7 +1060,7 @@ cli_logs_llama_cpp_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1073,7 +1073,7 @@ cli_logs_llama_cpp_usage() {
 
 # :command.usage
 cli_logs_llama_metrics_exporter_usage() {
-  printf "cli logs llama-metrics-exporter - Show recent logs for llama-metrics-exporter\n\n"
+  printf "cli logs llama-metrics-exporter - Stream llama-metrics-exporter logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs llama-metrics-exporter [OPTIONS]\n"
@@ -1088,7 +1088,7 @@ cli_logs_llama_metrics_exporter_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1101,7 +1101,7 @@ cli_logs_llama_metrics_exporter_usage() {
 
 # :command.usage
 cli_logs_open_webui_usage() {
-  printf "cli logs open-webui - Show recent logs for Open WebUI\n\n"
+  printf "cli logs open-webui - Stream Open WebUI logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs open-webui [OPTIONS]\n"
@@ -1116,7 +1116,7 @@ cli_logs_open_webui_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1129,7 +1129,7 @@ cli_logs_open_webui_usage() {
 
 # :command.usage
 cli_logs_prometheus_usage() {
-  printf "cli logs prometheus - Show recent logs for Prometheus\n\n"
+  printf "cli logs prometheus - Stream Prometheus logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs prometheus [OPTIONS]\n"
@@ -1144,7 +1144,7 @@ cli_logs_prometheus_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1157,7 +1157,7 @@ cli_logs_prometheus_usage() {
 
 # :command.usage
 cli_logs_grafana_usage() {
-  printf "cli logs grafana - Show recent logs for Grafana\n\n"
+  printf "cli logs grafana - Stream Grafana logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs grafana [OPTIONS]\n"
@@ -1172,7 +1172,7 @@ cli_logs_grafana_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1185,7 +1185,7 @@ cli_logs_grafana_usage() {
 
 # :command.usage
 cli_logs_node_exporter_usage() {
-  printf "cli logs node-exporter - Show recent logs for Node Exporter\n\n"
+  printf "cli logs node-exporter - Stream Node Exporter logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs node-exporter [OPTIONS]\n"
@@ -1200,7 +1200,7 @@ cli_logs_node_exporter_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1213,7 +1213,7 @@ cli_logs_node_exporter_usage() {
 
 # :command.usage
 cli_logs_amd_gpu_exporter_usage() {
-  printf "cli logs amd-gpu-exporter - Show recent logs for AMD GPU Exporter\n\n"
+  printf "cli logs amd-gpu-exporter - Stream AMD GPU Exporter logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs amd-gpu-exporter [OPTIONS]\n"
@@ -1228,7 +1228,7 @@ cli_logs_amd_gpu_exporter_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -1241,7 +1241,7 @@ cli_logs_amd_gpu_exporter_usage() {
 
 # :command.usage
 cli_logs_proxy_usage() {
-  printf "cli logs proxy - Show recent logs for the proxy\n\n"
+  printf "cli logs proxy - Stream proxy logs or show a one-time tail snapshot\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli logs proxy [OPTIONS]\n"
@@ -1256,7 +1256,7 @@ cli_logs_proxy_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Number of latest log lines to show (defaults to 100)\n"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
     echo
 
     # :command.usage_fixed_flags
@@ -2044,12 +2044,14 @@ panther_cluster_build() {
 
 panther_logs_service() {
 	local service="$1"
-	local -a compose_args=(logs -f)
+	local -a compose_args=(logs)
 
 	if [[ -n ${args[--tail]+x} ]]; then
-		compose_args+=(--tail "${args[--tail]}")
-		panther_log_info "Streaming logs for ${service} (last ${args[--tail]} lines)..."
+		local tail_lines="${args[--tail]:-100}"
+		compose_args+=(--tail "$tail_lines")
+		panther_log_info "Showing the latest ${tail_lines} log lines for ${service}..."
 	else
+		compose_args+=(-f)
 		panther_log_info "Streaming logs for ${service}..."
 	fi
 
@@ -5829,6 +5831,43 @@ initialize() {
   declare -gr PANTHER_ENV_EXAMPLE_FILE="$PANTHER_REPO_ROOT/.env.example"
   declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
   declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
+
+  panther_is_logs_service() {
+  	case "${1:-}" in
+  	llama-cpp | llama-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
+  		return 0
+  		;;
+  	*)
+  		return 1
+  		;;
+  	esac
+  }
+
+  panther_normalize_logs_tail_args() {
+  	[[ ${#command_line_args[@]} -ge 3 ]] || return 0
+  	[[ ${command_line_args[0]} == 'logs' ]] || return 0
+  	panther_is_logs_service "${command_line_args[1]}" || return 0
+
+  	local -a normalized_args=()
+  	local index=0
+
+  	while ((index < ${#command_line_args[@]})); do
+  		local current_arg="${command_line_args[$index]}"
+  		local next_arg="${command_line_args[$((index + 1))]:-}"
+
+  		normalized_args+=("$current_arg")
+
+  		if [[ $current_arg == '--tail' ]] && [[ -z $next_arg || $next_arg == -* ]]; then
+  			normalized_args+=('100')
+  		fi
+
+  		((index += 1))
+  	done
+
+  	command_line_args=("${normalized_args[@]}")
+  }
+
+  panther_normalize_logs_tail_args
 
 }
 

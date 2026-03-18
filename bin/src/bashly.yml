@@ -227,63 +227,63 @@ commands:
             help: Build images without using the Docker cache
 
   - name: logs
-    help: Show recent logs for cluster services
+    help: Stream logs by default or show a one-time tail for cluster services
     commands:
       - name: llama-cpp
-        help: Show recent logs for llama.cpp
+        help: Stream llama.cpp logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: llama-metrics-exporter
-        help: Show recent logs for llama-metrics-exporter
+        help: Stream llama-metrics-exporter logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: open-webui
-        help: Show recent logs for Open WebUI
+        help: Stream Open WebUI logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: prometheus
-        help: Show recent logs for Prometheus
+        help: Stream Prometheus logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: grafana
-        help: Show recent logs for Grafana
+        help: Stream Grafana logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: node-exporter
-        help: Show recent logs for Node Exporter
+        help: Stream Node Exporter logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: amd-gpu-exporter
-        help: Show recent logs for AMD GPU Exporter
+        help: Stream AMD GPU Exporter logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
       - name: proxy
-        help: Show recent logs for the proxy
+        help: Stream proxy logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines
-            help: Number of latest log lines to show (defaults to 100)
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
             validate: integer
 
   - name: update
