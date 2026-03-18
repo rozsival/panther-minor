@@ -2,8 +2,8 @@
 FROM rocm/dev-ubuntu-24.04:7.2-complete
 
 ARG LLAMA_CPP_REPO=https://github.com/ggml-org/llama.cpp
-ARG LLAMA_CPP_REF=b8312
-ARG LLAMA_CPP_ROCM_ARCH=gfx1201
+ARG LLAMA_CPP_REF=master
+ARG ROCM_ARCH=gfx1201
 
 RUN apt update
 RUN apt install -y cmake git libcurl4-openssl-dev nano
@@ -14,7 +14,7 @@ WORKDIR /opt/llama-cpp
 RUN git checkout "$LLAMA_CPP_REF"
 
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
-	cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="$LLAMA_CPP_ROCM_ARCH" \
+	cmake -S . -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="$ROCM_ARCH" \
 	-DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \
 	&& cmake --build build --config Release -j$(nproc)
 
