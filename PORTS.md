@@ -54,5 +54,5 @@ curl http://localhost:8000/v1/models
 ## Config Files
 
 - `docker-compose.yml` - service definitions
-- `scripts/06-ufw.sh` - firewall rules
-- `scripts/common.sh` - SSH port
+- `bin/src/bashly.yml` - CLI command contract and exposed setup options
+- `bin/src/lib/panther.sh` - setup command implementations, firewall rules, and SSH defaults

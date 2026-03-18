@@ -26,8 +26,6 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 ### Software
 
 - [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
-- Server installed with name `panther-minor`
-- User `$USER` created during installation
 - Server installed with OpenSSH (fetch allowed keys from GitHub)
 - [Tailscale](https://tailscale.com/) account for secure remote access
 
@@ -36,7 +34,7 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 Generate a [Fine-grained token](https://github.com/settings/personal-access-tokens) with Read access to
 `panther-minor` repository.
 
-Then, connect to the server via SSH, clone the repository using the PAT and run the setup script:
+Then, connect to the server via SSH, clone the repository using the PAT and run the setup CLI:
 
 > [!WARNING]
 > **Reboot is required** after the script completes to load new kernel drivers and parameters.
@@ -47,17 +45,18 @@ Then, connect to the server via SSH, clone the repository using the PAT and run 
 ```bash
 ssh <user>@<server-ip>
 git clone https://x-access-token:<PAT>@github.com/rozsival/panther-minor.git
-sudo bash panther-minor/setup.sh
+cd panther-minor
+sudo ./bin/cli setup
 ```
 
 > [!TIP]
 > You can discover the server IP after login on the host machine using `ip a` command.
 
-The script will automatically configure:
+The command will automatically configure:
 
 - **Init** — sets up server workspace with full disk capacity and timezone to `Europe/Prague`
 - **Essential Packages** — `build-essential`, `jq`, `nvtop`, `htop`, etc. with auto updates
-- **Homebrew** — installs Homebrew,`llmfit` and `huggingface-cli` for `$USER` user
+- **Homebrew** — installs Homebrew,`llmfit` and `huggingface-cli` for current user
 - **Docker** — installs Docker Engine and Docker Compose
 - **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)
@@ -66,14 +65,14 @@ The script will automatically configure:
 - **AMD GPU & ROCm** — installs the latest kernel drivers and ROCm
 - **Kernel Parameters** — configures GRUB with `amdgpu.mes=1 iommu=pt`
 - **Git** — configures default name, email, and rebase pull strategy
-- **Shell** — sets up a modern shell prompt for `$USER` user
+- **Shell** — sets up a modern shell prompt for current user
 - **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
 
 > [!TIP]
-> You can also run individual scripts from `scripts/` for specific configurations, e.g. to re-run SSH hardening:
+> You can also run individual setup subcommands, e.g. to re-run SSH hardening:
 >
 > ```bash
-> sudo bash panther-minor/scripts/05-ssh.sh
+> sudo ./bin/cli setup ssh
 > ```
 
 ### Tailscale
@@ -115,13 +114,13 @@ requires manual steps:
 > until you have added the CNAME record, otherwise the certificate generation will fail.
 
 ```bash
-./proxy/bin/certbot
+./bin/cli proxy certbot --domain panther.<domain> --challenge-record _acme-challenge.panther
 ```
 
 4. Setup certificates auto renewal:
 
 ```bash
-./proxy/bin/setup-cron
+./bin/cli proxy setup-cron
 ```
 
 ## LLaMA.cpp Cluster
@@ -145,15 +144,15 @@ See [Models](./models/README.md) for available LLMs and their usage.
 To build and start the cluster, run:
 
 ```bash
-make start
+./bin/cli cluster start
 ```
 
 To only rebuild the cluster without starting:
 
 ```bash
-make build
+./bin/cli cluster build
 # or without cache (e.g. after config changes):
-make build-no-cache
+./bin/cli cluster build --no-cache
 ```
 
 ### Services
@@ -171,5 +170,5 @@ make build-no-cache
 ### Stop
 
 ```bash
-make stop
+./bin/cli cluster stop
 ```

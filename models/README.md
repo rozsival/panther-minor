@@ -22,12 +22,12 @@ The bundled `llama-cpp` image is pinned to an official `ggml-org/llama.cpp` rele
 
 ### Model Management
 
-Use the following commands in [`./bin`](./bin) to manage models in the `.huggingface` cache:
+Use the Panther Minor CLI to manage models in the `.huggingface` cache:
 
 ```bash
-./bin/list             # List supported models
-./bin/download <model> # Download model to .huggingface cache
-./bin/remove <model>   # Remove model from .huggingface cache
+./bin/cli models list             # List supported models
+./bin/cli models download <model> # Download model to .huggingface cache
+./bin/cli models remove <model>   # Remove model from .huggingface cache
 ```
 
 ### OpenCode

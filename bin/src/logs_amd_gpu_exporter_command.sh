@@ -1,0 +1,1 @@
+panther_logs_amd_gpu_exporter

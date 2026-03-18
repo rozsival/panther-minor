@@ -1,0 +1,293 @@
+name: cli
+help: Panther Minor CLI
+version: 0.0.0
+
+commands:
+  - name: setup
+    help: Configure the Panther Minor host
+    commands:
+      - name: all
+        help: Run the full workstation setup
+        default: force
+        flags:
+          - long: --server-name
+            arg: name
+            help: Server name for logs and Git config (defaults to host name)
+          - long: --allowed-user
+            arg: user
+            help: User to configure for host access and tooling (defaults to sudo user or current user)
+          - long: --ssh-port
+            arg: port
+            help: SSH port to configure (defaults to 2222)
+            validate: port
+          - long: --timezone
+            arg: timezone
+            help: System timezone to configure (defaults to Europe/Prague)
+          - long: --lvm-device
+            arg: path
+            help: Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)
+        environment_variables:
+          - name: panther_server_name
+            help: Default server name for setup commands
+          - name: panther_allowed_user
+            help: Default user for setup commands
+          - name: panther_ssh_port
+            help: Default SSH port for setup commands
+            validate: port
+          - name: panther_timezone
+            help: Default timezone for setup init
+          - name: panther_lvm_device
+            help: Default logical volume device for setup init
+      - name: init
+        help: Extend storage and set timezone
+        flags:
+          - long: --timezone
+            arg: timezone
+            help: System timezone to configure (defaults to Europe/Prague)
+          - long: --lvm-device
+            arg: path
+            help: Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)
+        environment_variables:
+          - name: panther_timezone
+            help: Default timezone for setup init
+          - name: panther_lvm_device
+            help: Default logical volume device for setup init
+      - name: packages
+        help: Install essential packages
+      - name: brew
+        help: Install Homebrew, llmfit, and Hugging Face CLI
+        flags:
+          - long: --allowed-user
+            arg: user
+            help: User to configure for Homebrew and shell integration
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
+      - name: docker
+        help: Install Docker and add the selected user to the docker group
+        flags:
+          - long: --allowed-user
+            arg: user
+            help: User to add to the docker group
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
+      - name: tailscale
+        help: Install Tailscale
+      - name: ssh
+        help: Harden SSH configuration
+        flags:
+          - long: --allowed-user
+            arg: user
+            help: User to allow in SSH
+          - long: --ssh-port
+            arg: port
+            help: SSH port to configure (defaults to 2222)
+            validate: port
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
+          - name: panther_ssh_port
+            help: Default SSH port for setup commands
+            validate: port
+      - name: ufw
+        help: Configure the firewall
+        flags:
+          - long: --ssh-port
+            arg: port
+            help: SSH port to allow through UFW (defaults to 2222)
+            validate: port
+        environment_variables:
+          - name: panther_ssh_port
+            help: Default SSH port for setup commands
+            validate: port
+      - name: fail2ban
+        help: Install and configure fail2ban
+        flags:
+          - long: --ssh-port
+            arg: port
+            help: SSH port to protect (defaults to 2222)
+            validate: port
+        environment_variables:
+          - name: panther_ssh_port
+            help: Default SSH port for setup commands
+            validate: port
+      - name: amdgpu
+        help: Install AMD GPU drivers and ROCm
+      - name: grub
+        help: Update GRUB kernel parameters
+      - name: git
+        help: Configure Git defaults for the selected user
+        flags:
+          - long: --server-name
+            arg: name
+            help: Server name for Git identity (defaults to host name)
+          - long: --allowed-user
+            arg: user
+            help: User to configure for Git
+        environment_variables:
+          - name: panther_server_name
+            help: Default server name for setup commands
+          - name: panther_allowed_user
+            help: Default user for setup commands
+      - name: shell
+        help: Install Starship and configure shell access for the selected user
+        flags:
+          - long: --allowed-user
+            arg: user
+            help: User to configure for shell integration
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
+      - name: env
+        help: Create .env and sync GPU group IDs
+        flags:
+          - long: --allowed-user
+            arg: user
+            help: User that should own the generated .env file
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
+
+  - name: models
+    help: Manage Panther Minor model files
+    commands:
+      - name: download
+        help: Download a supported model into the local Hugging Face cache
+        args:
+          - name: model
+            required: true
+            help: Model name from models/config.json
+            validate: supported_model
+        environment_variables:
+          - name: hf_token
+            help: Hugging Face token used by hf download
+        examples:
+          - cli models download panther-minor
+          - HF_TOKEN=token cli models download panther-coder
+      - name: list
+        help: List supported models
+      - name: remove
+        help: Remove a downloaded model from the local Hugging Face cache
+        args:
+          - name: model
+            required: true
+            help: Model name from models/config.json
+            validate: supported_model
+
+  - name: proxy
+    help: Manage proxy SSL and certificate automation
+    commands:
+      - name: certbot
+        help: Issue and install the proxy certificate with acme-dns
+        flags:
+          - long: --domain
+            arg: domain
+            help: Domain name to issue the certificate for
+            required: true
+          - long: --challenge-record
+            arg: record
+            help: ACME challenge CNAME record to create
+            required: true
+          - long: --force
+            help: Re-register acme-dns credentials even if they already exist
+      - name: renew-ssl
+        help: Renew existing proxy certificates and reload nginx
+      - name: setup-cron
+        help: Install a cron entry that renews proxy certificates daily
+        flags:
+          - long: --schedule
+            arg: cron
+            help: Cron schedule to install (defaults to 0 2 * * *)
+          - long: --user
+            arg: user
+            help: User whose crontab should receive the renewal entry (defaults to current user)
+          - long: --log-path
+            arg: path
+            help: File to append renewal logs to (defaults to proxy/renew-ssl.log)
+
+  - name: cluster
+    help: Manage the Panther Minor Docker Compose cluster
+    commands:
+      - name: start
+        help: Start the cluster
+      - name: stop
+        help: Stop the cluster
+        flags:
+          - long: --volumes
+            help: Remove named volumes when stopping the cluster
+      - name: cleanup
+        help: Remove cluster containers, volumes, images, and orphans
+      - name: restart
+        help: Restart the cluster
+      - name: build
+        help: Build cluster images
+        flags:
+          - long: --no-cache
+            help: Build images without using the Docker cache
+
+  - name: logs
+    help: Show recent logs for cluster services
+    commands:
+      - name: llama-cpp
+        help: Show recent logs for llama.cpp
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: llama-metrics-exporter
+        help: Show recent logs for llama-metrics-exporter
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: open-webui
+        help: Show recent logs for Open WebUI
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: prometheus
+        help: Show recent logs for Prometheus
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: grafana
+        help: Show recent logs for Grafana
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: node-exporter
+        help: Show recent logs for Node Exporter
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: amd-gpu-exporter
+        help: Show recent logs for AMD GPU Exporter
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+      - name: proxy
+        help: Show recent logs for the proxy
+        flags:
+          - long: --tail
+            arg: lines
+            help: Number of latest log lines to show (defaults to 100)
+            validate: integer
+
+  - name: update
+    help: Update the repository from upstream
+
+  - name: completions
+    help: Print the bash completion script for eval

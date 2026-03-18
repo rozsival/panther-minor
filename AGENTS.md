@@ -14,21 +14,22 @@ for monitoring GPU and node performance.
 - **Host**: Ubuntu 25.10+, ROCm 7, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8080/9090
-- **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `scripts/*`
+- **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `bin/src/*`
 
 ## Critical Rules
 
-1. **Use llama.cpp only** — custom build in `llama-cpp/Dockerfile` with ROCm v7 and `gfx1201` support
-2. **Package manager** — `apt` only (never `apt-get`)
-3. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
+1. **Code Style** – follow the rules in `.editorconfig` and `biome.json` for consistent formatting and linting
+2. **Use llama.cpp only** — custom build in `llama-cpp/Dockerfile` with ROCm v7 and `gfx1201` support
+3. **Package manager** — `apt` only (never `apt-get`)
+4. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
 
 ## Key Files
 
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
-- `models/README.md` — overview for custom `llama.cpp` models with management scripts and `preset.ini` config
-- `setup.sh` — orchestrates all `scripts/*.sh` to configure host system (kernel, ROCm, SSH, Git, shell)
-- `scripts/common.sh` — shared config (SSH_PORT=2222, user, colors)
+- `models/README.md` — overview for custom `llama.cpp` models with `./bin/cli models *` usage and `preset.ini` config
+- `bin/src/bashly.yml` — source of truth for the generated `./bin/cli` command tree (https://bashly.dev/)
+- `bin/src/lib/panther.sh` — shared CLI helpers and setup/proxy/models command implementations
 - `docker-compose.yml` — service definitions with health checks
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
