@@ -1,5 +1,5 @@
 name: cli
-help: Panther Minor CLI
+help: '🐆 Panther Minor CLI'
 version: 0.0.0
 
 commands:

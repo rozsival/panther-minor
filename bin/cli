@@ -17,7 +17,7 @@ version_command() {
 
 # :command.usage
 cli_usage() {
-  printf "cli - Panther Minor CLI\n\n"
+  printf "cli - 🐆 Panther Minor CLI\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli COMMAND\n"
@@ -1964,7 +1964,7 @@ panther_models_download() {
 }
 
 panther_models_list() {
-	echo 'Supported models:'
+	echo '🐆 Supported models:'
 	while IFS= read -r model; do
 		echo "- $model"
 	done < <(panther_supported_models)

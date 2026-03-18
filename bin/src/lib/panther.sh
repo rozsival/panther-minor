@@ -584,7 +584,7 @@ panther_models_download() {
 }
 
 panther_models_list() {
-	echo 'Supported models:'
+	echo '🐆 Supported models:'
 	while IFS= read -r model; do
 		echo "- $model"
 	done < <(panther_supported_models)
