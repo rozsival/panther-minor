@@ -53,7 +53,7 @@ sudo ./bin/cli setup
 
 The command will automatically configure:
 
-- **Init** — sets up server workspace with full disk capacity and timezone to `Europe/Prague`
+- **Init** — sets up server workspace with full disk capacity and timezone
 - **Essential Packages** — `build-essential`, `jq`, `nvtop`, `htop`, etc. with auto updates
 - **Homebrew** — installs Homebrew,`llmfit` and `huggingface-cli` for current user
 - **Docker** — installs Docker Engine and Docker Compose
@@ -124,15 +124,22 @@ requires manual steps:
 
 ## LLaMA.cpp Cluster
 
-Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitoring stack.
+Runs local LLMs across both GPUs with an OpenAI-compatible API, monitoring stack
+and [OpenFang](https://www.openfang.sh/) for agent orchestration.
 
 ### Configuration
 
 See `.env` for configurable parameters. Defaults are provided for all non-sensitive values.
 
-> [!NOTE]
-> It is highly recommended to set `HF_TOKEN` in `.env` with a [valid token](https://huggingface.co/settings/tokens) to
-> avoid rate limits when downloading models from Hugging Face.
+#### Hugging Face
+
+[HF token](https://huggingface.co/settings/tokens) is not required but recommended to avoid rate limits when downloading
+models.
+
+#### OpenFang
+
+It is strongly recommended to build and provide your own private image containing your
+custom agents and tools.
 
 ### Model Management
 
@@ -160,6 +167,7 @@ To only rebuild the cluster without starting:
 |-----------------------|-------------------|
 | OpenAI-compatible API | —                 |
 | Open WebUI (chat)     | —                 |
+| OpenFang              | –                 |
 | Grafana (monitoring)  | `admin` / `admin` |
 | Prometheus            | —                 |
 

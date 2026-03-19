@@ -25,6 +25,7 @@
 |------|---------------|
 | 8000 | llama.cpp API |
 | 8080 | Open WebUI    |
+| 4200 | OpenFang      |
 | 3000 | Grafana       |
 | 9090 | Prometheus    |
 
