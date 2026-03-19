@@ -101,9 +101,11 @@ services:
   openfang:
     image: ${OPENFANG_IMAGE}
     restart: unless-stopped
+    environment:
+      - OPENFANG_HOME=${OPENFANG_HOME}
     volumes:
-      - openfang-data:/home/openfang/.openfang/data
-      - ./openfang/config.toml:/home/${OPENFANG_USER}/.openfang/config.toml:ro
+      - openfang-data:${OPENFANG_HOME}/data
+      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml:ro
     expose:
       - 4200
     networks:
