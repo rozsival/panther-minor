@@ -27,7 +27,7 @@ for monitoring GPU and node performance.
 
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
-- `bin/README.md` — overview of the `./bin/cli` command tree and authoring workflow
+- `bin/README.md` — overview of the `./bin/cli` command tree (strictly follow rules there for CLI changes)
 - `models/README.md` — overview for custom `llama.cpp` models with `./bin/cli models *` usage and `preset.ini` config
 - `docker-compose.yml` — service definitions with health checks
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus

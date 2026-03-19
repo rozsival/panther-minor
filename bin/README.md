@@ -1,114 +1,62 @@
 # `bin`
 
-This directory contains the Panther Minor Bashly-based CLI.
+Panther Minor CLI lives here.
 
-The user-facing entrypoint is `./bin/cli`. It replaces the legacy setup scripts, model helpers, proxy helpers, and the former `Makefile` workflows with one command tree.
+- Users run `./bin/cli`
+- Maintainers edit `bin/src/*`
+- `bin/cli` is generated output, not the source of truth
 
-## Overview
+## Current command groups
 
-- `bin/cli` is the generated executable that users run
-- `bin/src/bashly.yml` is the source of truth for the CLI structure
-- `bin/src/*_command.sh` contains authored command entrypoints
-- `bin/src/lib/panther.sh` contains shared command implementations and helpers
-- `bin/src/lib/validations/*` contains custom Bashly validations
-- `bin/src/initialize.sh` contains CLI bootstrap logic that must run before parsing
+- `setup`
+- `models`
+- `proxy`
+- `cluster`
+- `logs`
+- `update`
+- `completions`
 
-Do not treat `bin/cli` as the primary edit target. Update the authored files in `bin/src/` and regenerate the CLI.
-
-## Command groups
-
-Current top-level commands:
-
-- `setup` — host provisioning and individual setup steps
-- `models` — supported model download, listing, and removal
-- `proxy` — SSL certificate issuance, renewal, and cron setup
-- `cluster` — Docker Compose start, stop, restart, cleanup, and build
-- `logs` — service log streaming or one-time tail snapshots
-- `update` — fast-forward local checkout from upstream
-- `completions` — print shell completion script
-
-You can inspect the current command surface with:
+Inspect them with:
 
 ```bash
 ./bin/cli --help
 ./bin/cli <command> --help
 ```
 
-## Layout
+## Edit flow
 
-```text
-bin/
-├── cli
-└── src/
-    └── lib/
-        ├── panther.sh
-        ├── send_completions.sh
-        └── validations/
-```
-
-## Authoring workflow
-
-1. Update the command tree in `bin/src/bashly.yml` if you need new commands, flags, args, examples, or environment variables.
-2. Implement command behavior in the relevant `bin/src/*_command.sh` file, usually by delegating to shared helpers in `bin/src/lib/panther.sh`.
-3. Add or reuse shared helpers and validations in `bin/src/lib/`.
-4. Regenerate `bin/cli`.
-
-Typical regeneration flow:
+Update the authored Bashly sources, then regenerate:
 
 ```bash
 cd bin
 bashly generate
 ```
 
-Prefer `bashly generate` without `--force` once the authored source files already exist. Using `--force` can recreate placeholder command files and overwrite authored command bodies.
+Important:
 
-## Implementation notes
+- Edit `bin/src/bashly.yml` for commands, flags, args, examples, and env vars
+- Edit `bin/src/*_command.sh` for command entrypoints
+- Edit `bin/src/lib/panther.sh` for shared logic
+- Edit `bin/src/lib/validations/*` for custom validations
+- Edit `bin/src/initialize.sh` for pre-parse normalization/bootstrapping
+- DO NOT read/write `bin/cli`, it is generated
+- Prefer `bashly generate` without `--force`; `--force` can recreate placeholder command files and overwrite authored
+	bodies
 
-### Shared helpers
+## Notes
 
-Most command logic lives in `bin/src/lib/panther.sh`. This keeps command entry files small and makes behavior easier to reuse across the CLI.
-
-The repository uses the shared logging helpers from that file for routine status output:
-
-- `panther_log_info`
-- `panther_log_success`
-- `panther_log_warn`
-- `panther_log_error`
-
-### Environment variables
-
-Environment variable support is declared per command in `bin/src/bashly.yml`.
-
-Examples:
-
-- `setup` commands support variables such as `PANTHER_ALLOWED_USER`, `PANTHER_SSH_PORT`, `PANTHER_TIMEZONE`, and related setup defaults
+- `bin/src/bashly.yml` is the CLI schema source of truth
+- Most shared implementation lives in `bin/src/lib/panther.sh`
+- Routine status output should use `panther_log_info`, `panther_log_success`, `panther_log_warn`, and
+	`panther_log_error`
+- Env support is declared per command in `bin/src/bashly.yml`
+- The CLI does not globally load `.env`; commands opt in where needed, while Docker Compose still reads `.env`
 - `models download` supports `HF_TOKEN`
+- `logs <service>` streams logs, `logs <service> --tail` prints the latest `100` lines once, and
+	`logs <service> --tail <n>` prints the latest `<n>` lines once
+- `./bin/cli completions` prints the shell completion script for `eval "$(./bin/cli completions)"`
 
-The CLI does not globally preload `.env` for every command. Commands load environment files only where explicitly implemented. Docker Compose still reads `.env` for cluster-related operations.
-
-### Logs command behavior
-
-The `logs` module intentionally supports two modes:
-
-- `./bin/cli logs <service>` streams logs in real time
-- `./bin/cli logs <service> --tail` prints the latest `100` lines once
-- `./bin/cli logs <service> --tail <n>` prints the latest `<n>` lines once
-
-That defaulting behavior is normalized in `bin/src/initialize.sh` before Bashly parses arguments.
-
-## Completions
-
-The Bash completion helper generated by Bashly lives in `bin/src/lib/send_completions.sh`.
-
-Users can enable completions with:
-
-```bash
-eval "$(./bin/cli completions)"
-```
-
-## Validation
-
-After changing the CLI, validate both the generated script and the repository:
+## Validate after changes
 
 ```bash
 bash -n ./bin/cli
@@ -116,5 +64,3 @@ bash -n ./bin/cli
 pnpm test
 pnpm check
 ```
-
-Add targeted smoke tests when changing command parsing or command construction behavior.
