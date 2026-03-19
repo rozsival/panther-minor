@@ -1,6 +1,6 @@
 # `bin`
 
-Panther Minor CLI lives here.
+Panther Minor CLI lives here. Powered by [Bashly](https://bashly.dev/).
 
 - Users run `./bin/cli`
 - Maintainers edit `bin/src/*`
@@ -61,6 +61,4 @@ Important:
 ```bash
 bash -n ./bin/cli
 ./bin/cli --help
-pnpm test
-pnpm check
 ```

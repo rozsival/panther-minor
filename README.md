@@ -103,7 +103,7 @@ requires manual steps:
 
 2. Add DNS type A record pointing to the
 	 server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
-	 your DNS provider to access the services via `panther.<domain>`.
+	 your DNS provider to access the services via `<domain>`.
 
 3. Generate Certbot certificate on the server:
 
@@ -171,3 +171,7 @@ To only rebuild the cluster without starting:
 ```bash
 ./bin/cli cluster stop
 ```
+
+### CLI
+
+See [Panther Minor CLI](./bin/README.md) for all available commands to manage the cluster.

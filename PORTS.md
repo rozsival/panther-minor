@@ -33,8 +33,8 @@
 ### Via Tailscale (Recommended)
 
 ```bash
-curl https://panther.<domain>:8000/v1/models
-open https://panther.<domain>:8080
+curl https://<domain>:8000/v1/models
+open https://<domain>:8080
 ssh -p 2222 <user>@<server-name>
 ```
 

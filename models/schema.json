@@ -1,0 +1,40 @@
+{
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"title": "Models Configuration",
+	"description": "Configuration schema for models",
+	"type": "object",
+	"properties": {
+		"version": {
+			"type": "string",
+			"description": "Configuration version"
+		},
+		"models": {
+			"type": "array",
+			"description": "List of models",
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "Name of the model"
+					},
+					"repository": {
+						"type": "string",
+						"description": "Repository containing the model"
+					},
+					"file": {
+						"type": "string",
+						"description": "Model file name"
+					},
+					"thinking": {
+						"type": "boolean",
+						"description": "Whether the model supports thinking mode"
+					}
+				},
+				"required": ["name", "repository", "file", "thinking"],
+				"additionalProperties": false
+			}
+		}
+	},
+	"required": ["version", "models"]
+}
