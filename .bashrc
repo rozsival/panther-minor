@@ -1,1 +1,0 @@
-eval "$(./bin/cli completions)"
