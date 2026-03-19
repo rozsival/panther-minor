@@ -225,6 +225,10 @@ commands:
         flags:
           - long: --no-cache
             help: Build images without using the Docker cache
+          - long: --service
+            arg: service
+            repeatable: true
+            help: Build only specific service(s); repeat the flag to pass multiple services
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
@@ -245,6 +249,13 @@ commands:
             validate: integer
       - name: open-webui
         help: Stream Open WebUI logs or show a one-time tail snapshot
+        flags:
+          - long: --tail
+            arg: lines
+            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
+            validate: integer
+      - name: openfang
+        help: Stream OpenFang logs or show a one-time tail snapshot
         flags:
           - long: --tail
             arg: lines

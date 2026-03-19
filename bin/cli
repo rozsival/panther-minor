@@ -1002,6 +1002,11 @@ cli_cluster_build_usage() {
     printf "    Build images without using the Docker cache\n"
     echo
 
+    # :flag.usage
+    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "    Build only specific service(s); repeat the flag to pass multiple services\n"
+    echo
+
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
@@ -1023,6 +1028,7 @@ cli_logs_usage() {
   printf "  %s   Stream llama.cpp logs or show a one-time tail snapshot\n" "llama-cpp             "
   printf "  %s   Stream llama-metrics-exporter logs or show a one-time tail snapshot\n" "llama-metrics-exporter"
   printf "  %s   Stream Open WebUI logs or show a one-time tail snapshot\n" "open-webui            "
+  printf "  %s   Stream OpenFang logs or show a one-time tail snapshot\n" "openfang              "
   printf "  %s   Stream Prometheus logs or show a one-time tail snapshot\n" "prometheus            "
   printf "  %s   Stream Grafana logs or show a one-time tail snapshot\n" "grafana               "
   printf "  %s   Stream Node Exporter logs or show a one-time tail snapshot\n" "node-exporter         "
@@ -1106,6 +1112,34 @@ cli_logs_open_webui_usage() {
   printf "%s\n" "Usage:"
   printf "  cli logs open-webui [OPTIONS]\n"
   printf "  cli logs open-webui --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--tail LINES"
+    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_logs_openfang_usage() {
+  printf "cli logs openfang - Stream OpenFang logs or show a one-time tail snapshot\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli logs openfang [OPTIONS]\n"
+  printf "  cli logs openfang --help | -h\n"
   echo
 
   # :command.long_usage
@@ -1556,20 +1590,8 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'models download\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'logs prometheus\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'logs open-webui\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster cleanup\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy renew-ssl\'*)'
@@ -1580,7 +1602,23 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
+  echo $'    \'logs open-webui\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models download\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'cluster restart\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'cluster cleanup\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup packages\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1592,14 +1630,6 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup packages\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'models remove\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'proxy certbot\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--challenge-record --domain --force --help -h")" -- "$cur")'
   echo $'      ;;'
@@ -1608,12 +1638,24 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
+  echo $'    \'models remove\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'cluster build\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache --service -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'logs openfang\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster stop\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --volumes -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'logs grafana\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup amdgpu\'*)'
@@ -1624,8 +1666,8 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs grafana\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
+  echo $'    \'completions\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models list\'*)'
@@ -1636,24 +1678,24 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'completions\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'logs proxy\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup grub\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'setup init\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup brew\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup init\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -h")" -- "$cur")'
+  echo $'    \'setup grub\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup all\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup env\'*)'
@@ -1670,10 +1712,6 @@ send_completions() {
   echo $''
   echo $'    \'setup ssh\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --ssh-port -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup all\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster\'*)'
@@ -1697,7 +1735,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'logs\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h amd-gpu-exporter grafana llama-cpp llama-metrics-exporter node-exporter open-webui prometheus proxy")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h amd-gpu-exporter grafana llama-cpp llama-metrics-exporter node-exporter open-webui openfang prometheus proxy")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'
@@ -2686,8 +2724,24 @@ cli_cluster_build_command() {
   # src/cluster_build_command.sh
   panther_cluster_build() {
   	local -a compose_args=(build)
+  	local service_args=''
   	if [[ -n ${args[--no-cache]+x} ]]; then
   		compose_args+=(--no-cache)
+  	fi
+
+  	if [[ -n ${args[--service]+x} ]]; then
+  		service_args="${args[--service]}"
+  		# Bashly stores repeatable flags as a space-delimited string.
+  		# shellcheck disable=SC2206
+  		local -a services=(${service_args})
+  		compose_args+=("${services[@]}")
+  	fi
+
+  	if [[ -n ${args[--no-cache]+x} && -n ${args[--service]+x} ]]; then
+  		panther_log_info "Building selected service images without cache: ${service_args}..."
+  	elif [[ -n ${args[--service]+x} ]]; then
+  		panther_log_info "Building selected service images: ${service_args}..."
+  	elif [[ -n ${args[--no-cache]+x} ]]; then
   		panther_log_info 'Building cluster images without cache...'
   	else
   		panther_log_info 'Building cluster images...'
@@ -2731,6 +2785,18 @@ cli_logs_open_webui_command() {
   # src/logs_open_webui_command.sh
   panther_logs_open_webui() {
   	panther_logs_service 'open-webui'
+  }
+
+  panther_logs_open_webui
+
+}
+
+# :command.function
+cli_logs_openfang_command() {
+
+  # src/logs_openfang_command.sh
+  panther_logs_open_webui() {
+  	panther_logs_service 'openfang'
   }
 
   panther_logs_open_webui
@@ -5016,6 +5082,25 @@ cli_cluster_build_parse_requirements() {
         shift
         ;;
 
+      # :flag.case
+      --service)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          escaped="$(printf '%q' "$2")"
+          if [[ -z ${args['--service']+x} ]]; then
+            args['--service']="$escaped"
+          else
+            args['--service']="${args['--service']} $escaped"
+          fi
+          shift
+          shift
+        else
+          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          exit 1
+        fi
+        ;;
+
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -5079,6 +5164,13 @@ cli_logs_parse_requirements() {
       action="open-webui"
       shift
       cli_logs_open_webui_parse_requirements "$@"
+      shift $#
+      ;;
+
+    openfang)
+      action="openfang"
+      shift
+      cli_logs_openfang_parse_requirements "$@"
       shift $#
       ;;
 
@@ -5316,6 +5408,76 @@ cli_logs_open_webui_parse_requirements() {
 
   # :command.command_filter
   action="logs open-webui"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --tail)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--tail']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--tail'] ]]; then
+    validation_output="$(validate_integer "${args['--tail']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+}
+
+# :command.parse_requirements
+cli_logs_openfang_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_logs_openfang_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="logs openfang"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -5923,6 +6085,7 @@ run() {
     "logs llama-cpp") cli_logs_llama_cpp_command ;;
     "logs llama-metrics-exporter") cli_logs_llama_metrics_exporter_command ;;
     "logs open-webui") cli_logs_open_webui_command ;;
+    "logs openfang") cli_logs_openfang_command ;;
     "logs prometheus") cli_logs_prometheus_command ;;
     "logs grafana") cli_logs_grafana_command ;;
     "logs node-exporter") cli_logs_node_exporter_command ;;
