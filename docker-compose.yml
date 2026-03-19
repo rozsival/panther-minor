@@ -185,10 +185,8 @@ services:
     image: grafana/grafana-oss:12.4.1
     restart: unless-stopped
     environment:
-      GF_AUTH_ANONYMOUS_ENABLED: 'false'
-      GF_SECURITY_ADMIN_USER: 'admin'
-      GF_SECURITY_ADMIN_PASSWORD: 'admin'
-      GF_USERS_ALLOW_SIGN_UP: 'false'
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: 'Admin'
     volumes:
       - grafana-data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
