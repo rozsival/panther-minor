@@ -3,29 +3,29 @@
 	"autoupdate": true,
 	"provider": {
 		"panther-minor": {
-			"npm": "@ai-sdk/openai-compatible",
+			"models": {
+				"panther-coder": {
+					"limit": {
+						"context": 131072,
+						"output": 6144
+					},
+					"name": "panther-coder"
+				},
+				"panther-coder-next": {
+					"limit": {
+						"context": 131072,
+						"output": 8192
+					},
+					"name": "panther-coder-next"
+				}
+			},
 			"name": "Panther Minor",
+			"npm": "@ai-sdk/openai-compatible",
 			"options": {
 				"baseURL": "https://<domain>:8000/v1",
 				"chunkTimeout": 30000,
 				"setCacheKey": true,
 				"timeout": 600000
-			},
-			"models": {
-				"panther-coder": {
-					"name": "panther-coder",
-					"limit": {
-						"context": 131072,
-						"output": 6144
-					}
-				},
-				"panther-coder-next": {
-					"name": "panther-coder-next",
-					"limit": {
-						"context": 131072,
-						"output": 8192
-					}
-				}
 			}
 		}
 	}

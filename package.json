@@ -10,9 +10,9 @@
 	},
 	"type": "module",
 	"scripts": {
-		"check": "biome check --write .",
+		"check": "biome check --write --unsafe .",
 		"format": "biome format --write .",
-		"lint": "biome lint --write .",
+		"lint": "biome lint --write --unsafe .",
 		"postinstall": "is-ci || lefthook install",
 		"test": "node --test **/*.test.js"
 	},

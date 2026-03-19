@@ -15,10 +15,10 @@ const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 
 const LOG_PRIORITY = {
-	error: 0,
-	warn: 1,
-	info: 2,
 	debug: 3,
+	error: 0,
+	info: 2,
+	warn: 1,
 };
 
 function shouldLog(level) {
@@ -49,8 +49,8 @@ const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
 const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
 
 const cache = {
-	timestampMs: 0,
 	payload: '',
+	timestampMs: 0,
 };
 
 export function normalizeModelsPayload(payload) {
@@ -187,9 +187,9 @@ async function fetchJson(pathname, fetchImpl = fetch) {
 
 	if (!response.ok) {
 		log('warn', 'upstream_json_request_failed', {
-			url: url.toString(),
 			status: response.status,
 			statusText: response.statusText,
+			url: url.toString(),
 		});
 		const error = new Error(
 			`upstream json request failed: ${response.status} ${response.statusText}`,
@@ -200,8 +200,8 @@ async function fetchJson(pathname, fetchImpl = fetch) {
 	}
 
 	log('debug', 'upstream_json_request_ok', {
-		url: url.toString(),
 		status: response.status,
+		url: url.toString(),
 	});
 
 	return response.json();
@@ -262,8 +262,8 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
 	}
 
 	log('info', 'model_metrics_payload_received', {
-		model,
 		metricCount: metricNames.length,
+		model,
 		sampleMetrics: metricNames.slice(0, 10),
 	});
 
@@ -390,11 +390,11 @@ export function startServer() {
 
 	server.listen(PORT, '0.0.0.0', () => {
 		log('info', 'server_started', {
-			listen: `0.0.0.0:${PORT}`,
-			upstream: LLAMA_SERVER_URL,
 			cacheTtlSeconds: CACHE_TTL_SECONDS,
-			timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
+			listen: `0.0.0.0:${PORT}`,
 			logLevel: LOG_LEVEL,
+			timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
+			upstream: LLAMA_SERVER_URL,
 		});
 	});
 

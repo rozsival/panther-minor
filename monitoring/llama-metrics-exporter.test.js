@@ -12,11 +12,11 @@ import {
 
 test('normalizeModelsPayload maps OpenAI models response', () => {
 	const models = normalizeModelsPayload({
-		object: 'list',
 		data: [
 			{ id: 'panther-minor', status: { value: 'loaded' } },
 			{ id: 'panther-coder', status: { value: 'unloaded' } },
 		],
+		object: 'list',
 	});
 
 	assert.deepEqual(models, [
@@ -58,8 +58,8 @@ llamacpp_tokens_predicted_total 100
 `;
 
 	const merged = mergeMetricsForModels({
-		'panther-minor': sample,
 		'panther-coder': sample.replace('100', '200'),
+		'panther-minor': sample,
 	}).join('\n');
 
 	assert.equal(
@@ -116,11 +116,11 @@ test('buildMetricsPayload scrapes metrics only for the single loaded model', asy
 		if (pathname === '/v1/models') {
 			return new Response(
 				JSON.stringify({
-					object: 'list',
 					data: [
 						{ id: 'panther-minor', status: { value: 'loaded' } },
 						{ id: 'panther-coder', status: { value: 'unloaded' } },
 					],
+					object: 'list',
 				}),
 				{ status: 200 },
 			);
@@ -161,11 +161,11 @@ test('buildMetricsPayload skips metrics scrape when no model is loaded', async (
 		if (pathname === '/v1/models') {
 			return new Response(
 				JSON.stringify({
-					object: 'list',
 					data: [
 						{ id: 'panther-minor', status: { value: 'unloaded' } },
 						{ id: 'panther-coder', status: { value: 'unloaded' } },
 					],
+					object: 'list',
 				}),
 				{ status: 200 },
 			);

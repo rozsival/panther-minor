@@ -1,30 +1,30 @@
 {
 	"$schema": "./schema.json",
-	"version": "1",
 	"models": [
 		{
+			"file": "Qwen3.5-35B-A3B-Q8_0.gguf",
 			"name": "panther-minor",
 			"repository": "unsloth/Qwen3.5-35B-A3B-GGUF",
-			"file": "Qwen3.5-35B-A3B-Q8_0.gguf",
 			"thinking": true
 		},
 		{
+			"file": "Qwen3.5-2B-Q8_0.gguf",
 			"name": "panther-blazer",
 			"repository": "unsloth/Qwen3.5-2B-GGUF",
-			"file": "Qwen3.5-2B-Q8_0.gguf",
 			"thinking": true
 		},
 		{
+			"file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
 			"name": "panther-coder",
 			"repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-			"file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
 			"thinking": false
 		},
 		{
+			"file": "Qwen3-Coder-Next-Q4_0.gguf",
 			"name": "panther-coder-next",
 			"repository": "unsloth/Qwen3-Coder-Next-GGUF",
-			"file": "Qwen3-Coder-Next-Q4_0.gguf",
 			"thinking": false
 		}
-	]
+	],
+	"version": "1"
 }

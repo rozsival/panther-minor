@@ -1,40 +1,40 @@
 {
 	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"title": "Models Configuration",
 	"description": "Configuration schema for models",
-	"type": "object",
 	"properties": {
-		"version": {
-			"type": "string",
-			"description": "Configuration version"
-		},
 		"models": {
-			"type": "array",
 			"description": "List of models",
 			"items": {
-				"type": "object",
+				"additionalProperties": false,
 				"properties": {
+					"file": {
+						"description": "Model file name",
+						"type": "string"
+					},
 					"name": {
-						"type": "string",
-						"description": "Name of the model"
+						"description": "Name of the model",
+						"type": "string"
 					},
 					"repository": {
-						"type": "string",
-						"description": "Repository containing the model"
-					},
-					"file": {
-						"type": "string",
-						"description": "Model file name"
+						"description": "Repository containing the model",
+						"type": "string"
 					},
 					"thinking": {
-						"type": "boolean",
-						"description": "Whether the model supports thinking mode"
+						"description": "Whether the model supports thinking mode",
+						"type": "boolean"
 					}
 				},
 				"required": ["name", "repository", "file", "thinking"],
-				"additionalProperties": false
-			}
+				"type": "object"
+			},
+			"type": "array"
+		},
+		"version": {
+			"description": "Configuration version",
+			"type": "string"
 		}
 	},
-	"required": ["version", "models"]
+	"required": ["version", "models"],
+	"title": "Models Configuration",
+	"type": "object"
 }

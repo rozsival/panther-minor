@@ -12,5 +12,5 @@ pre-commit:
 
     - name: Lint staged files
       glob: "*.{js,json,md}"
-      run: pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
+      run: pnpm biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
       stage_fixed: true
