@@ -27,9 +27,8 @@ for monitoring GPU and node performance.
 
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
+- `bin/README.md` — overview of the `./bin/cli` command tree and authoring workflow
 - `models/README.md` — overview for custom `llama.cpp` models with `./bin/cli models *` usage and `preset.ini` config
-- `bin/src/bashly.yml` — source of truth for the generated `./bin/cli` command tree (https://bashly.dev/)
-- `bin/src/lib/panther.sh` — shared CLI helpers and setup/proxy/models command implementations
 - `docker-compose.yml` — service definitions with health checks
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
