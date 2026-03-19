@@ -9,6 +9,7 @@ pre-commit:
     - name: Generate bin
       run: cd bin && bashly generate
       stage_fixed: true
+
     - name: Lint staged files
       glob: "*.{js,json,md}"
       run: pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
