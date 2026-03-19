@@ -6,6 +6,8 @@ commit-msg:
 pre-commit:
   parallel: true
   jobs:
+    - name: Generate bin
+      run: cd bin && bashly generate
     - name: Lint staged files
       glob: "*.{js,json,md}"
       run: pnpm biome check --write --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
