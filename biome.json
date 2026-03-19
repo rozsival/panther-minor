@@ -1,9 +1,14 @@
 {
-	"$schema": "https://biomejs.dev/schemas/2.4.8/schema.json",
-	"vcs": {
+	"$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+	"assist": {
+		"actions": {
+			"source": {
+				"organizeImports": "on",
+				"useSortedKeys": "on"
+			}
+		},
 		"enabled": true,
-		"clientKind": "git",
-		"useIgnoreFile": true
+		"includes": ["**", "!biome.json", "!package.json"]
 	},
 	"files": {
 		"ignoreUnknown": false
@@ -12,23 +17,39 @@
 		"enabled": true,
 		"indentStyle": "tab"
 	},
-	"linter": {
-		"enabled": true,
-		"rules": {
-			"recommended": true
-		}
-	},
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "single"
 		}
 	},
-	"assist": {
+	"linter": {
+		"domains": {
+			"project": "all",
+			"test": "recommended"
+		},
 		"enabled": true,
-		"actions": {
-			"source": {
-				"organizeImports": "on"
+		"rules": {
+			"correctness": {
+				"noUnusedImports": "error"
+			},
+			"recommended": true,
+			"style": {
+				"noCommonJs": "error",
+				"noNestedTernary": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"filenameCases": ["kebab-case"],
+						"requireAscii": true,
+						"strictCase": false
+					}
+				}
 			}
 		}
+	},
+	"vcs": {
+		"clientKind": "git",
+		"enabled": true,
+		"useIgnoreFile": true
 	}
 }
