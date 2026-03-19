@@ -99,13 +99,15 @@ services:
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
-    build:
-      context: ./openfang
+    profiles:
+      - openfang
+    image: ${OPENFANG_IMAGE}
     restart: unless-stopped
     expose:
       - 4200
     volumes:
       - openfang-data:/home/openfang/.openfang/data
+      - ./openfang/config.toml:/home/${OPENFANG_USER:-openfang}/.openfang/config.toml:ro
     networks:
       - ai
     depends_on:
