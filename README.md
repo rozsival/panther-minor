@@ -128,7 +128,7 @@ Runs a local LLM across both GPUs with an OpenAI-compatible API, plus a monitori
 
 ### Configuration
 
-See `.env` for configurable parameters. Defaults are provided for all variables.
+See `.env` for configurable parameters. Defaults are provided for all non-sensitive values.
 
 > [!NOTE]
 > It is highly recommended to set `HF_TOKEN` in `.env` with a [valid token](https://huggingface.co/settings/tokens) to

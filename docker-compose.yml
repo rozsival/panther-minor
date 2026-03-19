@@ -19,20 +19,20 @@ services:
     build:
       context: ./llama-cpp
       args:
-        - LLAMA_CPP_REPO=${LLAMA_CPP_REPO:-https://github.com/ggml-org/llama.cpp}
-        - LLAMA_CPP_REF=${LLAMA_CPP_REF:-master}
-        - ROCM_ARCH=${ROCM_ARCH:-gfx1201}
+        - LLAMA_CPP_REPO=${LLAMA_CPP_REPO}
+        - LLAMA_CPP_REF=${LLAMA_CPP_REF}
+        - ROCM_ARCH=${ROCM_ARCH}
     privileged: true
     restart: unless-stopped
     devices:
       - /dev/kfd:/dev/kfd
       - /dev/dri:/dev/dri
     group_add:
-      - '${VIDEO_GID:-44}'
-      - '${RENDER_GID:-992}'
+      - '${VIDEO_GID}'
+      - '${RENDER_GID}'
     environment:
-      - HF_TOKEN=${HF_TOKEN:-}
-      - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES:-0,1}
+      - HF_TOKEN=${HF_TOKEN}
+      - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES}
     volumes:
       - llama-cpp-data:/root/.cache
       - ./models:/models:ro
@@ -104,8 +104,8 @@ services:
       - /dev/kfd:/dev/kfd
       - /dev/dri:/dev/dri
     group_add:
-      - '${VIDEO_GID:-44}'
-      - '${RENDER_GID:-992}'
+      - '${VIDEO_GID}'
+      - '${RENDER_GID}'
     expose:
       - 5000
     networks:
