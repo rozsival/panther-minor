@@ -23,6 +23,12 @@ Inspect them with:
 ./bin/cli <command> --help
 ```
 
+Load completions with:
+
+```bash
+source ./bin/.bashrc
+```
+
 ## Edit flow
 
 Update the authored Bashly sources, then regenerate:

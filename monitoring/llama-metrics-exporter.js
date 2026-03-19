@@ -321,7 +321,7 @@ export function startServer() {
 		const requestUrl = new URL(req.url ?? '/', 'http://localhost');
 		const path = requestUrl.pathname;
 
-		if (path === '/healthz') {
+		if (path === '/health') {
 			log('debug', 'healthz_request');
 			res.writeHead(200, { 'content-type': 'text/plain; charset=utf-8' });
 			res.end('ok\n');
