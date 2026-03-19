@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
+        with:
+          package_json_file: ${GITHUB_WORKSPACE}/package.json
 
       - name: Setup node.js
         uses: actions/setup-node@v6
