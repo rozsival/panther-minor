@@ -26,7 +26,7 @@ Inspect them with:
 Load completions with:
 
 ```bash
-source ./bin/.bashrc
+source .bashrc
 ```
 
 ## Edit flow
