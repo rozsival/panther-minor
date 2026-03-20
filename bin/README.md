@@ -34,7 +34,6 @@ source .bashrc
 Update the authored Bashly sources, then regenerate:
 
 ```bash
-cd bin
 bashly generate
 ```
 

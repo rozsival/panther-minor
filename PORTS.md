@@ -21,13 +21,13 @@
 
 ### Tailscale/Local Only
 
-| Port | Service       |
-|------|---------------|
-| 8000 | llama.cpp API |
-| 8080 | Open WebUI    |
-| 4200 | OpenFang      |
-| 3000 | Grafana       |
-| 9090 | Prometheus    |
+| Port | Service     |
+|------|-------------|
+| 8000 | llama-cpp   |
+| 8080 | open-webui  |
+| 4200 | openfang    |
+| 3000 | grafana     |
+| 9090 | prometheus  |
 
 ## Access
 

@@ -113,7 +113,7 @@ requires manual steps:
 > until you have added the CNAME record, otherwise the certificate generation will fail.
 
 ```bash
-./bin/cli proxy certbot --domain <domain> --challenge-record _acme-challenge.panther
+./bin/cli proxy certbot --domain <domain> --challenge-record _acme-challenge[.<subdomain>]
 ```
 
 4. Setup certificates auto renewal:
@@ -163,13 +163,16 @@ To only rebuild the cluster without starting:
 
 ### Services
 
-| Service               | Credentials       |
-|-----------------------|-------------------|
-| OpenAI-compatible API | —                 |
-| Open WebUI (chat)     | —                 |
-| OpenFang              | –                 |
-| Grafana (monitoring)  | `admin` / `admin` |
-| Prometheus            | —                 |
+| Service                | Description                                                    |
+|------------------------|----------------------------------------------------------------|
+| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support |
+| open-webui             | Chat interface for interacting with LLMs                       |
+| openfang               | Agent orchestration platform, powered by                       |
+| grafana                | Monitoring dashboard with pre-configured GPU and node metrics  |
+| prometheus             | Time-series database for collecting and storing metrics        |
+| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                         |
+| node-exporter          | Exports host metrics (CPU, RAM, disk, network)                 |
+| llama-metrics-exporter | Exports llama.cpp specific metrics                             |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
