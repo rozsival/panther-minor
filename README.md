@@ -96,7 +96,7 @@ ssh -p 2222 <user>@<server-name>
 
 ### SSL
 
-All services in the cluster are configured to use self-signed SSL certificates for secure local access. Enabling SSL
+All services in the cluster are configured to use self-signed SSL certificates for secure access. Enabling SSL
 requires manual steps:
 
 1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
@@ -167,7 +167,7 @@ To only rebuild the cluster without starting:
 |------------------------|----------------------------------------------------------------|
 | llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support |
 | open-webui             | Chat interface for interacting with LLMs                       |
-| openfang               | Agent orchestration platform, powered by                       |
+| openfang               | Agent orchestration platform                                   |
 | grafana                | Monitoring dashboard with pre-configured GPU and node metrics  |
 | prometheus             | Time-series database for collecting and storing metrics        |
 | amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                         |
