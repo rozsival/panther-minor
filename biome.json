@@ -30,12 +30,26 @@
 		"enabled": true,
 		"rules": {
 			"correctness": {
+				"noUnresolvedImports": "error",
 				"noUnusedImports": "error"
 			},
 			"recommended": true,
 			"style": {
 				"noCommonJs": "error",
 				"noNestedTernary": "error",
+				"useConsistentArrowReturn": "error",
+				"useConsistentObjectDefinitions": {
+					"level": "error",
+					"options": {
+						"syntax": "shorthand"
+					}
+				},
+				"useConsistentTypeDefinitions": {
+					"level": "error",
+					"options": {
+						"style": "interface"
+					}
+				},
 				"useFilenamingConvention": {
 					"level": "error",
 					"options": {
