@@ -141,6 +141,12 @@ models.
 It is strongly recommended to build and provide your own private image containing your
 custom agents and tools.
 
+You can then set custom [.env variables](./openfang/README.md#usage) to the OpenFang service with the `OPENFANG_` prefix.
+These will be injected into the OpenFang container at runtime, allowing you to configure the service according to your
+image build and orchestration needs.
+
+```bash
+
 ### Model Management
 
 See [Models](./models/README.md) for available LLMs and their usage.

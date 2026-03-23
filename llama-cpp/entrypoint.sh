@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 # -- llama.cpp server entrypoint ----------------------------------------------
 exec /opt/llama-cpp/build/bin/llama-server \
   --batch-size 1024 \
