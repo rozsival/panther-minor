@@ -141,18 +141,8 @@ models.
 It is strongly recommended to build and provide your own private image containing your
 custom agents and tools.
 
-You can then set custom `.env` to the OpenFang service with the `OPENFANG_` prefix.
-These will be injected into the OpenFang container at runtime, allowing you to configure the service according to your
-image build and orchestration needs.
-
-```bash
-OPENFANG_IMAGE=ghcr.io/your-org/openfang-private:latest
-OPENFANG_API_TOKEN=replace-me
-OPENFANG_BROWSER_HEADLESS=true
-```
-
-Only `OPENFANG_` prefixed variables are injected into the container, and the wrapper preserves the default OpenFang
-startup command so the service still boots normally.
+You can then set custom `./openfang/.env` variables that will be injected into the OpenFang container at runtime. This
+allows you to configure the service according to your image build and orchestration needs.
 
 ### Model Management
 

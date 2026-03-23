@@ -42,7 +42,7 @@ Important:
 
 - Edit `./bin/src/bashly.yml` for commands, flags, args, examples, and env vars
 - Edit `./bin/src/*_command.sh` for command entrypoints
-- Edit `./bin/src/lib/panther.sh` for shared logic
+- Edit `./bin/src/lib/*.sh` for shared logic
 - Edit `./bin/src/lib/validations/*` for custom validations
 - Edit `./bin/src/initialize.sh` for pre-parse normalization/bootstrapping
 - DO NOT read/write `./cli`, it is generated
@@ -52,7 +52,6 @@ Important:
 ## Notes
 
 - `./bin/src/bashly.yml` is the CLI schema source of truth
-- Most shared implementation lives in `./bin/src/lib/panther.sh`
 - Routine status output should use `panther_log_info`, `panther_log_success`, `panther_log_warn`, and
   `panther_log_error`
 - Env support is declared per command in `./bin/src/bashly.yml`

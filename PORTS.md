@@ -56,4 +56,4 @@ curl -k https://localhost:8000/v1/models
 
 - `docker-compose.yml` - service definitions
 - `bin/src/bashly.yml` - CLI command contract and exposed setup options
-- `bin/src/lib/panther.sh` - setup command implementations, firewall rules, and SSH defaults
+- `bin/src/*.sh` - setup command implementations, firewall rules, and SSH defaults
