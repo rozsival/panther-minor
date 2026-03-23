@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 set -e
 
@@ -15,4 +15,4 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 # Execute original entrypoint with args (parent CMD becomes our $@)
-exec openfang start
+exec "$@"
