@@ -99,11 +99,7 @@ services:
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
-    build:
-      context: ./openfang
-      args:
-        - OPENFANG_IMAGE=${OPENFANG_IMAGE}
-        - OPENFANG_USER=${OPENFANG_USER}
+    image: ${OPENFANG_IMAGE}
     restart: unless-stopped
     environment:
       - OPENFANG_HOME=${OPENFANG_HOME}

@@ -141,7 +141,10 @@ models.
 It is strongly recommended to build and provide your own private image containing your
 custom agents and tools.
 
-You can then set custom `./openfang/.env` variables that will be injected into the OpenFang container at runtime. This
+Default config is mount at `${OPENFANG_HOME}/config.toml.default`, your image can use this as a base and override any
+parameters as needed.
+
+You can also set custom `./openfang/.env` variables that will be injected into the OpenFang container at runtime. This
 allows you to configure the service according to your image build and orchestration needs.
 
 ### Model Management
