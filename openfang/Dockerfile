@@ -6,3 +6,4 @@ COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
 # Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
+CMD ["start"]
