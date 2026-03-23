@@ -99,17 +99,16 @@ services:
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
-    build:
-      context: ./openfang
-      args:
-        - OPENFANG_IMAGE=${OPENFANG_IMAGE}
+    image: ${OPENFANG_IMAGE}
     restart: unless-stopped
+    env_file:
+      - path: ./openfang/.env
+        required: false
     environment:
       - OPENFANG_HOME=${OPENFANG_HOME}
     volumes:
       - openfang-data:${OPENFANG_HOME}/data
       - ./openfang/config.toml:${OPENFANG_HOME}/config.toml:ro
-      - ./.env:${OPENFANG_HOME}/.env:ro
     expose:
       - 4200
     networks:
