@@ -12,7 +12,6 @@
   "scripts": {
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "format": "biome format --write .",
     "postinstall": "is-ci || lefthook install",
     "test": "node --test **/*.test.js"
   },

@@ -18,7 +18,7 @@ for monitoring GPU and node performance.
 
 ## Critical Rules
 
-1. **Code Style** – follow the rules in `.editorconfig` and `biome.json` for consistent formatting and linting
+1. **Code Style** – Ultracite preset for Biome (use `pnpm run check` or `pnpm run fix` to check or auto-fix)
 2. **Use llama.cpp only** — custom build in `llama-cpp/Dockerfile` with ROCm v7 and `gfx1201` support
 3. **Package manager** — `apt` only (never `apt-get`)
 4. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
