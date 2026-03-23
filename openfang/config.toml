@@ -1,6 +1,7 @@
 # OpenFang Agent OS configuration
 # See https://github.com/RightNow-AI/openfang for documentation
 api_listen = "0.0.0.0:4200"
+network_enabled = true
 
 [default_model]
 provider = "ollama"
