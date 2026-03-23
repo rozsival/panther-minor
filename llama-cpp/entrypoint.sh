@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # -- llama.cpp server entrypoint ----------------------------------------------
 exec /opt/llama-cpp/build/bin/llama-server \

@@ -103,14 +103,13 @@ services:
       context: ./openfang
       args:
         - OPENFANG_IMAGE=${OPENFANG_IMAGE}
-        - OPENFANG_HOME=${OPENFANG_HOME}
     restart: unless-stopped
     environment:
       - OPENFANG_HOME=${OPENFANG_HOME}
     volumes:
       - openfang-data:${OPENFANG_HOME}/data
       - ./openfang/config.toml:${OPENFANG_HOME}/config.toml:ro
-      - ./openfang/.env:${OPENFANG_HOME}/.env:ro
+      - ./.env:${OPENFANG_HOME}/.env:ro
     expose:
       - 4200
     networks:
