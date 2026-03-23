@@ -206,7 +206,7 @@ services:
 
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
-    image: nginx:alpine
+    image: nginx:1.29.6-alpine
     restart: unless-stopped
     ports:
       - '3000:3000'
