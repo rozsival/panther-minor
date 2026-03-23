@@ -10,38 +10,38 @@ declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
 declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
 
 panther_is_logs_service() {
-	case "${1:-}" in
-	llama-cpp | llama-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
-		return 0
-		;;
-	*)
-		return 1
-		;;
-	esac
+  case "${1:-}" in
+  llama-cpp | llama-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
+    return 0
+    ;;
+  *)
+    return 1
+    ;;
+  esac
 }
 
 panther_normalize_logs_tail_args() {
-	[[ ${#command_line_args[@]} -ge 3 ]] || return 0
-	[[ ${command_line_args[0]} == 'logs' ]] || return 0
-	panther_is_logs_service "${command_line_args[1]}" || return 0
+  [[ ${#command_line_args[@]} -ge 3 ]] || return 0
+  [[ ${command_line_args[0]} == 'logs' ]] || return 0
+  panther_is_logs_service "${command_line_args[1]}" || return 0
 
-	local -a normalized_args=()
-	local index=0
+  local -a normalized_args=()
+  local index=0
 
-	while ((index < ${#command_line_args[@]})); do
-		local current_arg="${command_line_args[$index]}"
-		local next_arg="${command_line_args[$((index + 1))]:-}"
+  while ((index < ${#command_line_args[@]})); do
+    local current_arg="${command_line_args[$index]}"
+    local next_arg="${command_line_args[$((index + 1))]:-}"
 
-		normalized_args+=("$current_arg")
+    normalized_args+=("$current_arg")
 
-		if [[ $current_arg == '--tail' ]] && [[ -z $next_arg || $next_arg == -* ]]; then
-			normalized_args+=('100')
-		fi
+    if [[ $current_arg == '--tail' ]] && [[ -z $next_arg || $next_arg == -* ]]; then
+      normalized_args+=('100')
+    fi
 
-		((index += 1))
-	done
+    ((index += 1))
+  done
 
-	command_line_args=("${normalized_args[@]}")
+  command_line_args=("${normalized_args[@]}")
 }
 
 panther_normalize_logs_tail_args

@@ -6,11 +6,13 @@ commit-msg:
 pre-commit:
   parallel: true
   jobs:
-    - name: Generate bin
-      run: cd bin && bashly generate && bashly add completions --force
+    - run: cd bin && bashly generate && bashly add completions --force
       stage_fixed: true
 
-    - name: Lint staged files
-      glob: "*.{js,json,md}"
-      run: pnpm biome check --write --unsafe --no-errors-on-unmatched --files-ignore-unknown=true --colors=off {staged_files}
+    - run: pnpm ultracite fix
+      glob:
+        - "**/*.js"
+        - "**/*.md"
+        - "**/*.json"
+        - "**/*.jsonc"
       stage_fixed: true

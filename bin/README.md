@@ -46,19 +46,19 @@ Important:
 - Edit `./src/initialize.sh` for pre-parse normalization/bootstrapping
 - DO NOT read/write `./cli`, it is generated
 - Prefer `bashly generate` without `--force`; `--force` can recreate placeholder command files and overwrite authored
-	bodies
+  bodies
 
 ## Notes
 
 - `./src/bashly.yml` is the CLI schema source of truth
 - Most shared implementation lives in `./src/lib/panther.sh`
 - Routine status output should use `panther_log_info`, `panther_log_success`, `panther_log_warn`, and
-	`panther_log_error`
+  `panther_log_error`
 - Env support is declared per command in `./src/bashly.yml`
 - The CLI does not globally load `.env`; commands opt in where needed, while Docker Compose still reads `.env`
 - `models download` supports `HF_TOKEN`
 - `logs <service>` streams logs, `logs <service> --tail` prints the latest `100` lines once, and
-	`logs <service> --tail <n>` prints the latest `<n>` lines once
+  `logs <service> --tail <n>` prints the latest `<n>` lines once
 - `./cli completions` prints the shell completion script for `eval "$(./cli completions)"`
 
 ## Validate after changes

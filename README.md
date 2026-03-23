@@ -102,8 +102,8 @@ requires manual steps:
 1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
 
 2. Add DNS type A record pointing to the
-	 server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
-	 your DNS provider to access the services via `<domain>`.
+   server's [Tailscale IP address](https://login.tailscale.com/admin/machines) in
+   your DNS provider to access the services via `<domain>`.
 
 3. Generate Certbot certificate on the server:
 

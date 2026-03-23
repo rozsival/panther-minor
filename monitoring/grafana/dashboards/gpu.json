@@ -1,680 +1,680 @@
 {
-	"annotations": {
-		"list": [
-			{
-				"builtIn": 1,
-				"datasource": { "type": "grafana", "uid": "-- Grafana --" },
-				"enable": true,
-				"hide": true,
-				"iconColor": "rgba(0, 211, 255, 1)",
-				"name": "Annotations & Alerts",
-				"type": "dashboard"
-			}
-		]
-	},
-	"editable": true,
-	"fiscalYearStartMonth": 0,
-	"graphTooltip": 1,
-	"links": [],
-	"panels": [
-		{
-			"collapsed": false,
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
-			"id": 100,
-			"title": "Overview",
-			"type": "row"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "thresholds" },
-					"mappings": [],
-					"max": 100,
-					"min": 0,
-					"thresholds": {
-						"mode": "absolute",
-						"steps": [
-							{ "color": "green", "value": null },
-							{ "color": "yellow", "value": 70 },
-							{ "color": "red", "value": 90 }
-						]
-					},
-					"unit": "percent"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
-			"id": 1,
-			"options": {
-				"orientation": "auto",
-				"reduceOptions": {
-					"calcs": ["lastNotNull"],
-					"fields": "",
-					"values": false
-				},
-				"showThresholdLabels": false,
-				"showThresholdMarkers": true
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "100 * max by (gpu_id) (gpu_clock{clock_type=\"system\"}) / max by (gpu_id) (gpu_max_clock{clock_type=\"system\"})",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "Shader Clock vs Max",
-			"type": "gauge"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "thresholds" },
-					"mappings": [],
-					"thresholds": {
-						"mode": "absolute",
-						"steps": [
-							{ "color": "green", "value": null },
-							{ "color": "yellow", "value": 70 },
-							{ "color": "red", "value": 90 }
-						]
-					},
-					"unit": "celsius"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
-			"id": 2,
-			"options": {
-				"legend": {
-					"calcs": ["lastNotNull", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_edge_temperature)",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "Temperature",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "thresholds" },
-					"mappings": [],
-					"thresholds": {
-						"mode": "absolute",
-						"steps": [
-							{ "color": "green", "value": null },
-							{ "color": "yellow", "value": 150 },
-							{ "color": "red", "value": 200 }
-						]
-					},
-					"unit": "watt"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
-			"id": 3,
-			"options": {
-				"legend": {
-					"calcs": ["lastNotNull", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_average_package_power)",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "Power Draw",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "thresholds" },
-					"mappings": [],
-					"max": 100,
-					"min": 0,
-					"thresholds": {
-						"mode": "absolute",
-						"steps": [
-							{ "color": "green", "value": null },
-							{ "color": "yellow", "value": 70 },
-							{ "color": "red", "value": 90 }
-						]
-					},
-					"unit": "percent"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
-			"id": 4,
-			"options": {
-				"legend": {
-					"calcs": ["lastNotNull", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "VRAM Usage",
-			"type": "timeseries"
-		},
-		{
-			"collapsed": false,
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
-			"id": 101,
-			"title": "VRAM",
-			"type": "row"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"unit": "bytes"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
-			"id": 5,
-			"options": {
-				"legend": {
-					"calcs": ["lastNotNull", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_used_vram) * 1024 * 1024",
-					"legendFormat": "GPU {{gpu_id}} used",
-					"range": true,
-					"refId": "A"
-				},
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_total_vram) * 1024 * 1024",
-					"legendFormat": "GPU {{gpu_id}} total",
-					"range": true,
-					"refId": "B"
-				}
-			],
-			"title": "VRAM Used vs Total",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"max": 100,
-					"min": 0,
-					"unit": "percent"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
-			"id": 6,
-			"options": {
-				"legend": {
-					"calcs": ["mean", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "VRAM Utilization %",
-			"type": "timeseries"
-		},
-		{
-			"collapsed": false,
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
-			"id": 102,
-			"title": "Performance",
-			"type": "row"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"max": 100,
-					"min": 0,
-					"unit": "percent"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
-			"id": 7,
-			"options": {
-				"legend": {
-					"calcs": ["mean", "max"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "100 * max by (gpu_id) (gpu_clock{clock_type=\"system\"}) / max by (gpu_id) (gpu_max_clock{clock_type=\"system\"})",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "Shader Clock vs Max %",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"unit": "MHz"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
-			"id": 8,
-			"options": {
-				"legend": {
-					"calcs": ["mean", "lastNotNull"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_clock{clock_type=\"system\"})",
-					"legendFormat": "GPU {{gpu_id}} shader",
-					"range": true,
-					"refId": "A"
-				},
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_clock{clock_type=\"memory\"})",
-					"legendFormat": "GPU {{gpu_id}} memory",
-					"range": true,
-					"refId": "B"
-				}
-			],
-			"title": "Clock Speeds",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"unit": "watt"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
-			"id": 9,
-			"options": {
-				"legend": {
-					"calcs": ["mean", "max", "lastNotNull"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_average_package_power)",
-					"legendFormat": "GPU {{gpu_id}} instantaneous",
-					"range": true,
-					"refId": "A"
-				},
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (avg_over_time(gpu_average_package_power[5m]))",
-					"legendFormat": "GPU {{gpu_id}} average",
-					"range": true,
-					"refId": "B"
-				}
-			],
-			"title": "Power Consumption",
-			"type": "timeseries"
-		},
-		{
-			"collapsed": false,
-			"gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
-			"id": 103,
-			"title": "Thermals",
-			"type": "row"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": {
-							"mode": "line",
-							"steps": [
-								{ "color": "transparent", "value": null },
-								{ "color": "red", "value": 90 }
-							]
-						}
-					},
-					"mappings": [],
-					"unit": "celsius"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
-			"id": 10,
-			"options": {
-				"legend": {
-					"calcs": ["mean", "max", "lastNotNull"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_edge_temperature)",
-					"legendFormat": "GPU {{gpu_id}} core",
-					"range": true,
-					"refId": "A"
-				},
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_junction_temperature)",
-					"legendFormat": "GPU {{gpu_id}} junction",
-					"range": true,
-					"refId": "B"
-				},
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "max by (gpu_id) (gpu_memory_temperature)",
-					"legendFormat": "GPU {{gpu_id}} memory",
-					"range": true,
-					"refId": "C"
-				}
-			],
-			"title": "Temperature History",
-			"type": "timeseries"
-		},
-		{
-			"datasource": { "type": "prometheus", "uid": "prometheus" },
-			"fieldConfig": {
-				"defaults": {
-					"color": { "mode": "palette-classic" },
-					"custom": {
-						"axisBorderShow": false,
-						"axisCenteredZero": false,
-						"axisColorMode": "text",
-						"axisLabel": "",
-						"axisPlacement": "auto",
-						"barAlignment": 0,
-						"drawStyle": "line",
-						"fillOpacity": 15,
-						"gradientMode": "none",
-						"hideFrom": { "legend": false, "tooltip": false, "viz": false },
-						"insertNulls": false,
-						"lineInterpolation": "linear",
-						"lineWidth": 2,
-						"pointSize": 5,
-						"scaleDistribution": { "type": "linear" },
-						"showPoints": "never",
-						"spanNulls": false,
-						"stacking": { "group": "A", "mode": "none" },
-						"thresholdsStyle": { "mode": "off" }
-					},
-					"mappings": [],
-					"unit": "percent"
-				},
-				"overrides": []
-			},
-			"gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
-			"id": 11,
-			"options": {
-				"legend": {
-					"calcs": ["lastNotNull", "min"],
-					"displayMode": "table",
-					"placement": "bottom",
-					"showLegend": true
-				},
-				"tooltip": { "mode": "multi", "sort": "desc" }
-			},
-			"pluginVersion": "11.5.1",
-			"targets": [
-				{
-					"datasource": { "type": "prometheus", "uid": "prometheus" },
-					"editorMode": "code",
-					"expr": "100 * max by (gpu_id) (gpu_health)",
-					"legendFormat": "GPU {{gpu_id}}",
-					"range": true,
-					"refId": "A"
-				}
-			],
-			"title": "GPU Health",
-			"type": "timeseries"
-		}
-	],
-	"preload": false,
-	"refresh": "10s",
-	"schemaVersion": 40,
-	"tags": ["gpu", "amd", "rocm"],
-	"templating": { "list": [] },
-	"time": { "from": "now-1h", "to": "now" },
-	"timepicker": {},
-	"timezone": "",
-	"title": "AMD GPU",
-	"uid": "amd-gpu",
-	"version": 1,
-	"weekStart": ""
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 * max by (gpu_id) (gpu_clock{clock_type=\"system\"}) / max by (gpu_id) (gpu_max_clock{clock_type=\"system\"})",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Shader Clock vs Max",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_edge_temperature)",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Temperature",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 150 },
+              { "color": "red", "value": 200 }
+            ]
+          },
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "id": 3,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_average_package_power)",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Power Draw",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "id": 4,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VRAM Usage",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "title": "VRAM",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 7 },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_used_vram) * 1024 * 1024",
+          "legendFormat": "GPU {{gpu_id}} used",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_total_vram) * 1024 * 1024",
+          "legendFormat": "GPU {{gpu_id}} total",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "VRAM Used vs Total",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 7 },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 * max by (gpu_id) (gpu_used_vram) / max by (gpu_id) (gpu_total_vram)",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VRAM Utilization %",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "title": "Performance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 16 },
+      "id": 7,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 * max by (gpu_id) (gpu_clock{clock_type=\"system\"}) / max by (gpu_id) (gpu_max_clock{clock_type=\"system\"})",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Shader Clock vs Max %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "MHz"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 16 },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_clock{clock_type=\"system\"})",
+          "legendFormat": "GPU {{gpu_id}} shader",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_clock{clock_type=\"memory\"})",
+          "legendFormat": "GPU {{gpu_id}} memory",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Clock Speeds",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "watt"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 16 },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_average_package_power)",
+          "legendFormat": "GPU {{gpu_id}} instantaneous",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (avg_over_time(gpu_average_package_power[5m]))",
+          "legendFormat": "GPU {{gpu_id}} average",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Power Consumption",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 },
+      "id": 103,
+      "title": "Thermals",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": {
+              "mode": "line",
+              "steps": [
+                { "color": "transparent", "value": null },
+                { "color": "red", "value": 90 }
+              ]
+            }
+          },
+          "mappings": [],
+          "unit": "celsius"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 25 },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": ["mean", "max", "lastNotNull"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_edge_temperature)",
+          "legendFormat": "GPU {{gpu_id}} core",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_junction_temperature)",
+          "legendFormat": "GPU {{gpu_id}} junction",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "max by (gpu_id) (gpu_memory_temperature)",
+          "legendFormat": "GPU {{gpu_id}} memory",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Temperature History",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "gradientMode": "none",
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": { "type": "linear" },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" },
+            "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 25 },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": ["lastNotNull", "min"],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.5.1",
+      "targets": [
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "editorMode": "code",
+          "expr": "100 * max by (gpu_id) (gpu_health)",
+          "legendFormat": "GPU {{gpu_id}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "GPU Health",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "10s",
+  "schemaVersion": 40,
+  "tags": ["gpu", "amd", "rocm"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "",
+  "title": "AMD GPU",
+  "uid": "amd-gpu",
+  "version": 1,
+  "weekStart": ""
 }

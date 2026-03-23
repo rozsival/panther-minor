@@ -1,40 +1,40 @@
 {
-	"$schema": "https://json-schema.org/draft/2020-12/schema",
-	"description": "Configuration schema for models",
-	"properties": {
-		"models": {
-			"description": "List of models",
-			"items": {
-				"additionalProperties": false,
-				"properties": {
-					"file": {
-						"description": "Model file name",
-						"type": "string"
-					},
-					"name": {
-						"description": "Name of the model",
-						"type": "string"
-					},
-					"repository": {
-						"description": "Repository containing the model",
-						"type": "string"
-					},
-					"thinking": {
-						"description": "Whether the model supports thinking mode",
-						"type": "boolean"
-					}
-				},
-				"required": ["name", "repository", "file", "thinking"],
-				"type": "object"
-			},
-			"type": "array"
-		},
-		"version": {
-			"description": "Configuration version",
-			"type": "string"
-		}
-	},
-	"required": ["version", "models"],
-	"title": "Models Configuration",
-	"type": "object"
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Configuration schema for models",
+  "properties": {
+    "models": {
+      "description": "List of models",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "description": "Model file name",
+            "type": "string"
+          },
+          "name": {
+            "description": "Name of the model",
+            "type": "string"
+          },
+          "repository": {
+            "description": "Repository containing the model",
+            "type": "string"
+          },
+          "thinking": {
+            "description": "Whether the model supports thinking mode",
+            "type": "boolean"
+          }
+        },
+        "required": ["name", "repository", "file", "thinking"],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "version": {
+      "description": "Configuration version",
+      "type": "string"
+    }
+  },
+  "required": ["version", "models"],
+  "title": "Models Configuration",
+  "type": "object"
 }
