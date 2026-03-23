@@ -234,7 +234,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "max by (instance) ((node_hwmon_temp_celsius{job=\"node\", instance=~\"$instance\", chip=~\".*(k10temp|coretemp|zenpower).*\"}) or (node_thermal_zone_temp{job=\"node\", instance=~\"$instance\", type=~\"cpu_thermal|x86_pkg_temp|Tctl|Tdie\"}))",
+          "expr": "max by (instance) ((node_hwmon_temp_celsius{job=\"node\", instance=~\"$instance\", chip=~\"pci.*00:18_3.*|.*(k10temp|coretemp|zenpower).*\"}) or (node_thermal_zone_temp{job=\"node\", instance=~\"$instance\", type=~\"cpu_thermal|x86_pkg_temp|Tctl|Tdie\"}))",
           "legendFormat": "{{instance}}",
           "range": true,
           "refId": "A"
