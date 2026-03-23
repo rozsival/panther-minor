@@ -14,4 +14,4 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 # Execute the original entrypoint
-exec "$@"
+exec openfang status
