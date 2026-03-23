@@ -52,9 +52,6 @@ open https://localhost:8080
 curl -k https://localhost:8000/v1/models
 ```
 
-> [!IMPORTANT]
-> The proxy redirects plain HTTP requests on service ports to HTTPS with a `308` redirect.
-
 ## Config Files
 
 - `docker-compose.yml` - service definitions

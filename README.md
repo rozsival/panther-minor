@@ -122,8 +122,6 @@ requires manual steps:
 ./bin/cli proxy setup-cron
 ```
 
-The proxy serves the app ports over HTTPS and redirects plain HTTP requests on those ports to HTTPS automatically.
-
 ## LLaMA.cpp Cluster
 
 Runs local LLMs across both GPUs with an OpenAI-compatible API, monitoring stack
