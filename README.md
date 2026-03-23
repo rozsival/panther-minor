@@ -113,7 +113,7 @@ requires manual steps:
 > until you have added the CNAME record, otherwise the certificate generation will fail.
 
 ```bash
-./bin/cli proxy certbot --domain <domain> --challenge-record _acme-challenge[.<subdomain>]
+./bin/cli proxy certbot --domain [<subdomain>.]<domain> --challenge-record _acme-challenge[.<subdomain>]
 ```
 
 4. Setup certificates auto renewal:
