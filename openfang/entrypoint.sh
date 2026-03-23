@@ -10,4 +10,4 @@ else
 fi
 
 # Execute original entrypoint command
-exec "$@"
+openfang start

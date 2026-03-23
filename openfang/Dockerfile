@@ -10,4 +10,3 @@ RUN chmod +x entrypoint.sh
 
 EXPOSE 4200/tcp
 ENTRYPOINT ["./entrypoint.sh"]
-CMD ["openfang", "start"]
