@@ -12,6 +12,7 @@
   "scripts": {
     "check": "ultracite check",
     "fix": "ultracite fix",
+    "fix:unsafe": "ultracite fix --unsafe",
     "postinstall": "is-ci || lefthook install",
     "test": "node --test **/*.test.js"
   },
