@@ -3,5 +3,10 @@
   "extends": ["ultracite/biome/core", "ultracite/biome/vitest"],
   "formatter": {
     "lineWidth": 120
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single"
+    }
   }
 }
