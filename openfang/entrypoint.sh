@@ -15,4 +15,4 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 # Execute original entrypoint with args (parent CMD becomes our $@)
-exec "$@"
+exec openfang start
