@@ -43,14 +43,17 @@ ssh -p 2222 <user>@<server-name>
 
 ```bash
 ssh -p 2222 -L 8080:localhost:8080 <user>@<server-ip>
-open http://localhost:8080
+open https://localhost:8080
 ```
 
 ### Direct (On Host)
 
 ```bash
-curl http://localhost:8000/v1/models
+curl -k https://localhost:8000/v1/models
 ```
+
+> [!IMPORTANT]
+> The proxy redirects plain HTTP requests on service ports to HTTPS with a `308` redirect.
 
 ## Config Files
 
