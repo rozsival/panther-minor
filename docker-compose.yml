@@ -99,7 +99,11 @@ services:
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
-    image: ${OPENFANG_IMAGE}
+    build:
+      context: ./openfang
+      args:
+        - OPENFANG_IMAGE=${OPENFANG_IMAGE}
+        - OPENFANG_USER=${OPENFANG_USER}
     restart: unless-stopped
     environment:
       - OPENFANG_HOME=${OPENFANG_HOME}
@@ -108,7 +112,7 @@ services:
         required: false
     volumes:
       - openfang-data:${OPENFANG_HOME}/data
-      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml:ro
+      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml.default:ro
     expose:
       - 4200
     networks:
