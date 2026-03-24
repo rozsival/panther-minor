@@ -108,7 +108,7 @@ services:
         required: false
     volumes:
       - openfang-data:${OPENFANG_HOME}/data
-      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml.default:ro
+      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml.default
     expose:
       - 4200
     networks:

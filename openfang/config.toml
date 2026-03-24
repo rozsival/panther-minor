@@ -1,13 +1,14 @@
-# OpenFang Agent OS configuration
-# See https://github.com/RightNow-AI/openfang for documentation
+# https://www.openfang.sh/docs/configuration
 api_listen = "0.0.0.0:4200"
 network_enabled = true
 
 [default_model]
-provider = "ollama"
 api_key_env = ""
-base_url = "http://llama-cpp:8000/v1"
 model = "panther-minor"
+provider = "panther-minor"
 
 [memory]
 decay_rate = 0.05
+
+[provider_urls]
+panther-minor = "http://llama-cpp:8000/v1"
