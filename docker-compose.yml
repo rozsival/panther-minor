@@ -212,7 +212,7 @@ services:
 
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
-    image: nginx:1.29.6-trixie
+    image: nginx:1.29.7-trixie
     restart: unless-stopped
     ports:
       - '3000:3000'
