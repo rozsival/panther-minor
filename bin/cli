@@ -869,6 +869,7 @@ cli_cluster_usage() {
   # :command.usage_commands
   printf "%s\n" "Commands:"
   printf "  %s   Start the cluster\n" "start  "
+  printf "  %s   Show the status of cluster containers\n" "status "
   printf "  %s   Stop the cluster\n" "stop   "
   printf "  %s   Remove cluster containers, volumes, images, and orphans\n" "cleanup"
   printf "  %s   Restart the cluster\n" "restart"
@@ -895,6 +896,28 @@ cli_cluster_start_usage() {
   printf "%s\n" "Usage:"
   printf "  cli cluster start\n"
   printf "  cli cluster start --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_cluster_status_usage() {
+  printf "cli cluster status - Show the status of cluster containers\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli cluster status\n"
+  printf "  cli cluster status --help | -h\n"
   echo
 
   # :command.long_usage
@@ -2667,6 +2690,21 @@ cli_cluster_start_command() {
     panther_log_info 'Starting cluster...'
     panther_compose up -d
     panther_log_success 'Cluster started.'
+  }
+
+  panther_cluster_start
+
+}
+
+# :command.function
+cli_cluster_status_command() {
+
+  # src/cluster_status_command.sh
+  panther_cluster_status() {
+    cluster_status=$(panther_compose ps --format json)
+    formatted_status=$(echo "$cluster_status" | jq -r '. | "\(.Name)\t\(.State)\t\(.Status)"' | column -t -s $'\t')
+    panther_log_info 'Cluster status:'
+    echo "$formatted_status"
   }
 
   panther_cluster_start
@@ -4792,6 +4830,13 @@ cli_cluster_parse_requirements() {
       shift $#
       ;;
 
+    status)
+      action="status"
+      shift
+      cli_cluster_status_parse_requirements "$@"
+      shift $#
+      ;;
+
     stop)
       action="stop"
       shift
@@ -4879,6 +4924,53 @@ cli_cluster_start_parse_requirements() {
 
   # :command.command_filter
   action="cluster start"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+cli_cluster_status_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_cluster_status_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="cluster status"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -6082,6 +6174,7 @@ run() {
     "proxy setup-cron") cli_proxy_setup_cron_command ;;
     "cluster") cli_cluster_command ;;
     "cluster start") cli_cluster_start_command ;;
+    "cluster status") cli_cluster_status_command ;;
     "cluster stop") cli_cluster_stop_command ;;
     "cluster cleanup") cli_cluster_cleanup_command ;;
     "cluster restart") cli_cluster_restart_command ;;

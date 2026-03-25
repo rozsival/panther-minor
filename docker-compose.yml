@@ -66,7 +66,12 @@ services:
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:9101/healthz' ]
+      test: [
+        'CMD',
+        'node',
+        '-e',
+        "fetch('http://localhost:9101/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+      ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -175,7 +180,7 @@ services:
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:9090/-/healthy' ]
+      test: [ 'CMD-SHELL', 'wget -q -O- http://localhost:9090/-/healthy >/dev/null || exit 1' ]
       interval: 30s
       timeout: 10s
       retries: 5

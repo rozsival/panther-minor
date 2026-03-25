@@ -211,6 +211,8 @@ commands:
     commands:
       - name: start
         help: Start the cluster
+      - name: status
+        help: Show the status of cluster containers
       - name: stop
         help: Stop the cluster
         flags:
