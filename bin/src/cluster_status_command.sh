@@ -5,4 +5,4 @@ panther_cluster_status() {
   echo "$formatted_status"
 }
 
-panther_cluster_start
+panther_cluster_status
