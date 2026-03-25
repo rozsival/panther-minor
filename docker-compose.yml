@@ -50,7 +50,7 @@ services:
 
   # -- llama.cpp metrics exporter ---------------------------------------------
   llama-metrics-exporter:
-    image: node:24-bookworm-slim
+    image: node:24-trixie-slim
     restart: unless-stopped
     command: [ 'node', '/app/main.js' ]
     environment:
@@ -212,7 +212,7 @@ services:
 
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
-    image: nginx:1.29.6-alpine
+    image: nginx:1.29.6-trixie
     restart: unless-stopped
     ports:
       - '3000:3000'
