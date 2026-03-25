@@ -6,7 +6,10 @@ commit-msg:
 pre-commit:
   parallel: true
   jobs:
-    - run: cd bin && bashly generate && bashly add completions --force
+    - run: pnpm run build:cli
+      glob:
+        - "bin/bashly.yml"
+        - "bin/src/**/*.sh"
       stage_fixed: true
 
     - run: pnpm ultracite fix

@@ -2366,6 +2366,8 @@ cli_setup_shell_command() {
     usermod -aG render "$PANTHER_ALLOWED_USER"
     loginctl enable-linger "$PANTHER_ALLOWED_USER"
 
+    panther_register_bashrc_entry 'Panther Minor CLI' "source '$PANTHER_REPO_ROOT/.bashrc'"
+    # shellcheck disable=SC2016 # We want to register the literal command, not its output
     panther_register_bashrc_entry 'Starship' 'eval "$(starship init bash)"'
     panther_log_success "Shell set up with Starship prompt for ${PANTHER_ALLOWED_USER}."
   }
