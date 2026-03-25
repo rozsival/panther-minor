@@ -192,7 +192,7 @@ services:
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
-    image: grafana/grafana-oss:12.4.1
+    image: grafana/grafana-oss:12.4.2
     restart: unless-stopped
     environment:
       GF_AUTH_ANONYMOUS_ENABLED: true
