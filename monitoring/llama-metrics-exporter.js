@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { createServer } from 'node:http';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
