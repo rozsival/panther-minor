@@ -14,6 +14,8 @@ panther_cluster_restart() {
     panther_log_info "Restarting selected services: ${service_args}..."
   fi
 
+  compose_up_args+=(--detach)
+
   if [[ -n ${args[--remove-orphans]+x} ]]; then
     compose_up_args+=(--remove-orphans)
   fi
