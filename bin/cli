@@ -1624,7 +1624,7 @@ validate_cluster_service() {
   local -a compose_args=(ps --format json)
 
   cluster_services="$(panther_compose "${compose_args[@]}")"
-  service_names="$(echo "$cluster_services" | jq -r '.[].Service')"
+  service_names="$(echo "$cluster_services" | jq -r '. | "\(.Service)"')"
 
   if ! grep -q "$1" <<<"$service_names"; then
     echo "Service '$1' not found in cluster"
