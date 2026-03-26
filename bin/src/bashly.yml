@@ -284,6 +284,14 @@ commands:
       - name: restart
         help: Restart the cluster
         flags:
+          - long: --service
+            short: -s
+            arg: service
+            repeatable: true
+            help: Restart only specific service(s); repeat the flag to pass multiple services
+            validate: cluster_service
+            completions:
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
           - long: --remove-orphans
             short: -r
             help: Remove containers for services not defined in the current configuration

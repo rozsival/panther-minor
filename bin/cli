@@ -1015,6 +1015,11 @@ cli_cluster_restart_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--service, -s SERVICE (repeatable)"
+    printf "    Restart only specific service(s); repeat the flag to pass multiple services\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--remove-orphans, -r"
     printf "    Remove containers for services not defined in the current configuration\n"
     echo
@@ -1374,6 +1379,10 @@ send_completions() {
   echo $'  COMPREPLY=()'
   echo $''
   echo $'  case "$compline" in'
+  echo $'    \'cluster restart\'*\'--service\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'cluster build\'*\'--service\')'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
@@ -1386,11 +1395,7 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'proxy setup-cron\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h -l -s -u")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster build\'*\'-s\')'
+  echo $'    \'cluster restart\'*\'-s\')'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1398,11 +1403,31 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
   echo $''
+  echo $'    \'cluster build\'*\'-s\')'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'proxy setup-cron\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h -l -s -u")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models download\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup tailscale\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'proxy renew-ssl\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'models download\'*)'
+  echo $'    \'cluster restart\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --service --volumes -h -r -s -v")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'cluster cleanup\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1410,24 +1435,12 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster cleanup\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster restart\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --volumes -h -r -v")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup tailscale\'*)'
+  echo $'    \'cluster status\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup fail2ban\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h -p")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster status\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup packages\'*)'
@@ -1438,28 +1451,28 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster build\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache --service -h -n -s")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'models remove\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'proxy certbot\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--challenge-record --domain --force --help -c -d -f -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster start\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --service -h -r -s")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'proxy certbot\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--challenge-record --domain --force --help -c -d -f -h")" -- "$cur")'
+  echo $'    \'models remove\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup amdgpu\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'cluster build\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache --service -h -n -s")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster stop\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --service --volumes -h -s -v")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup amdgpu\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup docker\'*)'
@@ -2587,22 +2600,49 @@ cli_cluster_restart_command() {
   # src/cluster_restart_command.sh
   panther_cluster_restart() {
     local -a compose_down_args=(down)
-    local -a compose_up_args=(up -d)
+    local -a compose_up_args=(up)
 
-    if [[ -n ${args[--volumes]+x} ]]; then
-      compose_down_args+=(-v)
-      panther_log_info 'Restarting cluster and removing volumes...'
-    else
-      panther_log_info 'Restarting cluster...'
+    local service_args=''
+
+    if [[ -n ${args[--service]+x} ]]; then
+      service_args="${args[--service]}"
+      # Bashly stores repeatable flags as a space-delimited string.
+      # shellcheck disable=SC2206
+      local -a services=(${service_args})
+      compose_down_args+=("${services[@]}")
+      compose_up_args+=("${services[@]}")
+      panther_log_info "Restarting selected services: ${service_args}..."
     fi
 
     if [[ -n ${args[--remove-orphans]+x} ]]; then
       compose_up_args+=(--remove-orphans)
     fi
 
-    panther_compose "${compose_down_args[@]}"
-    panther_compose "${compose_up_args[@]}"
-    panther_log_success 'Cluster restarted.'
+    if [[ -n ${args[--volumes]+x} ]]; then
+      compose_down_args+=(-v)
+    fi
+
+    if [[ -n ${args[--volumes]+x} && -n ${args[--service]+x} ]]; then
+      panther_log_info "Restarting selected services and removing volumes: ${service_args}..."
+      panther_compose "${compose_down_args[@]}"
+      panther_compose "${compose_up_args[@]}"
+      panther_log_success "Selected services restarted and volumes removed: ${service_args}."
+    elif [[ -n ${args[--service]+x} ]]; then
+      panther_log_info "Restarting selected services: ${service_args}..."
+      panther_compose "${compose_down_args[@]}"
+      panther_compose "${compose_up_args[@]}"
+      panther_log_success "Selected services restarted: ${service_args}."
+    elif [[ -n ${args[--volumes]+x} ]]; then
+      panther_log_info 'Restarting cluster and removing volumes...'
+      panther_compose "${compose_down_args[@]}"
+      panther_compose "${compose_up_args[@]}"
+      panther_log_success 'Cluster restarted and volumes removed.'
+    else
+      panther_log_info 'Restarting cluster...'
+      panther_compose "${compose_down_args[@]}"
+      panther_compose "${compose_up_args[@]}"
+      panther_log_success 'Cluster restarted.'
+    fi
   }
 
   panther_cluster_restart
@@ -4952,6 +4992,25 @@ cli_cluster_restart_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
+      --service | -s)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          escaped="$(printf '%q' "$2")"
+          if [[ -z ${args['--service']+x} ]]; then
+            args['--service']="$escaped"
+          else
+            args['--service']="${args['--service']} $escaped"
+          fi
+          shift
+          shift
+        else
+          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --remove-orphans | -r)
 
         # :flag.case_no_arg
@@ -4982,6 +5041,20 @@ cli_cluster_restart_parse_requirements() {
 
     esac
   done
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--service'] ]]; then
+    values=''
+    eval "values=(${args['--service']})"
+    for value in "${values[@]}"; do
+      validation_output="$(validate_cluster_service "$value")"
+      if [[ -n "$validation_output" ]]; then
+        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+        exit 1
+      fi
+    done
+  fi
 
 }
 
