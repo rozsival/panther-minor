@@ -11,7 +11,6 @@ panther_cluster_restart() {
     local -a services=(${service_args})
     compose_down_args+=("${services[@]}")
     compose_up_args+=("${services[@]}")
-    panther_log_info "Restarting selected services: ${service_args}..."
   fi
 
   compose_up_args+=(--detach)
