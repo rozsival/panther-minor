@@ -1060,42 +1060,8 @@ cli_logs_usage() {
   printf "cli logs - Stream logs by default or show a one-time tail for cluster services\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli logs COMMAND\n"
-  printf "  cli logs [COMMAND] --help | -h\n"
-  echo
-  # :command.usage_commands
-  printf "%s\n" "Commands:"
-  printf "  %s   Stream llama.cpp logs or show a one-time tail snapshot\n" "llama-cpp             "
-  printf "  %s   Stream llama-metrics-exporter logs or show a one-time tail snapshot\n" "llama-metrics-exporter"
-  printf "  %s   Stream Open WebUI logs or show a one-time tail snapshot\n" "open-webui            "
-  printf "  %s   Stream OpenFang logs or show a one-time tail snapshot\n" "openfang              "
-  printf "  %s   Stream Prometheus logs or show a one-time tail snapshot\n" "prometheus            "
-  printf "  %s   Stream Grafana logs or show a one-time tail snapshot\n" "grafana               "
-  printf "  %s   Stream Node Exporter logs or show a one-time tail snapshot\n" "node-exporter         "
-  printf "  %s   Stream AMD GPU Exporter logs or show a one-time tail snapshot\n" "amd-gpu-exporter      "
-  printf "  %s   Stream proxy logs or show a one-time tail snapshot\n" "proxy                 "
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_llama_cpp_usage() {
-  printf "cli logs llama-cpp - Stream llama.cpp logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs llama-cpp [OPTIONS]\n"
-  printf "  cli logs llama-cpp --help | -h\n"
+  printf "  cli logs SERVICE [OPTIONS]\n"
+  printf "  cli logs --help | -h\n"
   echo
 
   # :command.long_usage
@@ -1114,228 +1080,12 @@ cli_logs_llama_cpp_usage() {
     printf "    Show this help\n"
     echo
 
-  fi
-}
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
 
-# :command.usage
-cli_logs_llama_metrics_exporter_usage() {
-  printf "cli logs llama-metrics-exporter - Stream llama-metrics-exporter logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs llama-metrics-exporter [OPTIONS]\n"
-  printf "  cli logs llama-metrics-exporter --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_open_webui_usage() {
-  printf "cli logs open-webui - Stream Open WebUI logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs open-webui [OPTIONS]\n"
-  printf "  cli logs open-webui --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_openfang_usage() {
-  printf "cli logs openfang - Stream OpenFang logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs openfang [OPTIONS]\n"
-  printf "  cli logs openfang --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_prometheus_usage() {
-  printf "cli logs prometheus - Stream Prometheus logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs prometheus [OPTIONS]\n"
-  printf "  cli logs prometheus --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_grafana_usage() {
-  printf "cli logs grafana - Stream Grafana logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs grafana [OPTIONS]\n"
-  printf "  cli logs grafana --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_node_exporter_usage() {
-  printf "cli logs node-exporter - Stream Node Exporter logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs node-exporter [OPTIONS]\n"
-  printf "  cli logs node-exporter --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_amd_gpu_exporter_usage() {
-  printf "cli logs amd-gpu-exporter - Stream AMD GPU Exporter logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs amd-gpu-exporter [OPTIONS]\n"
-  printf "  cli logs amd-gpu-exporter --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-# :command.usage
-cli_logs_proxy_usage() {
-  printf "cli logs proxy - Stream proxy logs or show a one-time tail snapshot\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  cli logs proxy [OPTIONS]\n"
-  printf "  cli logs proxy --help | -h\n"
-  echo
-
-  # :command.long_usage
-  if [[ -n "$long_usage" ]]; then
-    # :command.usage_options
-    printf "%s\n" "Options:"
-
-    # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 100 lines when used without a\n    value\n"
-    echo
-
-    # :command.usage_fixed_flags
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
+    # :argument.usage
+    printf "  %s\n" "SERVICE"
+    printf "    Service to show logs for\n"
     echo
 
   fi
@@ -1614,18 +1364,6 @@ send_completions() {
   echo $'  COMPREPLY=()'
   echo $''
   echo $'  case "$compline" in'
-  echo $'    \'logs llama-metrics-exporter\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'logs amd-gpu-exporter\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'logs node-exporter\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'proxy setup-cron\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h")" -- "$cur")'
   echo $'      ;;'
@@ -1634,19 +1372,11 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster cleanup\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'cluster restart\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --volumes -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs open-webui\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup tailscale\'*)'
+  echo $'    \'cluster cleanup\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1654,32 +1384,28 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs prometheus\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup fail2ban\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster status\'*)'
+  echo $'    \'setup tailscale\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'logs llama-cpp\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup packages\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'proxy certbot\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--challenge-record --domain --force --help -h")" -- "$cur")'
+  echo $'    \'cluster status\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup fail2ban\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models remove\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'proxy certbot\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--challenge-record --domain --force --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster start\'*)'
@@ -1690,14 +1416,6 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache --service -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs openfang\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster stop\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --volumes -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'setup amdgpu\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
@@ -1706,15 +1424,15 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs grafana\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'completions\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'cluster stop\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --volumes -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models list\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'completions\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1722,24 +1440,16 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs proxy\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup init\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -h")" -- "$cur")'
+  echo $'    \'setup grub\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup brew\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup grub\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup all\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -h")" -- "$cur")'
+  echo $'    \'setup init\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup env\'*)'
@@ -1756,6 +1466,10 @@ send_completions() {
   echo $''
   echo $'    \'setup ssh\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --ssh-port -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup all\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster\'*)'
@@ -1779,7 +1493,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'logs\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h amd-gpu-exporter grafana llama-cpp llama-metrics-exporter node-exporter open-webui openfang prometheus proxy")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'
@@ -1903,6 +1617,23 @@ panther_print_setup_summary() {
 
   echo ''
   panther_log_info "Reconnection: ssh -p ${PANTHER_SSH_PORT} ${PANTHER_ALLOWED_USER}@<server-ip>"
+}
+
+# src/lib/validations/validate_cluster_service.sh
+validate_cluster_service() {
+  local -a compose_args=(ps --format json)
+
+  cluster_services="$(panther_compose "${compose_args[@]}")"
+  service_names="$(echo "'$cluster_services'" | jq -r '.[].Service')"
+
+  if ! grep -q "$1" <<<"$service_names"; then
+    echo "Service '$1' not found in cluster"
+    echo "Available services:"
+    echo "$service_names" | awk '{print $1}' | tail -n +2
+    return 1
+  fi
+
+  return 0
 }
 
 # src/lib/validations/validate_dir_exists.sh
@@ -2841,110 +2572,14 @@ cli_cluster_build_command() {
 }
 
 # :command.function
-cli_logs_llama_cpp_command() {
+cli_logs_command() {
 
-  # src/logs_llama_cpp_command.sh
-  panther_logs_llama_cpp() {
-    panther_logs_service 'llama-cpp'
-  }
-
-  panther_logs_llama_cpp
-
-}
-
-# :command.function
-cli_logs_llama_metrics_exporter_command() {
-
-  # src/logs_llama_metrics_exporter_command.sh
-  panther_logs_llama_metrics_exporter() {
-    panther_logs_service 'llama-metrics-exporter'
-  }
-
-  panther_logs_llama_metrics_exporter
-
-}
-
-# :command.function
-cli_logs_open_webui_command() {
-
-  # src/logs_open_webui_command.sh
-  panther_logs_open_webui() {
-    panther_logs_service 'open-webui'
-  }
-
-  panther_logs_open_webui
-
-}
-
-# :command.function
-cli_logs_openfang_command() {
-
-  # src/logs_openfang_command.sh
-  panther_logs_open_webui() {
-    panther_logs_service 'openfang'
-  }
-
-  panther_logs_open_webui
-
-}
-
-# :command.function
-cli_logs_prometheus_command() {
-
-  # src/logs_prometheus_command.sh
-  panther_logs_prometheus() {
-    panther_logs_service 'prometheus'
-  }
-
-  panther_logs_prometheus
-
-}
-
-# :command.function
-cli_logs_grafana_command() {
-
-  # src/logs_grafana_command.sh
-  panther_logs_grafana() {
-    panther_logs_service 'grafana'
-  }
-
-  panther_logs_grafana
-
-}
-
-# :command.function
-cli_logs_node_exporter_command() {
-
-  # src/logs_node_exporter_command.sh
-  panther_logs_node_exporter() {
-    panther_logs_service 'node-exporter'
-  }
-
-  panther_logs_node_exporter
-
-}
-
-# :command.function
-cli_logs_amd_gpu_exporter_command() {
-
-  # src/logs_amd_gpu_exporter_command.sh
-  panther_logs_amd_gpu_exporter() {
-    panther_logs_service 'amd-gpu-exporter'
-  }
-
-  panther_logs_amd_gpu_exporter
-
-}
-
-# :command.function
-cli_logs_proxy_command() {
-
-  # src/logs_proxy_command.sh
-  panther_logs_proxy() {
-    panther_logs_service 'proxy'
-  }
-
-  panther_logs_proxy
+  # src/logs_command.sh
+  echo "# This file is located at 'src/logs_command.sh'."
+  echo "# It contains the implementation for the 'cli logs' command."
+  echo "# The code you write here will be wrapped by a function named 'cli_logs_command()'."
+  echo "# Feel free to edit this file; your changes will persist when regenerating."
+  inspect_args
 
 }
 
@@ -5302,133 +4937,7 @@ cli_logs_parse_requirements() {
   done
 
   # :command.command_filter
-  action=${1:-}
-
-  case $action in
-    -*) ;;
-
-    llama-cpp)
-      action="llama-cpp"
-      shift
-      cli_logs_llama_cpp_parse_requirements "$@"
-      shift $#
-      ;;
-
-    llama-metrics-exporter)
-      action="llama-metrics-exporter"
-      shift
-      cli_logs_llama_metrics_exporter_parse_requirements "$@"
-      shift $#
-      ;;
-
-    open-webui)
-      action="open-webui"
-      shift
-      cli_logs_open_webui_parse_requirements "$@"
-      shift $#
-      ;;
-
-    openfang)
-      action="openfang"
-      shift
-      cli_logs_openfang_parse_requirements "$@"
-      shift $#
-      ;;
-
-    prometheus)
-      action="prometheus"
-      shift
-      cli_logs_prometheus_parse_requirements "$@"
-      shift $#
-      ;;
-
-    grafana)
-      action="grafana"
-      shift
-      cli_logs_grafana_parse_requirements "$@"
-      shift $#
-      ;;
-
-    node-exporter)
-      action="node-exporter"
-      shift
-      cli_logs_node_exporter_parse_requirements "$@"
-      shift $#
-      ;;
-
-    amd-gpu-exporter)
-      action="amd-gpu-exporter"
-      shift
-      cli_logs_amd_gpu_exporter_parse_requirements "$@"
-      shift $#
-      ;;
-
-    proxy)
-      action="proxy"
-      shift
-      cli_logs_proxy_parse_requirements "$@"
-      shift $#
-      ;;
-
-    # :command.command_fallback
-    "")
-      cli_logs_usage >&2
-      exit 1
-      ;;
-
-    *)
-      printf "invalid command: %s\n" "$action" >&2
-      exit 1
-      ;;
-
-  esac
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-# :command.parse_requirements
-cli_logs_llama_cpp_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_llama_cpp_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs llama-cpp"
+  action="logs"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -5456,575 +4965,37 @@ cli_logs_llama_cpp_parse_requirements() {
       *)
         # :command.parse_requirements_case
         # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :argument.case
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
     esac
   done
 
+  # :command.required_args_filter
+  if [[ -z ${args['service']+x} ]]; then
+    printf "missing required argument: SERVICE\nusage: cli logs SERVICE [OPTIONS]\n" >&2
+
+    exit 1
+  fi
+
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
+    validation_output="$(validate_cluster_service "${args['service']:-}")"
+    if [[ -n "$validation_output" ]]; then
+      printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
       exit 1
     fi
   fi
 
-}
-
-# :command.parse_requirements
-cli_logs_llama_metrics_exporter_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_llama_metrics_exporter_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs llama-metrics-exporter"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_open_webui_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_open_webui_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs open-webui"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_openfang_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_openfang_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs openfang"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_prometheus_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_prometheus_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs prometheus"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_grafana_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_grafana_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs grafana"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_node_exporter_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_node_exporter_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs node-exporter"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_amd_gpu_exporter_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_amd_gpu_exporter_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs amd-gpu-exporter"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
-  # :flag.validations
-  if [[ -v args['--tail'] ]]; then
-    validation_output="$(validate_integer "${args['--tail']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-# :command.parse_requirements
-cli_logs_proxy_parse_requirements() {
-  local key
-
-  # :command.fixed_flags_filter
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        cli_logs_proxy_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  # :command.command_filter
-  action="logs proxy"
-
-  # :command.parse_requirements_while
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      # :flag.case
-      --tail)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--tail']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
-          exit 1
-        fi
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-        # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  # :command.validations
   # :flag.validations
   if [[ -v args['--tail'] ]]; then
     validation_output="$(validate_integer "${args['--tail']:-}")"
@@ -6145,7 +5116,7 @@ after_hook() {
 
 # :command.initialize
 initialize() {
-  declare -g version="0.0.0"
+  declare -g version=""
   set -e
 
   # src/initialize.sh
@@ -6244,15 +5215,6 @@ run() {
     "cluster restart") cli_cluster_restart_command ;;
     "cluster build") cli_cluster_build_command ;;
     "logs") cli_logs_command ;;
-    "logs llama-cpp") cli_logs_llama_cpp_command ;;
-    "logs llama-metrics-exporter") cli_logs_llama_metrics_exporter_command ;;
-    "logs open-webui") cli_logs_open_webui_command ;;
-    "logs openfang") cli_logs_openfang_command ;;
-    "logs prometheus") cli_logs_prometheus_command ;;
-    "logs grafana") cli_logs_grafana_command ;;
-    "logs node-exporter") cli_logs_node_exporter_command ;;
-    "logs amd-gpu-exporter") cli_logs_amd_gpu_exporter_command ;;
-    "logs proxy") cli_logs_proxy_command ;;
     "update") cli_update_command ;;
     "completions") cli_completions_command ;;
   esac

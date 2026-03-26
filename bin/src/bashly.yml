@@ -1,6 +1,5 @@
 name: cli
 help: '🐆 Panther Minor CLI'
-version: 0.0.0
 
 commands:
   - name: setup
@@ -242,70 +241,16 @@ commands:
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
-    commands:
-      - name: llama-cpp
-        help: Stream llama.cpp logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: llama-metrics-exporter
-        help: Stream llama-metrics-exporter logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: open-webui
-        help: Stream Open WebUI logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: openfang
-        help: Stream OpenFang logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: prometheus
-        help: Stream Prometheus logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: grafana
-        help: Stream Grafana logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: node-exporter
-        help: Stream Node Exporter logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: amd-gpu-exporter
-        help: Stream AMD GPU Exporter logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
-      - name: proxy
-        help: Stream proxy logs or show a one-time tail snapshot
-        flags:
-          - long: --tail
-            arg: lines
-            help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
-            validate: integer
+    args:
+      - name: service
+        help: Service to show logs for
+        required: true
+        validate: cluster_service
+    flags:
+      - long: --tail
+        arg: lines
+        help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
+        validate: integer
 
   - name: update
     help: Update the repository from upstream
