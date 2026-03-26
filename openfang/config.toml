@@ -1,6 +1,5 @@
 # https://www.openfang.sh/docs/configuration
 api_listen = "0.0.0.0:4200"
-network_enabled = true
 
 [default_model]
 api_key_env = ""
