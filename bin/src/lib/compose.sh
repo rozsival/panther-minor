@@ -4,6 +4,9 @@ panther_compose() {
     docker compose "$@"
   )
 }
+panther_services() {
+  panther_compose config | yq '.services | keys[]'
+}
 panther_logs_service() {
   local service="$1"
   local -a compose_args=(logs)

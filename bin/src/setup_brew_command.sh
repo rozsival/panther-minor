@@ -29,6 +29,10 @@ panther_setup_brew() {
     panther_log_info 'Installing Hugging Face CLI via Homebrew...'
     sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install huggingface-cli"
     panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
+
+    panther_log_info 'Installing yq via Homebrew...'
+    sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install yq"
+    panther_log_success "yq installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
   else
     panther_log_error 'Homebrew installation failed.'
   fi

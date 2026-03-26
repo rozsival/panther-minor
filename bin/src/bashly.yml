@@ -211,6 +211,11 @@ commands:
       - name: start
         help: Start the cluster
         flags:
+          - long: --service
+            arg: service
+            repeatable: true
+            help: Start only specific service(s); repeat the flag to pass multiple services
+            validate: cluster_service
           - long: --remove-orphans
             help: Remove containers for services not defined in the current configuration
       - name: status
@@ -218,6 +223,11 @@ commands:
       - name: stop
         help: Stop the cluster
         flags:
+          - long: --service
+            arg: service
+            repeatable: true
+            help: Stop only specific service(s); repeat the flag to pass multiple services
+            validate: cluster_service
           - long: --volumes
             help: Remove named volumes when stopping the cluster
       - name: cleanup
@@ -241,12 +251,11 @@ commands:
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
-    args:
-      - name: service
-        help: Service to show logs for
-        required: true
-        validate: cluster_service
     flags:
+      - long: --service
+        arg: service
+        help: Service to show logs for (defaults to all services)
+        validate: cluster_service
       - long: --tail
         arg: lines
         help: Show a one-time tail snapshot for the number of lines specified instead of streaming logs

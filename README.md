@@ -55,7 +55,7 @@ The command will automatically configure:
 
 - **Init** — sets up server workspace with full disk capacity and timezone
 - **Essential Packages** — `build-essential`, `jq`, `nvtop`, `htop`, etc. with auto updates
-- **Homebrew** — installs Homebrew,`llmfit` and `huggingface-cli` for current user
+- **Homebrew** — installs Homebrew,`llmfit`, `huggingface-cli` and `yq` for current user
 - **Docker** — installs Docker Engine and Docker Compose
 - **Tailscale** — installs the Tailscale agent
 - **SSH** — hardens `/etc/ssh/sshd_config` (port 2222, key-only auth, restricted users)

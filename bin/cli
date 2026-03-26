@@ -905,6 +905,11 @@ cli_cluster_start_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "    Start only specific service(s); repeat the flag to pass multiple services\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--remove-orphans"
     printf "    Remove containers for services not defined in the current configuration\n"
     echo
@@ -954,6 +959,11 @@ cli_cluster_stop_usage() {
     printf "%s\n" "Options:"
 
     # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "    Stop only specific service(s); repeat the flag to pass multiple services\n"
+    echo
+
     # :flag.usage
     printf "  %s\n" "--volumes"
     printf "    Remove named volumes when stopping the cluster\n"
@@ -1060,7 +1070,7 @@ cli_logs_usage() {
   printf "cli logs - Stream logs by default or show a one-time tail for cluster services\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli logs SERVICE [OPTIONS]\n"
+  printf "  cli logs [OPTIONS]\n"
   printf "  cli logs --help | -h\n"
   echo
 
@@ -1071,6 +1081,11 @@ cli_logs_usage() {
 
     # :command.usage_flags
     # :flag.usage
+    printf "  %s\n" "--service SERVICE"
+    printf "    Service to show logs for (defaults to all services)\n"
+    echo
+
+    # :flag.usage
     printf "  %s\n" "--tail LINES"
     printf "    Show a one-time tail snapshot for the number of lines specified instead of\n    streaming logs\n"
     echo
@@ -1078,14 +1093,6 @@ cli_logs_usage() {
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
-    echo
-
-    # :command.usage_args
-    printf "%s\n" "Arguments:"
-
-    # :argument.usage
-    printf "  %s\n" "SERVICE"
-    printf "    Service to show logs for\n"
     echo
 
   fi
@@ -1207,6 +1214,9 @@ panther_compose() {
     cd "$PANTHER_REPO_ROOT" || exit 1
     docker compose "$@"
   )
+}
+panther_services() {
+  panther_compose config | yq '.services | keys[]'
 }
 panther_logs_service() {
   local service="$1"
@@ -1409,7 +1419,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'cluster start\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --service -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster build\'*)'
@@ -1425,7 +1435,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'cluster stop\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --volumes -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --service --volumes -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models list\'*)'
@@ -1493,7 +1503,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'logs\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --tail -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --service --tail -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'
@@ -1621,12 +1631,7 @@ panther_print_setup_summary() {
 
 # src/lib/validations/validate_cluster_service.sh
 validate_cluster_service() {
-  local -a compose_args=(ps --format json)
-
-  cluster_services="$(panther_compose "${compose_args[@]}")"
-  service_names="$(echo "$cluster_services" | jq -r '. | "\(.Service)"')"
-
-  if ! echo "$service_names" | grep -q "^$1$"; then
+  if ! panther_services | grep -q "^$1$"; then
     printf "service '%s' not found in cluster\n\n" "$1"
     printf "available services:\n\n%s" "$service_names"
     return
@@ -1844,6 +1849,10 @@ cli_setup_brew_command() {
       panther_log_info 'Installing Hugging Face CLI via Homebrew...'
       sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install huggingface-cli"
       panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
+
+      panther_log_info 'Installing yq via Homebrew...'
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install yq"
+      panther_log_success "yq installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
     else
       panther_log_error 'Homebrew installation failed.'
     fi
@@ -2436,15 +2445,33 @@ cli_cluster_start_command() {
 
   # src/cluster_start_command.sh
   panther_cluster_start() {
-    local -a compose_args=(up -d)
+    local -a compose_args=(up)
+    local service_args=''
+
+    if [[ -n ${args[--service]+x} ]]; then
+      service_args="${args[--service]}"
+      # Bashly stores repeatable flags as a space-delimited string.
+      # shellcheck disable=SC2206
+      local -a services=(${service_args})
+      compose_args+=("${services[@]}")
+    fi
+
+    compose_args+=(--detach)
 
     if [[ -n ${args[--remove-orphans]+x} ]]; then
       compose_args+=(--remove-orphans)
     fi
 
-    panther_log_info 'Starting cluster...'
-    panther_compose "${compose_args[@]}"
-    panther_log_success 'Cluster started.'
+    if [[ -n ${args[--service]+x} ]]; then
+      panther_log_info "Starting selected services: ${service_args}..."
+      panther_compose "${compose_args[@]}"
+      panther_log_success "Selected services started: ${service_args}."
+    else
+      panther_log_info 'Starting all cluster services...'
+      panther_compose "${compose_args[@]}"
+      panther_log_success 'Cluster started.'
+    fi
+
   }
 
   panther_cluster_start
@@ -2472,16 +2499,33 @@ cli_cluster_stop_command() {
   # src/cluster_stop_command.sh
   panther_cluster_stop() {
     local -a compose_args=(down)
+    local service_args=''
 
-    if [[ -n ${args[--volumes]+x} ]]; then
-      compose_args+=(-v)
-      panther_log_info 'Stopping cluster and removing volumes...'
-    else
-      panther_log_info 'Stopping cluster...'
+    if [[ -n ${args[--service]+x} ]]; then
+      service_args="${args[--service]}"
+      # Bashly stores repeatable flags as a space-delimited string.
+      # shellcheck disable=SC2206
+      local -a services=(${service_args})
+      compose_args+=("${services[@]}")
     fi
 
-    panther_compose "${compose_args[@]}"
-    panther_log_success 'Cluster stopped.'
+    if [[ -n ${args[--volumes]+x} && -n ${args[--service]+x} ]]; then
+      panther_log_info "Stopping selected services and removing volumes: ${service_args}..."
+      panther_compose "${compose_args[@]}"
+      panther_log_success "Selected services stopped and volumes removed: ${service_args}."
+    elif [[ -n ${args[--service]+x} ]]; then
+      panther_log_info "Stopping selected services: ${service_args}..."
+      panther_compose "${compose_args[@]}"
+      panther_log_success "Selected services stopped: ${service_args}."
+    elif [[ -n ${args[--volumes]+x} ]]; then
+      panther_log_info 'Stopping cluster and removing volumes...'
+      panther_compose "${compose_args[@]}"
+      panther_log_success 'Cluster stopped and volumes removed.'
+    else
+      panther_log_info 'Stopping cluster...'
+      panther_compose "${compose_args[@]}"
+      panther_log_success 'Cluster stopped.'
+    fi
   }
 
   panther_cluster_stop
@@ -4605,6 +4649,25 @@ cli_cluster_start_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
+      --service)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          escaped="$(printf '%q' "$2")"
+          if [[ -z ${args['--service']+x} ]]; then
+            args['--service']="$escaped"
+          else
+            args['--service']="${args['--service']} $escaped"
+          fi
+          shift
+          shift
+        else
+          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --remove-orphans)
 
         # :flag.case_no_arg
@@ -4627,6 +4690,20 @@ cli_cluster_start_parse_requirements() {
 
     esac
   done
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--service'] ]]; then
+    values=''
+    eval "values=(${args['--service']})"
+    for value in "${values[@]}"; do
+      validation_output="$(validate_cluster_service "$value")"
+      if [[ -n "$validation_output" ]]; then
+        printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+        exit 1
+      fi
+    done
+  fi
 
 }
 
@@ -4706,6 +4783,25 @@ cli_cluster_stop_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
+      --service)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          escaped="$(printf '%q' "$2")"
+          if [[ -z ${args['--service']+x} ]]; then
+            args['--service']="$escaped"
+          else
+            args['--service']="${args['--service']} $escaped"
+          fi
+          shift
+          shift
+        else
+          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --volumes)
 
         # :flag.case_no_arg
@@ -4728,6 +4824,20 @@ cli_cluster_stop_parse_requirements() {
 
     esac
   done
+
+  # :command.validations
+  # :flag.validations
+  if [[ -v args['--service'] ]]; then
+    values=''
+    eval "values=(${args['--service']})"
+    for value in "${values[@]}"; do
+      validation_output="$(validate_cluster_service "$value")"
+      if [[ -n "$validation_output" ]]; then
+        printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+        exit 1
+      fi
+    done
+  fi
 
 }
 
@@ -4942,6 +5052,20 @@ cli_logs_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
+      --service)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--service']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --tail)
 
         # :flag.case_arg
@@ -4963,33 +5087,20 @@ cli_logs_parse_requirements() {
       *)
         # :command.parse_requirements_case
         # :command.parse_requirements_case_simple
-        # :argument.case
-        if [[ -z ${args['service']+x} ]]; then
-          args['service']=$1
-          shift
-        else
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-        fi
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
 
         ;;
 
     esac
   done
 
-  # :command.required_args_filter
-  if [[ -z ${args['service']+x} ]]; then
-    printf "missing required argument: SERVICE\nusage: cli logs SERVICE [OPTIONS]\n" >&2
-
-    exit 1
-  fi
-
   # :command.validations
-  # :argument.validations
-  if [[ -v args['service'] ]]; then
-    validation_output="$(validate_cluster_service "${args['service']:-}")"
-    if [[ -n "$validation_output" ]]; then
-      printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
+  # :flag.validations
+  if [[ -v args['--service'] ]]; then
+    validation_output="$(validate_cluster_service "${args['--service']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
       exit 1
     fi
   fi
