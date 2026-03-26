@@ -1081,8 +1081,8 @@ cli_logs_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service SERVICE"
-    printf "    Service to show logs for (defaults to all services)\n"
+    printf "  %s\n" "--service SERVICE (required)"
+    printf "    Service to show logs for\n"
     echo
 
     # :flag.usage
@@ -5097,6 +5097,12 @@ cli_logs_parse_requirements() {
 
     esac
   done
+
+  # :command.required_flags_filter
+  if [[ -z ${args['--service']+x} ]]; then
+    printf "missing required flag: --service SERVICE\n" >&2
+    exit 1
+  fi
 
   # :command.validations
   # :flag.validations

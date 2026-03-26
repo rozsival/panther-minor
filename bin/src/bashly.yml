@@ -254,7 +254,8 @@ commands:
     flags:
       - long: --service
         arg: service
-        help: Service to show logs for (defaults to all services)
+        help: Service to show logs for
+        required: true
         validate: cluster_service
       - long: --tail
         arg: lines
