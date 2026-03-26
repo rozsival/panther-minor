@@ -141,6 +141,11 @@ models.
 It is strongly recommended to build and provide your own private image containing your
 custom agents and tools.
 
+> [!TIP]
+> Follow the
+> [Docker Credential Helper Setup for Ubuntu Server](https://gist.github.com/rozsival/fce64e9e0753f7a3da650af165e2c75a)
+> to enable secure authentication with private registries from the server.
+
 Default config is mount at `${OPENFANG_HOME}/config.toml.default`, your image can use this as a base and override any
 parameters as needed.
 
