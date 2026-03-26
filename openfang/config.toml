@@ -6,8 +6,5 @@ api_key_env = ""
 model = "panther-minor"
 provider = "panther-minor"
 
-[memory]
-decay_rate = 0.05
-
 [provider_urls]
 panther-minor = "http://llama-cpp:8000/v1"
