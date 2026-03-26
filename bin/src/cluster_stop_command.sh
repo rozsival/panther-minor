@@ -1,5 +1,6 @@
 panther_cluster_stop() {
   local -a compose_args=(down)
+
   if [[ -n ${args[--volumes]+x} ]]; then
     compose_args+=(-v)
     panther_log_info 'Stopping cluster and removing volumes...'

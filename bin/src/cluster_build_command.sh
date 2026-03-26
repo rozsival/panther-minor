@@ -1,6 +1,7 @@
 panther_cluster_build() {
   local -a compose_args=(build)
   local service_args=''
+
   if [[ -n ${args[--no-cache]+x} ]]; then
     compose_args+=(--no-cache)
   fi

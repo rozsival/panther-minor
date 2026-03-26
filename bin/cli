@@ -894,7 +894,7 @@ cli_cluster_start_usage() {
   printf "cli cluster start - Start the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster start\n"
+  printf "  cli cluster start [OPTIONS]\n"
   printf "  cli cluster start --help | -h\n"
   echo
 
@@ -902,6 +902,12 @@ cli_cluster_start_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--remove-orphans"
+    printf "    Remove containers for services not defined in the current configuration\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -988,7 +994,7 @@ cli_cluster_restart_usage() {
   printf "cli cluster restart - Restart the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster restart\n"
+  printf "  cli cluster restart [OPTIONS]\n"
   printf "  cli cluster restart --help | -h\n"
   echo
 
@@ -996,6 +1002,17 @@ cli_cluster_restart_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--remove-orphans"
+    printf "    Remove containers for services not defined in the current configuration\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--volumes"
+    printf "    Remove named volumes when restarting the cluster\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -2691,8 +2708,14 @@ cli_cluster_start_command() {
 
   # src/cluster_start_command.sh
   panther_cluster_start() {
+    local -a compose_args=(up -d)
+
+    if [[ -n ${args[--remove-orphans]+x} ]]; then
+      compose_args+=(--remove-orphans)
+    fi
+
     panther_log_info 'Starting cluster...'
-    panther_compose up -d
+    panther_compose "${compose_args[@]}"
     panther_log_success 'Cluster started.'
   }
 
@@ -2721,6 +2744,7 @@ cli_cluster_stop_command() {
   # src/cluster_stop_command.sh
   panther_cluster_stop() {
     local -a compose_args=(down)
+
     if [[ -n ${args[--volumes]+x} ]]; then
       compose_args+=(-v)
       panther_log_info 'Stopping cluster and removing volumes...'
@@ -2755,9 +2779,22 @@ cli_cluster_restart_command() {
 
   # src/cluster_restart_command.sh
   panther_cluster_restart() {
-    panther_log_info 'Restarting cluster...'
-    panther_compose down
-    panther_compose up -d
+    local -a compose_down_args=(down)
+    local -a compose_up_args=(up -d)
+
+    if [[ -n ${args[--volumes]+x} ]]; then
+      compose_down_args+=(-v)
+      panther_log_info 'Restarting cluster and removing volumes...'
+    else
+      panther_log_info 'Restarting cluster...'
+    fi
+
+    if [[ -n ${args[--remove-orphans]+x} ]]; then
+      compose_up_args+=(--remove-orphans)
+    fi
+
+    panther_compose "${compose_down_args[@]}"
+    panther_compose "${compose_up_args[@]}"
     panther_log_success 'Cluster restarted.'
   }
 
@@ -2772,6 +2809,7 @@ cli_cluster_build_command() {
   panther_cluster_build() {
     local -a compose_args=(build)
     local service_args=''
+
     if [[ -n ${args[--no-cache]+x} ]]; then
       compose_args+=(--no-cache)
     fi
@@ -4933,6 +4971,13 @@ cli_cluster_start_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --remove-orphans)
+
+        # :flag.case_no_arg
+        args['--remove-orphans']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
@@ -5128,6 +5173,21 @@ cli_cluster_restart_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --remove-orphans)
+
+        # :flag.case_no_arg
+        args['--remove-orphans']=1
+        shift
+        ;;
+
+      # :flag.case
+      --volumes)
+
+        # :flag.case_no_arg
+        args['--volumes']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
