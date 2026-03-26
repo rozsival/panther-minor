@@ -7,11 +7,11 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 ### Hardware
 
 - x870e motherboard with 2x PCIe Gen5 x16 slots
-- AMD Ryzen 9 or newer (16+ cores recommended)
-- 96 GB RAM DDR5 or more
+- AMD Ryzen 9 or newer (12 cores recommended)
+- 64 GB RAM DDR5 or more
 - 2x AMD Radeon Pro with RDNA 4 (32 GB VRAM each)
 - NVMe SSD (1 TB or more, Gen4 or newer)
-- 1300W PSU or higher (depending on GPU TDP)
+- 1300W PSU (or more) with 2x 12VHPWR connectors
 
 ### BIOS
 
