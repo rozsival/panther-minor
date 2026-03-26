@@ -37,6 +37,7 @@ commands:
             help: Default timezone for setup init
           - name: panther_lvm_device
             help: Default logical volume device for setup init
+
       - name: init
         help: Extend storage and set timezone
         flags:
@@ -53,6 +54,7 @@ commands:
             help: Default logical volume device for setup init
       - name: packages
         help: Install essential packages
+
       - name: brew
         help: Install Homebrew, llmfit, and Hugging Face CLI
         flags:
@@ -62,6 +64,7 @@ commands:
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
+
       - name: docker
         help: Install Docker and add the selected user to the docker group
         flags:
@@ -71,8 +74,10 @@ commands:
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
+
       - name: tailscale
         help: Install Tailscale
+
       - name: ssh
         help: Harden SSH configuration
         flags:
@@ -89,6 +94,7 @@ commands:
           - name: panther_ssh_port
             help: Default SSH port for setup commands
             validate: port
+
       - name: ufw
         help: Configure the firewall
         flags:
@@ -100,6 +106,7 @@ commands:
           - name: panther_ssh_port
             help: Default SSH port for setup commands
             validate: port
+
       - name: fail2ban
         help: Install and configure fail2ban
         flags:
@@ -111,10 +118,12 @@ commands:
           - name: panther_ssh_port
             help: Default SSH port for setup commands
             validate: port
+
       - name: amdgpu
         help: Install AMD GPU drivers and ROCm
       - name: grub
         help: Update GRUB kernel parameters
+
       - name: git
         help: Configure Git defaults for the selected user
         flags:
@@ -129,6 +138,7 @@ commands:
             help: Default server name for setup commands
           - name: panther_allowed_user
             help: Default user for setup commands
+
       - name: shell
         help: Install Starship and configure shell access for the selected user
         flags:
@@ -138,6 +148,7 @@ commands:
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
+
       - name: env
         help: Create .env and sync GPU group IDs
         flags:
@@ -164,6 +175,7 @@ commands:
         examples:
           - cli models download panther-minor
           - HF_TOKEN=token cli models download panther-coder
+
       - name: list
         help: List supported models
       - name: remove
@@ -190,6 +202,7 @@ commands:
             required: true
           - long: --force
             help: Re-register acme-dns credentials even if they already exist
+
       - name: renew-ssl
         help: Renew existing proxy certificates and reload nginx
       - name: setup-cron
@@ -216,10 +229,14 @@ commands:
             repeatable: true
             help: Start only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
+            completions:
+              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
           - long: --remove-orphans
             help: Remove containers for services not defined in the current configuration
+
       - name: status
         help: Show the status of cluster containers
+
       - name: stop
         help: Stop the cluster
         flags:
@@ -228,10 +245,14 @@ commands:
             repeatable: true
             help: Stop only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
+            completions:
+              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
           - long: --volumes
             help: Remove named volumes when stopping the cluster
+
       - name: cleanup
         help: Remove cluster containers, volumes, images, and orphans
+
       - name: restart
         help: Restart the cluster
         flags:
@@ -239,6 +260,7 @@ commands:
             help: Remove containers for services not defined in the current configuration
           - long: --volumes
             help: Remove named volumes when restarting the cluster
+
       - name: build
         help: Build cluster images
         flags:
@@ -248,6 +270,9 @@ commands:
             arg: service
             repeatable: true
             help: Build only specific service(s); repeat the flag to pass multiple services
+            validate: cluster_service
+            completions:
+              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
@@ -257,6 +282,8 @@ commands:
         help: Service to show logs for
         required: true
         validate: cluster_service
+        completions:
+          - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
       - long: --tail
         arg: lines
         help: Show a one-time tail snapshot for the number of lines specified instead of streaming logs
