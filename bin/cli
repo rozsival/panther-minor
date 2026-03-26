@@ -106,27 +106,27 @@ cli_setup_all_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--server-name NAME"
+    printf "  %s\n" "--server-name, -n NAME"
     printf "    Server name for logs and Git config (defaults to host name)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to configure for host access and tooling (defaults to current user)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--ssh-port PORT"
+    printf "  %s\n" "--ssh-port, -p PORT"
     printf "    SSH port to configure (defaults to 2222)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--timezone TIMEZONE"
+    printf "  %s\n" "--timezone, -t TIMEZONE"
     printf "    System timezone to configure (defaults to Europe/Prague)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--lvm-device PATH"
+    printf "  %s\n" "--lvm-device, -d PATH"
     printf "    Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)\n"
     echo
 
@@ -182,12 +182,12 @@ cli_setup_init_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--timezone TIMEZONE"
+    printf "  %s\n" "--timezone, -t TIMEZONE"
     printf "    System timezone to configure (defaults to Europe/Prague)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--lvm-device PATH"
+    printf "  %s\n" "--lvm-device, -d PATH"
     printf "    Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)\n"
     echo
 
@@ -250,7 +250,7 @@ cli_setup_brew_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to configure for Homebrew and shell integration\n"
     echo
 
@@ -286,7 +286,7 @@ cli_setup_docker_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to add to the docker group\n"
     echo
 
@@ -344,12 +344,12 @@ cli_setup_ssh_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to allow in SSH\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--ssh-port PORT"
+    printf "  %s\n" "--ssh-port, -p PORT"
     printf "    SSH port to configure (defaults to 2222)\n"
     echo
 
@@ -390,7 +390,7 @@ cli_setup_ufw_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--ssh-port PORT"
+    printf "  %s\n" "--ssh-port, -p PORT"
     printf "    SSH port to allow through UFW (defaults to 2222)\n"
     echo
 
@@ -426,7 +426,7 @@ cli_setup_fail2ban_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--ssh-port PORT"
+    printf "  %s\n" "--ssh-port, -p PORT"
     printf "    SSH port to protect (defaults to 2222)\n"
     echo
 
@@ -506,12 +506,12 @@ cli_setup_git_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--server-name NAME"
+    printf "  %s\n" "--server-name, -n NAME"
     printf "    Server name for Git identity (defaults to host name)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to configure for Git\n"
     echo
 
@@ -552,7 +552,7 @@ cli_setup_shell_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User to configure for shell integration\n"
     echo
 
@@ -588,7 +588,7 @@ cli_setup_env_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--allowed-user USER"
+    printf "  %s\n" "--allowed-user, -u USER"
     printf "    User that should own the generated .env file\n"
     echo
 
@@ -776,17 +776,17 @@ cli_proxy_certbot_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--domain DOMAIN (required)"
+    printf "  %s\n" "--domain, -d DOMAIN (required)"
     printf "    Domain name to issue the certificate for\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--challenge-record RECORD (required)"
+    printf "  %s\n" "--challenge-record, -c RECORD (required)"
     printf "    ACME challenge CNAME record to create\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--force"
+    printf "  %s\n" "--force, -f"
     printf "    Re-register acme-dns credentials even if they already exist\n"
     echo
 
@@ -836,17 +836,17 @@ cli_proxy_setup_cron_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--schedule CRON"
+    printf "  %s\n" "--schedule, -s CRON"
     printf "    Cron schedule to install (defaults to 0 2 * * *)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--user USER"
+    printf "  %s\n" "--user, -u USER"
     printf "    User whose crontab should receive the renewal entry (defaults to current\n    user)\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--log-path PATH"
+    printf "  %s\n" "--log-path, -l PATH"
     printf "    File to append renewal logs to (defaults to proxy/renew-ssl.log)\n"
     echo
 
@@ -905,12 +905,12 @@ cli_cluster_start_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "  %s\n" "--service, -s SERVICE (repeatable)"
     printf "    Start only specific service(s); repeat the flag to pass multiple services\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--remove-orphans"
+    printf "  %s\n" "--remove-orphans, -r"
     printf "    Remove containers for services not defined in the current configuration\n"
     echo
 
@@ -960,12 +960,12 @@ cli_cluster_stop_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "  %s\n" "--service, -s SERVICE (repeatable)"
     printf "    Stop only specific service(s); repeat the flag to pass multiple services\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--volumes"
+    printf "  %s\n" "--volumes, -v"
     printf "    Remove named volumes when stopping the cluster\n"
     echo
 
@@ -1015,12 +1015,12 @@ cli_cluster_restart_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--remove-orphans"
+    printf "  %s\n" "--remove-orphans, -r"
     printf "    Remove containers for services not defined in the current configuration\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--volumes"
+    printf "  %s\n" "--volumes, -v"
     printf "    Remove named volumes when restarting the cluster\n"
     echo
 
@@ -1048,12 +1048,12 @@ cli_cluster_build_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--no-cache"
+    printf "  %s\n" "--no-cache, -n"
     printf "    Build images without using the Docker cache\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--service SERVICE (repeatable)"
+    printf "  %s\n" "--service, -s SERVICE (repeatable)"
     printf "    Build only specific service(s); repeat the flag to pass multiple services\n"
     echo
 
@@ -1081,12 +1081,12 @@ cli_logs_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service SERVICE (required)"
+    printf "  %s\n" "--service, -s SERVICE (required)"
     printf "    Service to show logs for\n"
     echo
 
     # :flag.usage
-    printf "  %s\n" "--tail LINES"
+    printf "  %s\n" "--tail, -t LINES"
     printf "    Show a one-time tail snapshot for the number of lines specified instead of\n    streaming logs\n"
     echo
 
@@ -2988,7 +2988,7 @@ cli_setup_all_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --server-name)
+      --server-name | -n)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -2996,13 +2996,13 @@ cli_setup_all_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--server-name requires an argument: --server-name NAME" >&2
+          printf "%s\n" "--server-name requires an argument: --server-name, -n NAME" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3010,13 +3010,13 @@ cli_setup_all_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --ssh-port)
+      --ssh-port | -p)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3024,13 +3024,13 @@ cli_setup_all_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port PORT" >&2
+          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --timezone)
+      --timezone | -t)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3038,13 +3038,13 @@ cli_setup_all_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--timezone requires an argument: --timezone TIMEZONE" >&2
+          printf "%s\n" "--timezone requires an argument: --timezone, -t TIMEZONE" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --lvm-device)
+      --lvm-device | -d)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3052,7 +3052,7 @@ cli_setup_all_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--lvm-device requires an argument: --lvm-device PATH" >&2
+          printf "%s\n" "--lvm-device requires an argument: --lvm-device, -d PATH" >&2
           exit 1
         fi
         ;;
@@ -3078,7 +3078,7 @@ cli_setup_all_parse_requirements() {
   if [[ -v args['--ssh-port'] ]]; then
     validation_output="$(validate_port "${args['--ssh-port']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port PORT" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -3119,7 +3119,7 @@ cli_setup_init_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --timezone)
+      --timezone | -t)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3127,13 +3127,13 @@ cli_setup_init_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--timezone requires an argument: --timezone TIMEZONE" >&2
+          printf "%s\n" "--timezone requires an argument: --timezone, -t TIMEZONE" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --lvm-device)
+      --lvm-device | -d)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3141,7 +3141,7 @@ cli_setup_init_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--lvm-device requires an argument: --lvm-device PATH" >&2
+          printf "%s\n" "--lvm-device requires an argument: --lvm-device, -d PATH" >&2
           exit 1
         fi
         ;;
@@ -3244,7 +3244,7 @@ cli_setup_brew_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3252,7 +3252,7 @@ cli_setup_brew_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
@@ -3308,7 +3308,7 @@ cli_setup_docker_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3316,7 +3316,7 @@ cli_setup_docker_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
@@ -3428,7 +3428,7 @@ cli_setup_ssh_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3436,13 +3436,13 @@ cli_setup_ssh_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --ssh-port)
+      --ssh-port | -p)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3450,7 +3450,7 @@ cli_setup_ssh_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port PORT" >&2
+          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
           exit 1
         fi
         ;;
@@ -3476,7 +3476,7 @@ cli_setup_ssh_parse_requirements() {
   if [[ -v args['--ssh-port'] ]]; then
     validation_output="$(validate_port "${args['--ssh-port']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port PORT" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -3524,7 +3524,7 @@ cli_setup_ufw_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --ssh-port)
+      --ssh-port | -p)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3532,7 +3532,7 @@ cli_setup_ufw_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port PORT" >&2
+          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
           exit 1
         fi
         ;;
@@ -3558,7 +3558,7 @@ cli_setup_ufw_parse_requirements() {
   if [[ -v args['--ssh-port'] ]]; then
     validation_output="$(validate_port "${args['--ssh-port']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port PORT" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -3606,7 +3606,7 @@ cli_setup_fail2ban_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --ssh-port)
+      --ssh-port | -p)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3614,7 +3614,7 @@ cli_setup_fail2ban_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port PORT" >&2
+          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
           exit 1
         fi
         ;;
@@ -3640,7 +3640,7 @@ cli_setup_fail2ban_parse_requirements() {
   if [[ -v args['--ssh-port'] ]]; then
     validation_output="$(validate_port "${args['--ssh-port']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port PORT" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -3775,7 +3775,7 @@ cli_setup_git_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --server-name)
+      --server-name | -n)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3783,13 +3783,13 @@ cli_setup_git_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--server-name requires an argument: --server-name NAME" >&2
+          printf "%s\n" "--server-name requires an argument: --server-name, -n NAME" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3797,7 +3797,7 @@ cli_setup_git_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
@@ -3853,7 +3853,7 @@ cli_setup_shell_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3861,7 +3861,7 @@ cli_setup_shell_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
@@ -3917,7 +3917,7 @@ cli_setup_env_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --allowed-user)
+      --allowed-user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -3925,7 +3925,7 @@ cli_setup_env_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user USER" >&2
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
           exit 1
         fi
         ;;
@@ -4336,7 +4336,7 @@ cli_proxy_certbot_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --domain)
+      --domain | -d)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4344,13 +4344,13 @@ cli_proxy_certbot_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--domain requires an argument: --domain DOMAIN" >&2
+          printf "%s\n" "--domain requires an argument: --domain, -d DOMAIN" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --challenge-record)
+      --challenge-record | -c)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4358,13 +4358,13 @@ cli_proxy_certbot_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--challenge-record requires an argument: --challenge-record RECORD" >&2
+          printf "%s\n" "--challenge-record requires an argument: --challenge-record, -c RECORD" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --force)
+      --force | -f)
 
         # :flag.case_no_arg
         args['--force']=1
@@ -4389,11 +4389,11 @@ cli_proxy_certbot_parse_requirements() {
 
   # :command.required_flags_filter
   if [[ -z ${args['--domain']+x} ]]; then
-    printf "missing required flag: --domain DOMAIN\n" >&2
+    printf "missing required flag: --domain, -d DOMAIN\n" >&2
     exit 1
   fi
   if [[ -z ${args['--challenge-record']+x} ]]; then
-    printf "missing required flag: --challenge-record RECORD\n" >&2
+    printf "missing required flag: --challenge-record, -c RECORD\n" >&2
     exit 1
   fi
 
@@ -4475,7 +4475,7 @@ cli_proxy_setup_cron_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --schedule)
+      --schedule | -s)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4483,13 +4483,13 @@ cli_proxy_setup_cron_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--schedule requires an argument: --schedule CRON" >&2
+          printf "%s\n" "--schedule requires an argument: --schedule, -s CRON" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --user)
+      --user | -u)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4497,13 +4497,13 @@ cli_proxy_setup_cron_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--user requires an argument: --user USER" >&2
+          printf "%s\n" "--user requires an argument: --user, -u USER" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --log-path)
+      --log-path | -l)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4511,7 +4511,7 @@ cli_proxy_setup_cron_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--log-path requires an argument: --log-path PATH" >&2
+          printf "%s\n" "--log-path requires an argument: --log-path, -l PATH" >&2
           exit 1
         fi
         ;;
@@ -4668,7 +4668,7 @@ cli_cluster_start_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service)
+      --service | -s)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4681,13 +4681,13 @@ cli_cluster_start_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --remove-orphans)
+      --remove-orphans | -r)
 
         # :flag.case_no_arg
         args['--remove-orphans']=1
@@ -4718,7 +4718,7 @@ cli_cluster_start_parse_requirements() {
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -4802,7 +4802,7 @@ cli_cluster_stop_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service)
+      --service | -s)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -4815,13 +4815,13 @@ cli_cluster_stop_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --volumes)
+      --volumes | -v)
 
         # :flag.case_no_arg
         args['--volumes']=1
@@ -4852,7 +4852,7 @@ cli_cluster_stop_parse_requirements() {
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -4936,7 +4936,7 @@ cli_cluster_restart_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --remove-orphans)
+      --remove-orphans | -r)
 
         # :flag.case_no_arg
         args['--remove-orphans']=1
@@ -4944,7 +4944,7 @@ cli_cluster_restart_parse_requirements() {
         ;;
 
       # :flag.case
-      --volumes)
+      --volumes | -v)
 
         # :flag.case_no_arg
         args['--volumes']=1
@@ -4998,7 +4998,7 @@ cli_cluster_build_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --no-cache)
+      --no-cache | -n)
 
         # :flag.case_no_arg
         args['--no-cache']=1
@@ -5006,7 +5006,7 @@ cli_cluster_build_parse_requirements() {
         ;;
 
       # :flag.case
-      --service)
+      --service | -s)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -5019,7 +5019,7 @@ cli_cluster_build_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
           exit 1
         fi
         ;;
@@ -5048,7 +5048,7 @@ cli_cluster_build_parse_requirements() {
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -5085,7 +5085,7 @@ cli_logs_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service)
+      --service | -s)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -5093,13 +5093,13 @@ cli_logs_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--service requires an argument: --service SERVICE" >&2
+          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
           exit 1
         fi
         ;;
 
       # :flag.case
-      --tail)
+      --tail | -t)
 
         # :flag.case_arg
         if [[ -n ${2+x} ]]; then
@@ -5107,7 +5107,7 @@ cli_logs_parse_requirements() {
           shift
           shift
         else
-          printf "%s\n" "--tail requires an argument: --tail LINES" >&2
+          printf "%s\n" "--tail requires an argument: --tail, -t LINES" >&2
           exit 1
         fi
         ;;
@@ -5130,7 +5130,7 @@ cli_logs_parse_requirements() {
 
   # :command.required_flags_filter
   if [[ -z ${args['--service']+x} ]]; then
-    printf "missing required flag: --service SERVICE\n" >&2
+    printf "missing required flag: --service, -s SERVICE\n" >&2
     exit 1
   fi
 
@@ -5139,7 +5139,7 @@ cli_logs_parse_requirements() {
   if [[ -v args['--service'] ]]; then
     validation_output="$(validate_cluster_service "${args['--service']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--service SERVICE" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -5148,7 +5148,7 @@ cli_logs_parse_requirements() {
   if [[ -v args['--tail'] ]]; then
     validation_output="$(validate_integer "${args['--tail']:-}")"
     if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--tail LINES" "$validation_output" >&2
+      printf "validation error in %s:\n%s\n" "--tail, -t LINES" "$validation_output" >&2
       exit 1
     fi
   fi

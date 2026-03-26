@@ -34,8 +34,7 @@ source .bashrc
 Update the authored Bashly sources, then regenerate:
 
 ```bash
-cd ./bin
-bashly generate
+pnpm run build:cli
 ```
 
 Important:
