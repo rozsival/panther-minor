@@ -182,6 +182,16 @@ To only rebuild the cluster without starting:
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
+>
+
+#### Extending the Cluster
+
+You can easily extend the cluster with additional services by creating `docker-compose.override.yml` in the root of the
+project. This file will be automatically picked up by Docker Compose and merged with the base configuration.
+
+> [!IMPORTANT]
+> Ensure to configure proper network and volume mounts for your custom services in the override file to integrate them
+> with the existing cluster setup.
 
 ### Stop
 

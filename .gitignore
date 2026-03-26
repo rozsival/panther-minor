@@ -21,3 +21,6 @@ log
 logs
 temp
 tmp
+
+# Docker
+docker-compose.override.yml
