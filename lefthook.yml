@@ -10,7 +10,6 @@ pre-commit:
       glob:
         - "bin/src/bashly.yml"
         - "bin/src/**/*.sh"
-        - "!bin/src/lib/send_completions.sh"
       stage_fixed: true
 
     - run: pnpm ultracite fix
