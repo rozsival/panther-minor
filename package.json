@@ -10,7 +10,7 @@
   },
   "type": "module",
   "scripts": {
-    "build:cli": "cd bin && bashly generate && bashly add completions --force",
+    "build:cli": "cd bin && rm src/lib/send_completions.sh && bashly add completions && bashly generate",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "fix:unsafe": "ultracite fix --unsafe",

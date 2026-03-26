@@ -255,7 +255,7 @@ commands:
             help: Start only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
             completions:
-              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
           - long: --remove-orphans
             short: -r
             help: Remove containers for services not defined in the current configuration
@@ -273,7 +273,7 @@ commands:
             help: Stop only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
             completions:
-              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
           - long: --volumes
             short: -v
             help: Remove named volumes when stopping the cluster
@@ -304,7 +304,7 @@ commands:
             help: Build only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
             completions:
-              - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
@@ -316,7 +316,7 @@ commands:
         required: true
         validate: cluster_service
         completions:
-          - $(cd "$(dirname "${BASH_SOURCE[0]}")/.." && echo "$(docker compose config | yq '.services | keys[]')")
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
       - long: --tail
         short: -t
         arg: lines
