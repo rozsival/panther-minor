@@ -26,7 +26,7 @@ The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp clust
 
 ### Software
 
-- [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
+- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) 25.10 or newer
 - Server installed with name and non-root user (with sudo privileges)
 - Server installed with OpenSSH (fetch allowed keys from GitHub)
 - [Tailscale](https://tailscale.com/) account for secure remote access
