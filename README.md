@@ -139,7 +139,8 @@ models.
 #### OpenFang
 
 It is strongly recommended to build and provide your own private image containing your
-custom agents and tools.
+custom agents setup and dependencies. This allows you to have full control over the agent environment while maintaining
+the infrastructure as code approach.
 
 > [!TIP]
 > Follow the
