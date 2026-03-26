@@ -249,9 +249,9 @@ commands:
     flags:
       - long: --tail
         arg: lines
+        default: '100'
         help: Show a one-time tail snapshot; defaults to 100 lines when used without a value
         validate: integer
-        default: '100'
 
   - name: update
     help: Update the repository from upstream
