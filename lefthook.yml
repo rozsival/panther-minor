@@ -8,8 +8,9 @@ pre-commit:
   jobs:
     - run: pnpm run build:cli
       glob:
-        - "bin/bashly.yml"
+        - "bin/src/bashly.yml"
         - "bin/src/**/*.sh"
+        - "!bin/src/lib/send_completions.sh"
       stage_fixed: true
 
     - run: pnpm ultracite fix
