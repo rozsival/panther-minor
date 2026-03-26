@@ -1072,8 +1072,7 @@ cli_logs_usage() {
     # :command.usage_flags
     # :flag.usage
     printf "  %s\n" "--tail LINES"
-    printf "    Show a one-time tail snapshot; defaults to 10 lines when used without a\n    value\n"
-    printf "    %s\n" "Default: 10"
+    printf "    Show a one-time tail snapshot for the number of lines specified instead of\n    streaming logs\n"
     echo
 
     # :command.usage_fixed_flags
@@ -4987,9 +4986,6 @@ cli_logs_parse_requirements() {
 
     exit 1
   fi
-
-  # :command.default_assignments
-  [[ -n ${args['--tail']:-} ]] || args['--tail']="10"
 
   # :command.validations
   # :argument.validations

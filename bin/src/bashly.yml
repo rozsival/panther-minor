@@ -249,8 +249,7 @@ commands:
     flags:
       - long: --tail
         arg: lines
-        default: '10'
-        help: Show a one-time tail snapshot; defaults to 10 lines when used without a value
+        help: Show a one-time tail snapshot for the number of lines specified instead of streaming logs
         validate: integer
 
   - name: update
