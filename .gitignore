@@ -16,6 +16,7 @@ node_modules
 /models/.huggingface
 
 # Temporary files
+*.backup
 *.log
 log
 logs
