@@ -20,23 +20,23 @@ services:
     build:
       context: ./llama-cpp
       args:
-        - LLAMA_CPP_REPO=${LLAMA_CPP_REPO}
-        - LLAMA_CPP_REF=${LLAMA_CPP_REF}
-        - ROCM_ARCH=${ROCM_ARCH}
+        LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
+        LLAMA_CPP_REF: ${LLAMA_CPP_REF}
+        ROCM_ARCH: ${ROCM_ARCH}
     privileged: true
     restart: unless-stopped
     devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
+      - '/dev/kfd:/dev/kfd'
+      - '/dev/dri:/dev/dri'
     group_add:
       - '${VIDEO_GID}'
       - '${RENDER_GID}'
     environment:
-      - HF_TOKEN=${HF_TOKEN}
-      - HIP_VISIBLE_DEVICES=${ROCM_VISIBLE_DEVICES}
+      HF_TOKEN: ${HF_TOKEN}
+      HIP_VISIBLE_DEVICES: ${ROCM_VISIBLE_DEVICES}
     volumes:
-      - llama-cpp-data:/root/.cache
-      - ./models:/models:ro
+      - 'llama-cpp-data:/root/.cache'
+      - './models:/models:ro'
     expose:
       - 8000
     networks:
@@ -55,12 +55,12 @@ services:
     command: [ 'node', '/app/main.js' ]
     environment:
       CACHE_TTL_SECONDS: 5
-      LLAMA_SERVER_URL: http://llama-cpp:8000
+      LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 9101
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
-      - ./monitoring/llama-metrics-exporter.js:/app/main.js:ro
+      - './monitoring/llama-metrics-exporter.js:/app/main.js:ro'
     expose:
       - 9101
     networks:
@@ -84,11 +84,11 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.8.11
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: http://llama-cpp:8000/v1
+      OPENAI_API_BASE_URL: 'http://llama-cpp:8000/v1'
       OPENAI_API_KEY: 'llama-cpp'
       WEBUI_AUTH: 'false'
     volumes:
-      - open-webui-data:/app/backend/data
+      - 'open-webui-data:/app/backend/data'
     expose:
       - 8080
     networks:
@@ -107,13 +107,13 @@ services:
     image: ${OPENFANG_IMAGE}
     restart: unless-stopped
     environment:
-      - OPENFANG_HOME=${OPENFANG_HOME}
+      OPENFANG_HOME: ${OPENFANG_HOME}
     env_file:
-      - path: ./openfang/.env
+      - path: './openfang/.env'
         required: false
     volumes:
-      - openfang-data:${OPENFANG_HOME}/data
-      - ./openfang/config.toml:${OPENFANG_HOME}/config.toml.default
+      - 'openfang-data:${OPENFANG_HOME}/data'
+      - './openfang/config.toml:${OPENFANG_HOME}/config.toml.default'
     expose:
       - 4200
     networks:
@@ -132,8 +132,8 @@ services:
     image: rocm/device-metrics-exporter:v1.5.0-beta.0
     restart: unless-stopped
     devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
+      - '/dev/kfd:/dev/kfd'
+      - '/dev/dri:/dev/dri'
     group_add:
       - '${VIDEO_GID}'
       - '${RENDER_GID}'
@@ -148,9 +148,9 @@ services:
     restart: unless-stopped
     pid: host
     volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
+      - '/proc:/host/proc:ro'
+      - '/sys:/host/sys:ro'
+      - '/:/rootfs:ro'
     command:
       - '--path.procfs=/host/proc'
       - '--path.rootfs=/rootfs'
@@ -168,8 +168,8 @@ services:
     image: prom/prometheus:v3.10.0
     restart: unless-stopped
     volumes:
-      - prometheus-data:/prometheus
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - 'prometheus-data:/prometheus'
+      - './monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -199,9 +199,9 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: true
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - 'grafana-data:/var/lib/grafana'
+      - './monitoring/grafana/provisioning:/etc/grafana/provisioning:ro'
+      - './monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro'
     expose:
       - 3000
     networks:
@@ -226,8 +226,8 @@ services:
       - '8080:8080'
       - '9090:9090'
     volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./proxy/ssl:/etc/nginx/ssl:ro
+      - './proxy/nginx.conf:/etc/nginx/nginx.conf:ro'
+      - './proxy/ssl:/etc/nginx/ssl:ro'
     networks:
       - ai
     depends_on:
