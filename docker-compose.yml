@@ -81,7 +81,7 @@ services:
 
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
-    image: ghcr.io/open-webui/open-webui:v0.8.10
+    image: ghcr.io/open-webui/open-webui:v0.8.11
     restart: unless-stopped
     environment:
       OPENAI_API_BASE_URL: http://llama-cpp:8000/v1
