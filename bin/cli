@@ -1627,9 +1627,8 @@ validate_cluster_service() {
   service_names="$(echo "$cluster_services" | jq -r '. | "\(.Service)"')"
 
   if ! echo "$service_names" | grep -q "^$1$"; then
-    echo "service '$1' not found in cluster"
-    echo "available services:"
-    echo "$service_names"
+    printf "service '%s' not found in cluster\n\n" "$1"
+    printf "available services:\n\n%s" "$service_names"
     return
   fi
 }
