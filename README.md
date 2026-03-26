@@ -144,7 +144,7 @@ the infrastructure as code approach.
 
 > [!TIP]
 > Follow the
-> [Docker Credential Helper Setup for Ubuntu Server](https://gist.github.com/rozsival/fce64e9e0753f7a3da650af165e2c75a)
+> [Docker Credential Helper Setup for Ubuntu Server](https://gist.github.com/rozsival/7d82711ca08d5159633db241d698810d)
 > to enable secure authentication with private registries from the server.
 
 Default config is mount at `${OPENFANG_HOME}/config.toml.default`, your image can use this as a base and override any
