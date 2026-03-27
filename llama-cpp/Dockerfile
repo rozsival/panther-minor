@@ -9,8 +9,9 @@ RUN apt update
 RUN apt install -y cmake git libcurl4-openssl-dev nano
 RUN rm -rf /var/lib/apt/lists/*
 
-RUN git clone "$LLAMA_CPP_REPO" /opt/llama-cpp
 WORKDIR /opt/llama-cpp
+
+RUN git clone "$LLAMA_CPP_REPO" .
 RUN git checkout "$LLAMA_CPP_REF"
 
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
@@ -21,4 +22,5 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
+EXPOSE 8000/tcp
 ENTRYPOINT ["/entrypoint.sh"]
