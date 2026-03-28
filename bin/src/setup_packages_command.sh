@@ -11,8 +11,10 @@ panther_setup_packages() {
     htop \
     jq \
     nvtop \
-    python3-full \
+    python3 \
     python3-pip \
+    python3-venv \
+    s-tui \
     tree \
     unattended-upgrades \
     unzip
