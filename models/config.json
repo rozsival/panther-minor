@@ -24,6 +24,13 @@
       "vision": false
     },
     {
+      "name": "panther-coder-large",
+      "file": "Qwen3-Coder-Next-Q8_0.gguf",
+      "repository": "unsloth/Qwen3-Coder-Next-GGUF",
+      "thinking": false,
+      "vision": false
+    },
+    {
       "name": "panther-blazer",
       "file": "Qwen3.5-2B-Q8_0.gguf",
       "mmproj": "mmproj-F16.gguf",
