@@ -25,7 +25,7 @@
     },
     {
       "name": "panther-coder-large",
-      "file": "Qwen3-Coder-Next-Q8_0.gguf",
+      "file": "Qwen3-Coder-Next-Q8_0-*.gguf",
       "repository": "unsloth/Qwen3-Coder-Next-GGUF",
       "thinking": false,
       "vision": false

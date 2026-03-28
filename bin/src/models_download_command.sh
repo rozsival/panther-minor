@@ -4,7 +4,7 @@ panther_models_download() {
   mkdir -p "$PANTHER_MODELS_DIR/.huggingface"
   panther_load_dotenv "$PANTHER_ENV_FILE"
 
-  local model_config hf_repository hf_file model_name target_file
+  local model_config hf_repository hf_file model_name target_dir
   model_config="$(panther_model_config "$model")"
   [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_models_config_file)"
 
@@ -12,10 +12,9 @@ panther_models_download() {
   hf_file="$(jq -r '.file' <<<"$model_config")"
   mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
   model_name="$(jq -r '.name' <<<"$model_config")"
-  target_file="$PANTHER_MODELS_DIR/.huggingface/$model_name.gguf"
-  target_mmproj="$PANTHER_MODELS_DIR/.huggingface/$model_name-mmproj.gguf"
+  target_dir="$PANTHER_MODELS_DIR/.huggingface/$model_name"
 
-  if [[ -f "$target_file" ]]; then
+  if [[ -f "$target_dir" ]]; then
     read -r -p "Model '$model_name' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
     echo ''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
@@ -24,19 +23,13 @@ panther_models_download() {
     fi
   fi
 
-  hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$PANTHER_MODELS_DIR/.huggingface")
+  hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$target_dir")
 
   if [[ -n "$mmproj" ]]; then
     hf_download_args+=(--include "$mmproj")
   fi
 
   hf download "${hf_download_args[@]}"
-  mv -f "$PANTHER_MODELS_DIR/.huggingface/$hf_file" "$target_file"
-
-  if [[ -n "$mmproj" && -f "$PANTHER_MODELS_DIR/.huggingface/$mmproj" ]]; then
-    mv -f "$PANTHER_MODELS_DIR/.huggingface/$mmproj" "$target_mmproj"
-  fi
-
   panther_log_success "Model '$model_name' ready for use."
 }
 
