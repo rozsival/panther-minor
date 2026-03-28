@@ -7,12 +7,16 @@
       "items": {
         "additionalProperties": false,
         "properties": {
+          "name": {
+            "description": "Name of the model",
+            "type": "string"
+          },
           "file": {
             "description": "Model file name",
             "type": "string"
           },
-          "name": {
-            "description": "Name of the model",
+          "mmproj": {
+            "description": "Model multimodal project file name",
             "type": "string"
           },
           "repository": {
