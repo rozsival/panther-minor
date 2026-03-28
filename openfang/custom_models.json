@@ -43,7 +43,21 @@
   },
   {
     "id": "panther-coder-next",
-    "display_name": "panther-coder-next",
+    "display_name": "panther-coder (next)",
+    "provider": "panther-minor",
+    "tier": "custom",
+    "context_window": 131072,
+    "max_output_tokens": 8192,
+    "input_cost_per_m": 0.0,
+    "output_cost_per_m": 0.0,
+    "supports_tools": true,
+    "supports_vision": false,
+    "supports_streaming": true,
+    "aliases": []
+  },
+  {
+    "id": "panther-coder-large",
+    "display_name": "panther-coder (large)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
