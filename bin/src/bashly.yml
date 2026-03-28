@@ -193,9 +193,12 @@ commands:
         examples:
           - cli models download panther-minor
           - HF_TOKEN=token cli models download panther-coder
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 
       - name: list
         help: List supported models
+
       - name: remove
         help: Remove a downloaded model from the local Hugging Face cache
         args:
@@ -203,6 +206,8 @@ commands:
             required: true
             help: Model name from models/config.json
             validate: supported_model
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 
   - name: proxy
     help: Manage proxy SSL and certificate automation
@@ -247,15 +252,15 @@ commands:
     commands:
       - name: start
         help: Start the cluster
-        flags:
-          - long: --service
-            short: -s
-            arg: service
-            repeatable: true
+        args:
+          - name: service
+            required: false
             help: Start only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            repeatable: true
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+        flags:
           - long: --remove-orphans
             short: -r
             help: Remove containers for services not defined in the current configuration
@@ -265,15 +270,15 @@ commands:
 
       - name: stop
         help: Stop the cluster
-        flags:
-          - long: --service
-            short: -s
-            arg: service
-            repeatable: true
-            help: Stop only specific service(s); repeat the flag to pass multiple services
+        args:
+          - name: service
+            required: false
+            help: Stop only specific service(s); repeat the argument to pass multiple services
             validate: cluster_service
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            repeatable: true
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+        flags:
           - long: --volumes
             short: -v
             help: Remove named volumes when stopping the cluster
@@ -283,15 +288,15 @@ commands:
 
       - name: restart
         help: Restart the cluster
-        flags:
-          - long: --service
-            short: -s
-            arg: service
-            repeatable: true
-            help: Restart only specific service(s); repeat the flag to pass multiple services
+        args:
+          - name: service
+            required: false
+            help: Restart only specific service(s); repeat the argument to pass multiple services
             validate: cluster_service
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            repeatable: true
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+        flags:
           - long: --remove-orphans
             short: -r
             help: Remove containers for services not defined in the current configuration
@@ -301,30 +306,30 @@ commands:
 
       - name: build
         help: Build cluster images
+        args:
+          - name: service
+            required: false
+            help: Build only specific service(s); repeat the argument to pass multiple services
+            validate: cluster_service
+            repeatable: true
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
         flags:
           - long: --no-cache
             short: -n
             help: Build images without using the Docker cache
-          - long: --service
-            short: -s
-            arg: service
-            repeatable: true
-            help: Build only specific service(s); repeat the flag to pass multiple services
-            validate: cluster_service
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
 
   - name: logs
     help: Stream logs by default or show a one-time tail for cluster services
-    flags:
-      - long: --service
-        short: -s
-        arg: service
-        help: Service to show logs for
+    args:
+      - name: service
         required: true
+        help: Service to show logs for
         validate: cluster_service
-        completions:
-          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+        repeatable: false
+    completions:
+      - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+    flags:
       - long: --tail
         short: -t
         arg: lines

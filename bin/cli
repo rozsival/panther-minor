@@ -894,7 +894,7 @@ cli_cluster_start_usage() {
   printf "cli cluster start - Start the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster start [OPTIONS]\n"
+  printf "  cli cluster start [SERVICE...] [OPTIONS]\n"
   printf "  cli cluster start --help | -h\n"
   echo
 
@@ -905,11 +905,6 @@ cli_cluster_start_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service, -s SERVICE (repeatable)"
-    printf "    Start only specific service(s); repeat the flag to pass multiple services\n"
-    echo
-
-    # :flag.usage
     printf "  %s\n" "--remove-orphans, -r"
     printf "    Remove containers for services not defined in the current configuration\n"
     echo
@@ -917,6 +912,14 @@ cli_cluster_start_usage() {
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "SERVICE..."
+    printf "    Start only specific service(s); repeat the flag to pass multiple services\n"
     echo
 
   fi
@@ -949,7 +952,7 @@ cli_cluster_stop_usage() {
   printf "cli cluster stop - Stop the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster stop [OPTIONS]\n"
+  printf "  cli cluster stop [SERVICE...] [OPTIONS]\n"
   printf "  cli cluster stop --help | -h\n"
   echo
 
@@ -960,11 +963,6 @@ cli_cluster_stop_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service, -s SERVICE (repeatable)"
-    printf "    Stop only specific service(s); repeat the flag to pass multiple services\n"
-    echo
-
-    # :flag.usage
     printf "  %s\n" "--volumes, -v"
     printf "    Remove named volumes when stopping the cluster\n"
     echo
@@ -972,6 +970,14 @@ cli_cluster_stop_usage() {
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "SERVICE..."
+    printf "    Stop only specific service(s); repeat the argument to pass multiple services\n"
     echo
 
   fi
@@ -1004,7 +1010,7 @@ cli_cluster_restart_usage() {
   printf "cli cluster restart - Restart the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster restart [OPTIONS]\n"
+  printf "  cli cluster restart [SERVICE...] [OPTIONS]\n"
   printf "  cli cluster restart --help | -h\n"
   echo
 
@@ -1014,11 +1020,6 @@ cli_cluster_restart_usage() {
     printf "%s\n" "Options:"
 
     # :command.usage_flags
-    # :flag.usage
-    printf "  %s\n" "--service, -s SERVICE (repeatable)"
-    printf "    Restart only specific service(s); repeat the flag to pass multiple services\n"
-    echo
-
     # :flag.usage
     printf "  %s\n" "--remove-orphans, -r"
     printf "    Remove containers for services not defined in the current configuration\n"
@@ -1034,6 +1035,14 @@ cli_cluster_restart_usage() {
     printf "    Show this help\n"
     echo
 
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "SERVICE..."
+    printf "    Restart only specific service(s); repeat the argument to pass multiple\n    services\n"
+    echo
+
   fi
 }
 
@@ -1042,7 +1051,7 @@ cli_cluster_build_usage() {
   printf "cli cluster build - Build cluster images\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster build [OPTIONS]\n"
+  printf "  cli cluster build [SERVICE...] [OPTIONS]\n"
   printf "  cli cluster build --help | -h\n"
   echo
 
@@ -1057,14 +1066,17 @@ cli_cluster_build_usage() {
     printf "    Build images without using the Docker cache\n"
     echo
 
-    # :flag.usage
-    printf "  %s\n" "--service, -s SERVICE (repeatable)"
-    printf "    Build only specific service(s); repeat the flag to pass multiple services\n"
-    echo
-
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "SERVICE..."
+    printf "    Build only specific service(s); repeat the argument to pass multiple\n    services\n"
     echo
 
   fi
@@ -1075,7 +1087,7 @@ cli_logs_usage() {
   printf "cli logs - Stream logs by default or show a one-time tail for cluster services\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli logs [OPTIONS]\n"
+  printf "  cli logs SERVICE [OPTIONS]\n"
   printf "  cli logs --help | -h\n"
   echo
 
@@ -1086,11 +1098,6 @@ cli_logs_usage() {
 
     # :command.usage_flags
     # :flag.usage
-    printf "  %s\n" "--service, -s SERVICE (required)"
-    printf "    Service to show logs for\n"
-    echo
-
-    # :flag.usage
     printf "  %s\n" "--tail, -t LINES"
     printf "    Show a one-time tail snapshot for the number of lines specified instead of\n    streaming logs\n"
     echo
@@ -1098,6 +1105,14 @@ cli_logs_usage() {
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "SERVICE"
+    printf "    Service to show logs for\n"
     echo
 
   fi
@@ -1379,43 +1394,19 @@ send_completions() {
   echo $'  COMPREPLY=()'
   echo $''
   echo $'  case "$compline" in'
-  echo $'    \'cluster restart\'*\'--service\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster build\'*\'--service\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster start\'*\'--service\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster stop\'*\'--service\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster restart\'*\'-s\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster start\'*\'-s\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster build\'*\'-s\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'proxy setup-cron\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h -l -s -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models download\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup tailscale\'*)'
+  echo $'    \'cluster restart\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --remove-orphans --volumes -h -r -v")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'cluster cleanup\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1423,16 +1414,12 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster restart\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --service --volumes -h -r -s -v")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster cleanup\'*)'
+  echo $'    \'setup tailscale\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster stop\'*\'-s\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
+  echo $'    \'setup packages\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster status\'*)'
@@ -1443,12 +1430,8 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h -p")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup packages\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'logs\'*\'--service\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
+  echo $'    \'models remove\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy certbot\'*)'
@@ -1456,19 +1439,11 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'cluster start\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --remove-orphans --service -h -r -s")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'models remove\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --remove-orphans -h -r")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster build\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --no-cache --service -h -n -s")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster stop\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --service --volumes -h -s -v")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --no-cache -h -n")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup amdgpu\'*)'
@@ -1479,20 +1454,20 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'completions\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'cluster stop\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --volumes -h -v")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models list\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup shell\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
+  echo $'    \'completions\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup init\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -d -h -t")" -- "$cur")'
+  echo $'    \'setup shell\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup grub\'*)'
@@ -1503,8 +1478,8 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup all\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -d -h -n -p -t -u")" -- "$cur")'
+  echo $'    \'setup init\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -d -h -t")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup env\'*)'
@@ -1523,8 +1498,8 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --ssh-port -h -p -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'logs\'*\'-s\')'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')")")" -- "$cur")'
+  echo $'    \'setup all\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -d -h -n -p -t -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster\'*)'
@@ -1548,7 +1523,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'logs\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --service --tail -h -s -t")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --tail -h -t")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    *)'
@@ -1849,8 +1824,10 @@ cli_setup_packages_command() {
       htop \
       jq \
       nvtop \
-      python3-full \
+      python3 \
       python3-pip \
+      python3-venv \
+      s-tui \
       tree \
       unattended-upgrades \
       unzip
@@ -2244,8 +2221,10 @@ cli_models_download_command() {
 
     hf_repository="$(jq -r '.repository' <<<"$model_config")"
     hf_file="$(jq -r '.file' <<<"$model_config")"
+    mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
     model_name="$(jq -r '.name' <<<"$model_config")"
     target_file="$PANTHER_MODELS_DIR/.huggingface/$model_name.gguf"
+    target_mmproj="$PANTHER_MODELS_DIR/.huggingface/$model_name-mmproj.gguf"
 
     if [[ -f "$target_file" ]]; then
       read -r -p "Model '$model_name' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
@@ -2256,8 +2235,19 @@ cli_models_download_command() {
       fi
     fi
 
-    hf download "$hf_repository" "$hf_file" --local-dir "$PANTHER_MODELS_DIR/.huggingface"
+    hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$PANTHER_MODELS_DIR/.huggingface")
+
+    if [[ -n "$mmproj" ]]; then
+      hf_download_args+=(--include "$mmproj")
+    fi
+
+    hf download "${hf_download_args[@]}"
     mv -f "$PANTHER_MODELS_DIR/.huggingface/$hf_file" "$target_file"
+
+    if [[ -n "$mmproj" && -f "$PANTHER_MODELS_DIR/.huggingface/$mmproj" ]]; then
+      mv -f "$PANTHER_MODELS_DIR/.huggingface/$mmproj" "$target_mmproj"
+    fi
+
     panther_log_success "Model '$model_name' ready for use."
   }
 
@@ -2496,8 +2486,8 @@ cli_cluster_start_command() {
     local -a compose_args=(up)
     local service_args=''
 
-    if [[ -n ${args[--service]+x} ]]; then
-      service_args="${args[--service]}"
+    if [[ -n ${args[service]+x} ]]; then
+      service_args="${args[service]}"
       # Bashly stores repeatable flags as a space-delimited string.
       # shellcheck disable=SC2206
       local -a services=(${service_args})
@@ -2510,7 +2500,7 @@ cli_cluster_start_command() {
       compose_args+=(--remove-orphans)
     fi
 
-    if [[ -n ${args[--service]+x} ]]; then
+    if [[ -n ${args[service]+x} ]]; then
       panther_log_info "Starting selected services: ${service_args}..."
       panther_compose "${compose_args[@]}"
       panther_log_success "Selected services started: ${service_args}."
@@ -2549,19 +2539,19 @@ cli_cluster_stop_command() {
     local -a compose_args=(down)
     local service_args=''
 
-    if [[ -n ${args[--service]+x} ]]; then
-      service_args="${args[--service]}"
+    if [[ -n ${args[service]+x} ]]; then
+      service_args="${args[service]}"
       # Bashly stores repeatable flags as a space-delimited string.
       # shellcheck disable=SC2206
       local -a services=(${service_args})
       compose_args+=("${services[@]}")
     fi
 
-    if [[ -n ${args[--volumes]+x} && -n ${args[--service]+x} ]]; then
+    if [[ -n ${args[--volumes]+x} && -n ${args[service]+x} ]]; then
       panther_log_info "Stopping selected services and removing volumes: ${service_args}..."
       panther_compose "${compose_args[@]}"
       panther_log_success "Selected services stopped and volumes removed: ${service_args}."
-    elif [[ -n ${args[--service]+x} ]]; then
+    elif [[ -n ${args[service]+x} ]]; then
       panther_log_info "Stopping selected services: ${service_args}..."
       panther_compose "${compose_args[@]}"
       panther_log_success "Selected services stopped: ${service_args}."
@@ -2604,8 +2594,8 @@ cli_cluster_restart_command() {
 
     local service_args=''
 
-    if [[ -n ${args[--service]+x} ]]; then
-      service_args="${args[--service]}"
+    if [[ -n ${args[service]+x} ]]; then
+      service_args="${args[service]}"
       # Bashly stores repeatable flags as a space-delimited string.
       # shellcheck disable=SC2206
       local -a services=(${service_args})
@@ -2623,12 +2613,12 @@ cli_cluster_restart_command() {
       compose_down_args+=(-v)
     fi
 
-    if [[ -n ${args[--volumes]+x} && -n ${args[--service]+x} ]]; then
+    if [[ -n ${args[--volumes]+x} && -n ${args[service]+x} ]]; then
       panther_log_info "Restarting selected services and removing volumes: ${service_args}..."
       panther_compose "${compose_down_args[@]}"
       panther_compose "${compose_up_args[@]}"
       panther_log_success "Selected services restarted and volumes removed: ${service_args}."
-    elif [[ -n ${args[--service]+x} ]]; then
+    elif [[ -n ${args[service]+x} ]]; then
       panther_log_info "Restarting selected services: ${service_args}..."
       panther_compose "${compose_down_args[@]}"
       panther_compose "${compose_up_args[@]}"
@@ -2662,17 +2652,17 @@ cli_cluster_build_command() {
       compose_args+=(--no-cache)
     fi
 
-    if [[ -n ${args[--service]+x} ]]; then
-      service_args="${args[--service]}"
+    if [[ -n ${args[service]+x} ]]; then
+      service_args="${args[service]}"
       # Bashly stores repeatable flags as a space-delimited string.
       # shellcheck disable=SC2206
       local -a services=(${service_args})
       compose_args+=("${services[@]}")
     fi
 
-    if [[ -n ${args[--no-cache]+x} && -n ${args[--service]+x} ]]; then
+    if [[ -n ${args[--no-cache]+x} && -n ${args[service]+x} ]]; then
       panther_log_info "Building selected service images without cache: ${service_args}..."
-    elif [[ -n ${args[--service]+x} ]]; then
+    elif [[ -n ${args[service]+x} ]]; then
       panther_log_info "Building selected service images: ${service_args}..."
     elif [[ -n ${args[--no-cache]+x} ]]; then
       panther_log_info 'Building cluster images without cache...'
@@ -2694,7 +2684,7 @@ cli_logs_command() {
   # src/logs_command.sh
   panther_logs() {
     # shellcheck disable=SC2154
-    panther_logs_service "${args[--service]}"
+    panther_logs_service "${args[service]}"
   }
 
   panther_logs
@@ -4725,25 +4715,6 @@ cli_cluster_start_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service | -s)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          escaped="$(printf '%q' "$2")"
-          if [[ -z ${args['--service']+x} ]]; then
-            args['--service']="$escaped"
-          else
-            args['--service']="${args['--service']} $escaped"
-          fi
-          shift
-          shift
-        else
-          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --remove-orphans | -r)
 
         # :flag.case_no_arg
@@ -4758,9 +4729,16 @@ cli_cluster_start_parse_requirements() {
 
       *)
         # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :command.parse_requirements_case_repeatable
+        # :argument.case_repeatable
+        escaped="$(printf '%q' "$1")"
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']="$escaped"
+        else
+          args['service']="${args['service']} $escaped"
+
+        fi
+        shift
 
         ;;
 
@@ -4768,14 +4746,14 @@ cli_cluster_start_parse_requirements() {
   done
 
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--service'] ]]; then
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
     values=''
-    eval "values=(${args['--service']})"
+    eval "values=(${args['service']})"
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -4859,25 +4837,6 @@ cli_cluster_stop_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service | -s)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          escaped="$(printf '%q' "$2")"
-          if [[ -z ${args['--service']+x} ]]; then
-            args['--service']="$escaped"
-          else
-            args['--service']="${args['--service']} $escaped"
-          fi
-          shift
-          shift
-        else
-          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --volumes | -v)
 
         # :flag.case_no_arg
@@ -4892,9 +4851,16 @@ cli_cluster_stop_parse_requirements() {
 
       *)
         # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :command.parse_requirements_case_repeatable
+        # :argument.case_repeatable
+        escaped="$(printf '%q' "$1")"
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']="$escaped"
+        else
+          args['service']="${args['service']} $escaped"
+
+        fi
+        shift
 
         ;;
 
@@ -4902,14 +4868,14 @@ cli_cluster_stop_parse_requirements() {
   done
 
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--service'] ]]; then
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
     values=''
-    eval "values=(${args['--service']})"
+    eval "values=(${args['service']})"
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -4993,25 +4959,6 @@ cli_cluster_restart_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service | -s)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          escaped="$(printf '%q' "$2")"
-          if [[ -z ${args['--service']+x} ]]; then
-            args['--service']="$escaped"
-          else
-            args['--service']="${args['--service']} $escaped"
-          fi
-          shift
-          shift
-        else
-          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --remove-orphans | -r)
 
         # :flag.case_no_arg
@@ -5034,9 +4981,16 @@ cli_cluster_restart_parse_requirements() {
 
       *)
         # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :command.parse_requirements_case_repeatable
+        # :argument.case_repeatable
+        escaped="$(printf '%q' "$1")"
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']="$escaped"
+        else
+          args['service']="${args['service']} $escaped"
+
+        fi
+        shift
 
         ;;
 
@@ -5044,14 +4998,14 @@ cli_cluster_restart_parse_requirements() {
   done
 
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--service'] ]]; then
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
     values=''
-    eval "values=(${args['--service']})"
+    eval "values=(${args['service']})"
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -5095,25 +5049,6 @@ cli_cluster_build_parse_requirements() {
         shift
         ;;
 
-      # :flag.case
-      --service | -s)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          escaped="$(printf '%q' "$2")"
-          if [[ -z ${args['--service']+x} ]]; then
-            args['--service']="$escaped"
-          else
-            args['--service']="${args['--service']} $escaped"
-          fi
-          shift
-          shift
-        else
-          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
-          exit 1
-        fi
-        ;;
-
       -?*)
         printf "invalid option: %s\n" "$key" >&2
         exit 1
@@ -5121,9 +5056,16 @@ cli_cluster_build_parse_requirements() {
 
       *)
         # :command.parse_requirements_case
-        # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :command.parse_requirements_case_repeatable
+        # :argument.case_repeatable
+        escaped="$(printf '%q' "$1")"
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']="$escaped"
+        else
+          args['service']="${args['service']} $escaped"
+
+        fi
+        shift
 
         ;;
 
@@ -5131,14 +5073,14 @@ cli_cluster_build_parse_requirements() {
   done
 
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--service'] ]]; then
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
     values=''
-    eval "values=(${args['--service']})"
+    eval "values=(${args['service']})"
     for value in "${values[@]}"; do
       validation_output="$(validate_cluster_service "$value")"
       if [[ -n "$validation_output" ]]; then
-        printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+        printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
         exit 1
       fi
     done
@@ -5175,20 +5117,6 @@ cli_logs_parse_requirements() {
     key="$1"
     case "$key" in
       # :flag.case
-      --service | -s)
-
-        # :flag.case_arg
-        if [[ -n ${2+x} ]]; then
-          args['--service']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--service requires an argument: --service, -s SERVICE" >&2
-          exit 1
-        fi
-        ;;
-
-      # :flag.case
       --tail | -t)
 
         # :flag.case_arg
@@ -5210,26 +5138,33 @@ cli_logs_parse_requirements() {
       *)
         # :command.parse_requirements_case
         # :command.parse_requirements_case_simple
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        # :argument.case
+        if [[ -z ${args['service']+x} ]]; then
+          args['service']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
     esac
   done
 
-  # :command.required_flags_filter
-  if [[ -z ${args['--service']+x} ]]; then
-    printf "missing required flag: --service, -s SERVICE\n" >&2
+  # :command.required_args_filter
+  if [[ -z ${args['service']+x} ]]; then
+    printf "missing required argument: SERVICE\nusage: cli logs SERVICE [OPTIONS]\n" >&2
+
     exit 1
   fi
 
   # :command.validations
-  # :flag.validations
-  if [[ -v args['--service'] ]]; then
-    validation_output="$(validate_cluster_service "${args['--service']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--service, -s SERVICE" "$validation_output" >&2
+  # :argument.validations
+  if [[ -v args['service'] ]]; then
+    validation_output="$(validate_cluster_service "${args['service']:-}")"
+    if [[ -n "$validation_output" ]]; then
+      printf "validation error in %s:\n%s\n" "SERVICE" "$validation_output" >&2
       exit 1
     fi
   fi

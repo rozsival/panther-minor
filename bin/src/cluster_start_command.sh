@@ -2,8 +2,8 @@ panther_cluster_start() {
   local -a compose_args=(up)
   local service_args=''
 
-  if [[ -n ${args[--service]+x} ]]; then
-    service_args="${args[--service]}"
+  if [[ -n ${args[service]+x} ]]; then
+    service_args="${args[service]}"
     # Bashly stores repeatable flags as a space-delimited string.
     # shellcheck disable=SC2206
     local -a services=(${service_args})
@@ -16,7 +16,7 @@ panther_cluster_start() {
     compose_args+=(--remove-orphans)
   fi
 
-  if [[ -n ${args[--service]+x} ]]; then
+  if [[ -n ${args[service]+x} ]]; then
     panther_log_info "Starting selected services: ${service_args}..."
     panther_compose "${compose_args[@]}"
     panther_log_success "Selected services started: ${service_args}."
