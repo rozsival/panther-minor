@@ -20,11 +20,15 @@
             "type": "string"
           },
           "thinking": {
-            "description": "Whether the model supports thinking mode",
+            "description": "Whether the model has thinking capabilities",
+            "type": "boolean"
+          },
+          "vision": {
+            "description": "Whether the model has vision capabilities",
             "type": "boolean"
           }
         },
-        "required": ["name", "repository", "file", "thinking"],
+        "required": ["name", "repository", "file", "thinking", "vision"],
         "type": "object"
       },
       "type": "array"

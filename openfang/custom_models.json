@@ -9,7 +9,7 @@
     "input_cost_per_m": 0.0,
     "output_cost_per_m": 0.0,
     "supports_tools": true,
-    "supports_vision": false,
+    "supports_vision": true,
     "supports_streaming": true,
     "aliases": []
   },
@@ -23,7 +23,7 @@
     "input_cost_per_m": 0.0,
     "output_cost_per_m": 0.0,
     "supports_tools": true,
-    "supports_vision": false,
+    "supports_vision": true,
     "supports_streaming": true,
     "aliases": []
   },
@@ -65,7 +65,7 @@
     "input_cost_per_m": 0.0,
     "output_cost_per_m": 0.0,
     "supports_tools": true,
-    "supports_vision": false,
+    "supports_vision": true,
     "supports_streaming": true,
     "aliases": []
   },
@@ -79,7 +79,7 @@
     "input_cost_per_m": 0.0,
     "output_cost_per_m": 0.0,
     "supports_tools": true,
-    "supports_vision": false,
+    "supports_vision": true,
     "supports_streaming": true,
     "aliases": []
   }
