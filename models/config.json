@@ -8,12 +8,6 @@
       "thinking": true
     },
     {
-      "file": "Qwen3.5-2B-Q8_0.gguf",
-      "name": "panther-blazer",
-      "repository": "unsloth/Qwen3.5-2B-GGUF",
-      "thinking": true
-    },
-    {
       "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
       "name": "panther-coder",
       "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
@@ -24,6 +18,12 @@
       "name": "panther-coder-next",
       "repository": "unsloth/Qwen3-Coder-Next-GGUF",
       "thinking": false
+    },
+    {
+      "file": "Qwen3.5-2B-Q8_0.gguf",
+      "name": "panther-blazer",
+      "repository": "unsloth/Qwen3.5-2B-GGUF",
+      "thinking": true
     }
   ],
   "version": "1"

@@ -114,6 +114,7 @@ services:
     volumes:
       - 'openfang-data:${OPENFANG_HOME}/data'
       - './openfang/config.toml:${OPENFANG_HOME}/config.toml.default'
+      - './openfang/custom_models.json:${OPENFANG_HOME}/custom_models.json'
     expose:
       - 4200
     networks:

@@ -147,8 +147,8 @@ the infrastructure as code approach.
 > [Docker Credential Helper Setup for Ubuntu Server](https://gist.github.com/rozsival/7d82711ca08d5159633db241d698810d)
 > to enable secure authentication with private registries from the server.
 
-Default config is mount at `${OPENFANG_HOME}/config.toml.default`, your image can use this as a base and override any
-parameters as needed.
+Default config is mount at `${OPENFANG_HOME}/config.toml.default`. Your image can use this as a base for connecting to
+the cluster services and apply any custom configuration your agents may require.
 
 You can also set custom `./openfang/.env` variables that will be injected into the OpenFang container at runtime. This
 allows you to configure the service according to your image build and orchestration needs.
