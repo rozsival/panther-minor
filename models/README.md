@@ -13,14 +13,11 @@
 
 ## Usage
 
-Supported models are stored in `config.json`. It contains name and Hugging Face repository with base file for
-each model.
+Supported models are stored in `config.json`. See `schema.json` for the configuration schema.
 
 Then, `llama-cpp` service runs server
 in [router mode](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#using-multiple-models) serving models
 via `preset.ini` [configuration](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#model-presets).
-
-The bundled `llama-cpp` image is pinned to an official `ggml-org/llama.cpp` release.
 
 ### Model Management
 

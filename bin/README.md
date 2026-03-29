@@ -44,7 +44,7 @@ Important:
 - Edit `./bin/src/lib/*.sh` for shared logic
 - Edit `./bin/src/lib/validations/*` for custom validations
 - Edit `./bin/src/initialize.sh` for pre-parse normalization/bootstrapping
-- DO NOT read/write `./cli`, it is generated
+- DO NOT read/write `./bin/cli`, it is generated
 - Prefer `bashly generate` without `--force`; `--force` can recreate placeholder command files and overwrite authored
   bodies
 
