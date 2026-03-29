@@ -192,8 +192,12 @@ To only rebuild the cluster without starting:
 
 #### Extending the Cluster
 
-You can easily extend the cluster with additional services by creating `docker-compose.override.yml` in the root of the
-project. This file will be automatically picked up by Docker Compose and merged with the base configuration.
+You can easily extend the cluster with additional services or configurations by creating `docker-compose.override.yml`
+in the root of the project. This file will be automatically picked up by Docker Compose and merged with the base
+configuration.
+
+Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom compose file(s). Ensure the base
+`docker-compose.yml` is always included.
 
 > [!IMPORTANT]
 > Ensure to configure proper network and volume mounts for your custom services in the override file to integrate them
