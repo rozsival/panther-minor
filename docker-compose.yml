@@ -9,7 +9,9 @@ networks:
 volumes:
   llama-cpp-data:
   open-webui-data:
+  openfang-agents:
   openfang-data:
+  openfang-workspaces:
   prometheus-data:
   grafana-data:
 
@@ -112,7 +114,9 @@ services:
       - path: './openfang/.env'
         required: false
     volumes:
+      - 'openfang-agents:${OPENFANG_HOME}/agents'
       - 'openfang-data:${OPENFANG_HOME}/data'
+      - 'openfang-workspaces:${OPENFANG_HOME}/workspaces'
       - './openfang/config.toml:${OPENFANG_HOME}/config.toml.default'
       - './openfang/custom_models.json:${OPENFANG_HOME}/custom_models.json'
     expose:
