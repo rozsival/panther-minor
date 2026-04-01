@@ -8,24 +8,24 @@ pre-commit:
   jobs:
     - run: pnpm run build:cli
       glob:
-        - "bin/src/bashly.yml"
-        - "bin/src/**/*.sh"
+        - 'bin/src/bashly.yml'
+        - 'bin/src/**/*.sh'
       stage_fixed: true
 
     - run: pnpm ultracite fix
       glob:
-        - "**/*.js"
-        - "**/*.md"
-        - "**/*.json"
-        - "**/*.jsonc"
+        - '**/*.js'
+        - '**/*.md'
+        - '**/*.json'
+        - '**/*.jsonc'
       stage_fixed: true
 
     - run: pnpm prettier --write {staged_files}
       glob:
-        - "**/*.md"
-        - "**/*.toml"
-        - "**/*.yaml"
-        - "**/*.yml"
-        - "package.json"
-        - "panther-minor.code-workspace"
+        - '**/*.md'
+        - '**/*.toml'
+        - '**/*.yaml'
+        - '**/*.yml'
+        - 'package.json'
+        - 'panther-minor.code-workspace'
       stage_fixed: true
