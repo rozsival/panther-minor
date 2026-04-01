@@ -27,23 +27,23 @@ services:
     privileged: true
     restart: unless-stopped
     devices:
-      - '/dev/kfd:/dev/kfd'
-      - '/dev/dri:/dev/dri'
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
     group_add:
-      - '${VIDEO_GID}'
-      - '${RENDER_GID}'
+      - "${VIDEO_GID}"
+      - "${RENDER_GID}"
     environment:
       HF_TOKEN: ${HF_TOKEN}
       HIP_VISIBLE_DEVICES: ${ROCM_VISIBLE_DEVICES}
     volumes:
-      - 'llama-cpp-data:/root/.cache'
-      - './models:/models:ro'
+      - "llama-cpp-data:/root/.cache"
+      - "./models:/models:ro"
     expose:
       - 8000
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000/health' ]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -53,26 +53,27 @@ services:
   llama-metrics-exporter:
     image: node:24-trixie-slim
     restart: unless-stopped
-    command: [ 'node', '/app/main.js' ]
+    command: ["node", "/app/main.js"]
     environment:
       CACHE_TTL_SECONDS: 5
-      LLAMA_SERVER_URL: 'http://llama-cpp:8000'
+      LLAMA_SERVER_URL: "http://llama-cpp:8000"
       LOG_LEVEL: info
       PORT: 9101
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
-      - './monitoring/llama-metrics-exporter.js:/app/main.js:ro'
+      - "./monitoring/llama-metrics-exporter.js:/app/main.js:ro"
     expose:
       - 9101
     networks:
       - ai
     healthcheck:
-      test: [
-        'CMD',
-        'node',
-        '-e',
-        "fetch('http://localhost:9101/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
-      ]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:9101/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -85,17 +86,17 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: 'http://llama-cpp:8000/v1'
-      OPENAI_API_KEY: 'llama-cpp'
-      WEBUI_AUTH: 'false'
+      OPENAI_API_BASE_URL: "http://llama-cpp:8000/v1"
+      OPENAI_API_KEY: "llama-cpp"
+      WEBUI_AUTH: "false"
     volumes:
-      - 'open-webui-data:/app/backend/data'
+      - "open-webui-data:/app/backend/data"
     expose:
       - 8080
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8080/api/health' ]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -110,19 +111,19 @@ services:
     environment:
       OPENFANG_HOME: ${OPENFANG_HOME}
     env_file:
-      - path: './openfang/.env'
+      - path: "./openfang/.env"
         required: false
     volumes:
-      - 'openfang-data:${OPENFANG_HOME}/data'
-      - 'openfang-workspaces:${OPENFANG_HOME}/workspaces'
-      - './openfang/config.toml:${OPENFANG_HOME}/config.toml.default'
-      - './openfang/custom_models.json:${OPENFANG_HOME}/custom_models.json'
+      - "openfang-data:${OPENFANG_HOME}/data"
+      - "openfang-workspaces:${OPENFANG_HOME}/workspaces"
+      - "./openfang/config.toml:${OPENFANG_HOME}/config.toml.default"
+      - "./openfang/custom_models.json:${OPENFANG_HOME}/custom_models.json"
     expose:
       - 4200
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:4200/api/health' ]
+      test: ["CMD", "curl", "-f", "http://localhost:4200/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -135,11 +136,11 @@ services:
     image: rocm/device-metrics-exporter:v1.5.0-beta.0
     restart: unless-stopped
     devices:
-      - '/dev/kfd:/dev/kfd'
-      - '/dev/dri:/dev/dri'
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
     group_add:
-      - '${VIDEO_GID}'
-      - '${RENDER_GID}'
+      - "${VIDEO_GID}"
+      - "${RENDER_GID}"
     expose:
       - 5000
     networks:
@@ -151,16 +152,16 @@ services:
     restart: unless-stopped
     pid: host
     volumes:
-      - '/proc:/host/proc:ro'
-      - '/sys:/host/sys:ro'
-      - '/:/rootfs:ro'
+      - "/proc:/host/proc:ro"
+      - "/sys:/host/sys:ro"
+      - "/:/rootfs:ro"
     command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.hwmon'
-      - '--collector.thermal_zone'
-      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+      - "--path.procfs=/host/proc"
+      - "--path.rootfs=/rootfs"
+      - "--path.sysfs=/host/sys"
+      - "--collector.hwmon"
+      - "--collector.thermal_zone"
+      - "--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)"
     expose:
       - 9100
     networks:
@@ -171,19 +172,19 @@ services:
     image: prom/prometheus:v3.10.0
     restart: unless-stopped
     volumes:
-      - 'prometheus-data:/prometheus'
-      - './monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+      - "prometheus-data:/prometheus"
+      - "./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.time=30d'
-      - '--web.enable-lifecycle'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
     expose:
       - 9090
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD-SHELL', 'wget -q -O- http://localhost:9090/-/healthy >/dev/null || exit 1' ]
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:9090/-/healthy >/dev/null || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -202,15 +203,15 @@ services:
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: true
     volumes:
-      - 'grafana-data:/var/lib/grafana'
-      - './monitoring/grafana/provisioning:/etc/grafana/provisioning:ro'
-      - './monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro'
+      - "grafana-data:/var/lib/grafana"
+      - "./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro"
+      - "./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro"
     expose:
       - 3000
     networks:
       - ai
     healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:3000/api/health' ]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -223,14 +224,14 @@ services:
     image: nginx:1.29.7-trixie
     restart: unless-stopped
     ports:
-      - '3000:3000'
-      - '4200:4200'
-      - '8000:8000'
-      - '8080:8080'
-      - '9090:9090'
+      - "3000:3000"
+      - "4200:4200"
+      - "8000:8000"
+      - "8080:8080"
+      - "9090:9090"
     volumes:
-      - './proxy/nginx.conf:/etc/nginx/nginx.conf:ro'
-      - './proxy/ssl:/etc/nginx/ssl:ro'
+      - "./proxy/nginx.conf:/etc/nginx/nginx.conf:ro"
+      - "./proxy/ssl:/etc/nginx/ssl:ro"
     networks:
       - ai
     depends_on:

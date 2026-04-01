@@ -176,7 +176,7 @@ To only rebuild the cluster without starting:
 ### Services
 
 | Service                | Description                                                    |
-|------------------------|----------------------------------------------------------------|
+| ---------------------- | -------------------------------------------------------------- |
 | llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support |
 | open-webui             | Chat interface for interacting with LLMs                       |
 | openfang               | Agent orchestration platform                                   |
@@ -188,7 +188,6 @@ To only rebuild the cluster without starting:
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
->
 
 #### Extending the Cluster
 

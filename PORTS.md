@@ -14,7 +14,7 @@
 ### Public Internet Access
 
 | Port | Service |
-|------|---------|
+| ---- | ------- |
 | 2222 | SSH     |
 | 80   | HTTP    |
 | 443  | HTTPS   |
@@ -22,7 +22,7 @@
 ### Tailscale/Local Only
 
 | Port | Service    |
-|------|------------|
+| ---- | ---------- |
 | 8000 | llama-cpp  |
 | 8080 | open-webui |
 | 4200 | openfang   |

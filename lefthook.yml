@@ -19,3 +19,12 @@ pre-commit:
         - "**/*.json"
         - "**/*.jsonc"
       stage_fixed: true
+
+    - run: pnpm prettier --write {staged_files}
+      glob:
+        - "**/*.md"
+        - "**/*.toml"
+        - "**/*.yaml"
+        - "**/*.yml"
+        - "package.json"
+      stage_fixed: true
