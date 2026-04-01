@@ -1,6 +1,7 @@
 **/*.js
 **/*.json
 !package.json
+/biome.jsonc
 /node_modules
 /pnpm-lock.yaml
 /tests

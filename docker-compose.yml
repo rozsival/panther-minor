@@ -72,7 +72,7 @@ services:
           "CMD",
           "node",
           "-e",
-          "fetch('http://localhost:9101/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+          "fetch('http://localhost:9101/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
         ]
       interval: 30s
       timeout: 10s

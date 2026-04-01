@@ -14,7 +14,7 @@
     "check": "ultracite check",
     "fix": "ultracite fix",
     "fix:unsafe": "ultracite fix --unsafe",
-    "format": "prettier --check --write \"**/*.{md,toml,yaml,yml}\" \"package.json\"",
+    "format": "prettier --check --write .",
     "postinstall": "is-ci || lefthook install",
     "test": "node --test \"**/*.test.js\""
   },

@@ -27,4 +27,5 @@ pre-commit:
         - "**/*.yaml"
         - "**/*.yml"
         - "package.json"
+        - "panther-minor.code-workspace"
       stage_fixed: true
