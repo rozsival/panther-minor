@@ -171,7 +171,7 @@ services:
 
   # -- Prometheus -------------------------------------------------------------
   prometheus:
-    image: prom/prometheus:v3.10.0
+    image: prom/prometheus:v3.11.0
     restart: unless-stopped
     volumes:
       - 'prometheus-data:/prometheus'
