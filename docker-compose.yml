@@ -13,6 +13,7 @@ volumes:
   openfang-workspaces:
   prometheus-data:
   grafana-data:
+  proxy-logs:
 
 services:
   # -- llama.cpp --------------------------------------------------------------
@@ -232,6 +233,7 @@ services:
       - '8080:8080'
       - '9090:9090'
     volumes:
+      - 'proxy-logs:/var/log/nginx'
       - './proxy/nginx.conf:/etc/nginx/nginx.conf:ro'
       - './proxy/ssl:/etc/nginx/ssl:ro'
     networks:
