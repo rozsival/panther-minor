@@ -7,7 +7,7 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://<domain>:8000/v1",
-        "chunkTimeout": 30000,
+        "chunkTimeout": 600000,
         "setCacheKey": true,
         "timeout": 600000
       },

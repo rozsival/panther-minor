@@ -35,6 +35,8 @@ services:
     environment:
       HF_TOKEN: ${HF_TOKEN}
       HIP_VISIBLE_DEVICES: ${ROCM_VISIBLE_DEVICES}
+    tmpfs:
+      - '/llama-slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
       - 'llama-cpp-data:/root/.cache'
       - './models:/models:ro'

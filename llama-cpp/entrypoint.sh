@@ -8,4 +8,5 @@ exec /opt/llama-cpp/build/bin/llama-server \
   --models-max 1 \
   --models-preset /models/preset.ini \
   --port 8000 \
+  --slot-save-path /llama-slots \
   --ubatch-size 256
