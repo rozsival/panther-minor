@@ -1,13 +1,13 @@
 # Models
 
-| Model                   | Base                                        | Q   | Ctx  | Out        | Purpose                                                          |
-| ----------------------- | ------------------------------------------- | --- | ---- | ---------- | ---------------------------------------------------------------- |
-| `panther-minor` 🧠 👀   | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 8   | 128k | 4k (6k 🧠) | Balanced general-purpose model for daily assistance              |
-| `panther-coder`         | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 8   | 128k | 4k         | Balanced default for daily coding work                           |
-| `panther-coder-next`    | `unsloth/Qwen3-Coder-Next-GGUF`             | 4   | 128k | 6k         | Advanced agentic capabilities model for complex coding tasks     |
-| `panther-coder-large`   | `unsloth/Qwen3-Coder-Next-GGUF`             | 8   | 256k | 8k         | High precision (slower inference) model for complex coding tasks |
-| `panther-blazer` 🧠 👀  | `unsloth/Qwen3.5-2B-GGUF`                   | 8   | 128k | 2k (4k 🧠) | Light-weight general-purpose model for blazing fast inference    |
-| `panther-embeddings` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF`            | 8   | 32k  | -          | Lightweight embedding model for retrieval-augmented generation   |
+| Model                  | Base                                        | Q   | Ctx  | Out        | Purpose                                                          |
+| ---------------------- | ------------------------------------------- | --- | ---- | ---------- | ---------------------------------------------------------------- |
+| `panther-minor` 🧠 👀  | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 8   | 128k | 4k (6k 🧠) | Balanced general-purpose model for daily assistance              |
+| `panther-coder`        | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 8   | 128k | 4k         | Balanced default for daily coding work                           |
+| `panther-coder-next`   | `unsloth/Qwen3-Coder-Next-GGUF`             | 4   | 128k | 6k         | Advanced agentic capabilities model for complex coding tasks     |
+| `panther-coder-large`  | `unsloth/Qwen3-Coder-Next-GGUF`             | 8   | 256k | 8k         | High precision (slower inference) model for complex coding tasks |
+| `panther-blazer` 🧠 👀 | `unsloth/Qwen3.5-2B-GGUF`                   | 8   | 128k | 2k (4k 🧠) | Light-weight general-purpose model for blazing fast inference    |
+| `panther-embedding` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF`            | 8   | 32k  | -          | Lightweight embedding model for retrieval-augmented generation   |
 
 - 🧠 – with thinking preset
 - 👀 – vision capabilities

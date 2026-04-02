@@ -39,7 +39,7 @@
       "vision": true
     },
     {
-      "name": "panther-embeddings",
+      "name": "panther-embedding",
       "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
       "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
       "thinking": false,
