@@ -37,6 +37,13 @@
       "repository": "unsloth/Qwen3.5-2B-GGUF",
       "thinking": true,
       "vision": true
+    },
+    {
+      "name": "panther-embeddings",
+      "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+      "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
+      "thinking": false,
+      "vision": false
     }
   ],
   "version": "1"
