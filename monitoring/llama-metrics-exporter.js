@@ -44,6 +44,18 @@ const cache = {
   timestampMs: 0,
 };
 
+const modelsCache = {
+  models: null,
+  timestampMs: 0,
+};
+
+const MODELS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+export function resetModelsCache() {
+  modelsCache.models = null;
+  modelsCache.timestampMs = 0;
+}
+
 export function normalizeModelsPayload(payload) {
   const data = Array.isArray(payload?.data) ? payload.data : [];
   const models = [];
@@ -51,7 +63,7 @@ export function normalizeModelsPayload(payload) {
 
   for (const item of data) {
     const id = typeof item?.id === 'string' ? item.id.trim() : '';
-    if (!id || seen.has(id)) {
+    if (!id || seen.has(id) || id.toLowerCase().includes('embedding')) {
       continue;
     }
 
@@ -185,18 +197,29 @@ async function fetchJson(pathname, fetchImpl = fetch) {
 }
 
 export async function fetchModelsList(fetchImpl = fetch) {
+  const nowMs = Date.now();
+  if (modelsCache.models && nowMs - modelsCache.timestampMs < MODELS_CACHE_TTL_MS) {
+    log('debug', 'models_cache_hit', { ageMs: nowMs - modelsCache.timestampMs });
+    return modelsCache.models;
+  }
+
   const payload = await fetchJson('/v1/models', fetchImpl);
   const models = normalizeModelsPayload(payload);
   log('info', 'models_discovered', {
     count: models.length,
     loaded: models.filter((model) => model.status === 'loaded').map((model) => model.id),
   });
+
+  modelsCache.models = models;
+  modelsCache.timestampMs = nowMs;
+
   return models;
 }
 
 export async function fetchMetricsText(model, fetchImpl = fetch) {
   const url = new URL(`${LLAMA_SERVER_URL}/metrics`);
   url.searchParams.set('model', model);
+  url.searchParams.set('autoload', 'false');
   log('info', 'model_metrics_request_start', { model, url: url.toString() });
 
   const response = await fetchImpl(url, {

@@ -9,6 +9,7 @@ import {
   mergeMetricsForModels,
   normalizeModelsPayload,
   pickLoadedModel,
+  resetModelsCache,
 } from './llama-metrics-exporter.js';
 
 test('normalizeModelsPayload maps OpenAI models response', () => {
@@ -24,6 +25,19 @@ test('normalizeModelsPayload maps OpenAI models response', () => {
     { id: 'panther-minor', status: 'loaded' },
     { id: 'panther-coder', status: 'unloaded' },
   ]);
+});
+
+test('normalizeModelsPayload excludes models with "embedding" in the id', () => {
+  const models = normalizeModelsPayload({
+    data: [
+      { id: 'panther-minor', status: { value: 'loaded' } },
+      { id: 'panther-embedding', status: { value: 'loaded' } },
+      { id: 'text-embedding-3-small', status: { value: 'unloaded' } },
+    ],
+    object: 'list',
+  });
+
+  assert.deepEqual(models, [{ id: 'panther-minor', status: 'loaded' }]);
 });
 
 test('pickLoadedModel returns first loaded model', () => {
@@ -85,6 +99,7 @@ test('exporterStatusLines reports discovered and loaded states', () => {
 });
 
 test('buildMetricsPayload scrapes metrics only for the single loaded model', async () => {
+  resetModelsCache();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
@@ -114,7 +129,10 @@ test('buildMetricsPayload scrapes metrics only for the single loaded model', asy
 
   const payload = await buildMetricsPayload(fetchImpl);
 
-  assert.deepEqual(calls, ['http://llama-cpp:8000/v1/models', 'http://llama-cpp:8000/metrics?model=panther-minor']);
+  assert.deepEqual(calls, [
+    'http://llama-cpp:8000/v1/models',
+    'http://llama-cpp:8000/metrics?model=panther-minor&autoload=false',
+  ]);
   assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
   assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
@@ -122,6 +140,7 @@ test('buildMetricsPayload scrapes metrics only for the single loaded model', asy
 });
 
 test('buildMetricsPayload skips metrics scrape when no model is loaded', async () => {
+  resetModelsCache();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
