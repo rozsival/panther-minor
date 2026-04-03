@@ -135,7 +135,7 @@ export function mergeMetricsForModels(modelToMetrics) {
   return lines;
 }
 
-export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
+export function exporterStatusLines(models, scrapedModelIds) {
   const loadedCount = models.filter((model) => model.status === 'loaded').length;
   const lines = [
     '# HELP llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
@@ -147,9 +147,9 @@ export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
     '# HELP llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /v1/models.',
     '# TYPE llama_metrics_exporter_loaded_models gauge',
     `llama_metrics_exporter_loaded_models ${loadedCount}`,
-    '# HELP llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics for the selected loaded model succeeded.',
+    '# HELP llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics succeeded for at least one model.',
     '# TYPE llama_metrics_exporter_metrics_scrape_up gauge',
-    `llama_metrics_exporter_metrics_scrape_up ${metricsScrapeOk ? 1 : 0}`,
+    `llama_metrics_exporter_metrics_scrape_up ${scrapedModelIds.size > 0 ? 1 : 0}`,
     '# HELP llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
     '# TYPE llama_metrics_exporter_model_loaded gauge',
     '# HELP llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
@@ -160,9 +160,7 @@ export function exporterStatusLines(models, loadedModelId, metricsScrapeOk) {
     const isLoaded = model.status === 'loaded';
     lines.push(`llama_metrics_exporter_model_loaded{model="${escapeLabelValue(model.id)}"} ${isLoaded ? 1 : 0}`);
     lines.push(
-      `llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${
-        metricsScrapeOk && loadedModelId === model.id ? 1 : 0
-      }`
+      `llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${scrapedModelIds.has(model.id) ? 1 : 0}`
     );
   }
 
@@ -269,32 +267,29 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
 export async function buildMetricsPayload(fetchImpl = fetch) {
   log('info', 'scrape_cycle_start');
   const models = await fetchModelsList(fetchImpl);
-  const loadedModel = pickLoadedModel(models);
   const modelToMetrics = {};
-  let metricsScrapeOk = false;
+  const scrapedModelIds = new Set();
 
-  if (loadedModel) {
-    log('info', 'loaded_model_selected', { model: loadedModel.id });
-    try {
-      modelToMetrics[loadedModel.id] = await fetchMetricsText(loadedModel.id, fetchImpl);
-      metricsScrapeOk = true;
-    } catch {
-      metricsScrapeOk = false;
-    }
-  } else {
-    log('warn', 'no_loaded_model_reported');
+  await Promise.all(
+    models.map(async (model) => {
+      try {
+        modelToMetrics[model.id] = await fetchMetricsText(model.id, fetchImpl);
+        scrapedModelIds.add(model.id);
+      } catch {
+        // scrape failed for this model, continue with others
+      }
+    })
+  );
+
+  if (scrapedModelIds.size === 0) {
+    log('warn', 'no_models_scraped');
   }
 
-  const lines = [
-    ...exporterStatusLines(models, loadedModel?.id ?? '', metricsScrapeOk),
-    ...mergeMetricsForModels(modelToMetrics),
-    '',
-  ];
+  const lines = [...exporterStatusLines(models, scrapedModelIds), ...mergeMetricsForModels(modelToMetrics), ''];
 
   log('info', 'scrape_cycle_done', {
     discoveredModels: models.length,
-    loadedModel: loadedModel?.id ?? null,
-    metricsScrapeOk,
+    scrapedModels: [...scrapedModelIds],
   });
 
   return lines.join('\n');

@@ -85,8 +85,7 @@ test('exporterStatusLines reports discovered and loaded states', () => {
       { id: 'panther-minor', status: 'loaded' },
       { id: 'panther-coder', status: 'unloaded' },
     ],
-    'panther-minor',
-    true
+    new Set(['panther-minor'])
   ).join('\n');
 
   assert.match(lines, /llama_metrics_exporter_discovered_models 2/);
@@ -98,7 +97,7 @@ test('exporterStatusLines reports discovered and loaded states', () => {
   assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
 });
 
-test('buildMetricsPayload scrapes metrics only for the single loaded model', async () => {
+test('buildMetricsPayload scrapes metrics for all available models', async () => {
   resetModelsCache();
   const calls = [];
   const fetchImpl = (url, _options) => {
@@ -129,17 +128,18 @@ test('buildMetricsPayload scrapes metrics only for the single loaded model', asy
 
   const payload = await buildMetricsPayload(fetchImpl);
 
-  assert.deepEqual(calls, [
-    'http://llama-cpp:8000/v1/models',
-    'http://llama-cpp:8000/metrics?model=panther-minor&autoload=false',
-  ]);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
+  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 1/);
   assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 100/);
-  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="panther-coder"}/);
+  assert.match(payload, /llamacpp_tokens_predicted_total\{model="panther-coder"} 200/);
 });
 
-test('buildMetricsPayload skips metrics scrape when no model is loaded', async () => {
+test('buildMetricsPayload attempts metrics scrape for all models even when none are loaded', async () => {
   resetModelsCache();
   const calls = [];
   const fetchImpl = (url, _options) => {
@@ -158,15 +158,19 @@ test('buildMetricsPayload skips metrics scrape when no model is loaded', async (
       );
     }
 
-    throw new Error('metrics endpoint should not be called without a loaded model');
+    return new Response('model not loaded', { status: 404 });
   };
 
   const payload = await buildMetricsPayload(fetchImpl);
 
-  assert.deepEqual(calls, ['http://llama-cpp:8000/v1/models']);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);
   assert.match(payload, /llama_metrics_exporter_model_up\{model="panther-minor"} 0/);
   assert.match(payload, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
 });
