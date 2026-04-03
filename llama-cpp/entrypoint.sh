@@ -2,11 +2,12 @@
 
 # -- llama.cpp server entrypoint ----------------------------------------------
 exec /opt/llama-cpp/build/bin/llama-server \
-  --batch-size 1024 \
+  --batch-size "$LLAMA_CPP_BATCH_SIZE" \
   --host 0.0.0.0 \
   --metrics \
-  --models-max 2 \
+  --models-max "$LLAMA_CPP_MODELS_MAX" \
   --models-preset /models/preset.ini \
   --port 8000 \
+  --sleep-idle-seconds "$LLAMA_CPP_SLEEP_IDLE_SECONDS" \
   --slot-save-path /llama-slots \
-  --ubatch-size 256
+  --ubatch-size "$LLAMA_CPP_UBATCH_SIZE"
