@@ -198,17 +198,17 @@ Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 
 ### Services
 
-| Service                | Description                                                              |
-| ---------------------- | ------------------------------------------------------------------------ |
-| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support           |
+| Service                | Description                                                               |
+| ---------------------- | ------------------------------------------------------------------------- |
+| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support            |
 | llama-manager          | Activity-aware reverse proxy; tracks inference activity for GPU idle mode |
-| open-webui             | Chat interface for interacting with LLMs                                 |
-| openfang               | Agent orchestration platform                                             |
-| grafana                | Monitoring dashboard with pre-configured GPU and host metrics            |
-| prometheus             | Time-series database for collecting and storing metrics                  |
-| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                   |
-| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)              |
-| llama-metrics-exporter | Prometheus exporter for llama.cpp metrics                                |
+| open-webui             | Chat interface for interacting with LLMs                                  |
+| openfang               | Agent orchestration platform                                              |
+| grafana                | Monitoring dashboard with pre-configured GPU and host metrics             |
+| prometheus             | Time-series database for collecting and storing metrics                   |
+| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                    |
+| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)               |
+| llama-metrics-exporter | Prometheus exporter for llama.cpp metrics                                 |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
