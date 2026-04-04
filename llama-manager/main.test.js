@@ -2,7 +2,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isActive, recordActivity, resetActivityTracking } from './main.js';
+import {
+  ContainerState,
+  getContainerState,
+  isActive,
+  recordActivity,
+  resetActivityTracking,
+  resetContainerState,
+} from './main.js';
 
 test('isActive returns true when LLAMA_CPP_SLEEP_IDLE_SECONDS is 0 (disabled)', () => {
   // LLAMA_CPP_SLEEP_IDLE_SECONDS defaults to 0 in test env → always active
@@ -22,4 +29,16 @@ test('resetActivityTracking clears lastActivityAt', () => {
   resetActivityTracking();
   // With SLEEP_IDLE_SECONDS=0, still always active (disabled)
   assert.ok(isActive());
+});
+
+test('ContainerState constants are defined', () => {
+  assert.equal(ContainerState.RUNNING, 'running');
+  assert.equal(ContainerState.STOPPING, 'stopping');
+  assert.equal(ContainerState.STOPPED, 'stopped');
+  assert.equal(ContainerState.STARTING, 'starting');
+});
+
+test('getContainerState returns current state, resetContainerState restores to running', () => {
+  resetContainerState();
+  assert.equal(getContainerState(), ContainerState.RUNNING);
 });

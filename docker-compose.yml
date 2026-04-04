@@ -25,6 +25,7 @@ services:
         LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
         LLAMA_CPP_REF: ${LLAMA_CPP_REF}
         ROCM_ARCH: ${ROCM_ARCH}
+    container_name: llama-cpp
     privileged: true
     restart: unless-stopped
     devices:
@@ -64,6 +65,7 @@ services:
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
+      LLAMA_CPP_CONTAINER_NAME: llama-cpp
       LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info

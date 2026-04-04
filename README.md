@@ -192,9 +192,9 @@ A dedicated `llama_metrics_exporter_idle` gauge flips to `1` during idle periods
 Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 
 > [!NOTE]
-> `llama-manager` mounts the Docker socket and is designed to eventually stop and restart the `llama-cpp` container
-> entirely (scale-to-zero), freeing both VRAM and the GPU compute context. This is not yet implemented —
-> `--sleep-idle-seconds` currently unloads model weights but keeps the ROCm context open.
+> `llama-manager` uses the Docker socket to stop the `llama-cpp` container when idle and restart it on demand
+> (scale-to-zero). This fully releases both VRAM and the GPU compute context. On the next inference request,
+> the container is started automatically and requests are queued until llama.cpp reports healthy.
 
 ### Services
 
