@@ -109,7 +109,7 @@ function scheduleIdleCheck() {
   idleTimer = setTimeout(() => {
     idleTimer = null;
     if (!isActive() && containerState === ContainerState.RUNNING) {
-      stopContainer();
+      stopContainer().catch(console.error);
     }
   }, remaining + 100);
 }
@@ -176,7 +176,7 @@ async function stopContainer() {
 
   // If requests arrived while we were stopping, start back up immediately.
   if (pendingRequests.length > 0) {
-    startContainer();
+    startContainer().catch(console.error);
   }
 }
 
@@ -346,7 +346,7 @@ export function startServer() {
     if (SCALE_TO_ZERO) {
       if (containerState === ContainerState.STOPPED) {
         pendingRequests.push({ req, res });
-        startContainer();
+        startContainer().catch(console.error);
         return;
       }
       if (containerState === ContainerState.STARTING || containerState === ContainerState.STOPPING) {
