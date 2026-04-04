@@ -112,7 +112,7 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      - llama-cpp
+      - llama-metrics-exporter
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
@@ -139,7 +139,7 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      - llama-cpp
+      - llama-metrics-exporter
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
@@ -246,7 +246,7 @@ services:
     networks:
       - ai
     depends_on:
-      - llama-cpp
+      - llama-metrics-exporter
       - open-webui
       - openfang
       - grafana

@@ -450,11 +450,31 @@ export function startServer() {
     });
   });
 
-  if (LLAMA_CPP_SLEEP_IDLE_SECONDS > 0) {
-    startProxyServer();
-  }
+  startProxyServer();
 
   return server;
+}
+
+// Hop-by-hop headers must not be forwarded (they are connection-specific).
+const HOP_BY_HOP_HEADERS = new Set([
+  'connection',
+  'keep-alive',
+  'proxy-authenticate',
+  'proxy-authorization',
+  'te',
+  'trailer',
+  'transfer-encoding',
+  'upgrade',
+]);
+
+function stripHopByHopHeaders(headers) {
+  const result = {};
+  for (const [key, value] of Object.entries(headers)) {
+    if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+      result[key] = value;
+    }
+  }
+  return result;
 }
 
 function startProxyServer() {
@@ -474,17 +494,19 @@ function startProxyServer() {
       port: Number(upstreamBase.port) || 80,
       path: req.url,
       method: req.method,
-      headers: { ...req.headers, host: upstreamBase.host },
+      headers: { ...stripHopByHopHeaders(req.headers), host: upstreamBase.host },
     };
 
     const proxyReq = httpRequest(proxyOptions, (proxyRes) => {
-      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      res.writeHead(proxyRes.statusCode, stripHopByHopHeaders(proxyRes.headers));
       proxyRes.pipe(res);
+      res.on('close', () => {
+        proxyRes.destroy();
+        proxyReq.destroy();
+      });
     });
 
     req.pipe(proxyReq);
-
-    req.on('close', () => proxyReq.destroy());
 
     proxyReq.on('error', (error) => {
       log('warn', 'proxy_upstream_error', { error: error.message, path: req.url });
