@@ -129,8 +129,16 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     environment:
+      DEFAULT_MODELS: 'panther-minor'
+      ENABLE_EVALUATION_ARENA_MODELS: false
+      ENABLE_MODELS_CACHE: true
+      ENABLE_OLLAMA_API: false
+      ENABLE_PERSISTENT_CONFIG: true
+      ENABLE_WEB_SEARCH: true
+      MODELS_CACHE_TTL: 3600
       OPENAI_API_BASE_URL: 'http://llama-manager:8000/v1'
       OPENAI_API_KEY: 'llama-cpp'
+      WEB_SEARCH_ENGINE: 'duckduckgo'
       WEBUI_AUTH: 'false'
     volumes:
       - 'open-webui-data:/app/backend/data'
