@@ -190,6 +190,17 @@ To only rebuild the cluster without starting:
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
 
+#### Extending the Cluster
+
+You can easily extend the cluster with additional services or configurations by creating `docker-compose.override.yml`
+in the root of the project. This file will be automatically picked up by Docker Compose and merged with the base
+configuration.
+
+Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom compose file(s).
+
+> [!IMPORTANT]
+> Ensure the base `docker-compose.yml` is always included.
+
 ### GPU Idle / Power Saving
 
 All inference traffic (Open WebUI, OpenFang, external clients) flows through `llama-manager`, which acts as an
@@ -212,17 +223,6 @@ Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 > `llama-manager` uses the Docker socket to stop the `llama-cpp` container when idle and restart it on demand
 > (scale-to-zero). This fully releases both VRAM and the GPU compute context. On the next inference request,
 > the container is started automatically and requests are queued until llama.cpp reports healthy.
-
-#### Extending the Cluster
-
-You can easily extend the cluster with additional services or configurations by creating `docker-compose.override.yml`
-in the root of the project. This file will be automatically picked up by Docker Compose and merged with the base
-configuration.
-
-Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom compose file(s).
-
-> [!IMPORTANT]
-> Ensure the base `docker-compose.yml` is always included.
 
 ### Stop
 
