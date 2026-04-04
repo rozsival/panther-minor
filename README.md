@@ -173,6 +173,23 @@ To only rebuild the cluster without starting:
 ./bin/cli cluster build --no-cache
 ```
 
+### Services
+
+| Service                | Description                                                               |
+| ---------------------- | ------------------------------------------------------------------------- |
+| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support            |
+| llama-manager          | Activity-aware reverse proxy; tracks inference activity for GPU idle mode |
+| open-webui             | Chat interface for interacting with LLMs                                  |
+| openfang               | Agent orchestration platform                                              |
+| grafana                | Monitoring dashboard with pre-configured GPU and host metrics             |
+| prometheus             | Time-series database for collecting and storing metrics                   |
+| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                    |
+| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)               |
+| llama-metrics-exporter | Prometheus exporter for llama.cpp metrics                                 |
+
+> [!IMPORTANT]
+> Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
+
 ### GPU Idle / Power Saving
 
 All inference traffic (Open WebUI, OpenFang, external clients) flows through `llama-manager`, which acts as an
@@ -195,23 +212,6 @@ Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 > `llama-manager` uses the Docker socket to stop the `llama-cpp` container when idle and restart it on demand
 > (scale-to-zero). This fully releases both VRAM and the GPU compute context. On the next inference request,
 > the container is started automatically and requests are queued until llama.cpp reports healthy.
-
-### Services
-
-| Service                | Description                                                               |
-| ---------------------- | ------------------------------------------------------------------------- |
-| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support            |
-| llama-manager          | Activity-aware reverse proxy; tracks inference activity for GPU idle mode |
-| open-webui             | Chat interface for interacting with LLMs                                  |
-| openfang               | Agent orchestration platform                                              |
-| grafana                | Monitoring dashboard with pre-configured GPU and host metrics             |
-| prometheus             | Time-series database for collecting and storing metrics                   |
-| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                    |
-| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)               |
-| llama-metrics-exporter | Prometheus exporter for llama.cpp metrics                                 |
-
-> [!IMPORTANT]
-> Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
 
 #### Extending the Cluster
 
