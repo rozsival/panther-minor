@@ -90,8 +90,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
-    depends_on:
-      - llama-cpp
 
   # -- llama.cpp metrics exporter ---------------------------------------------
   llama-metrics-exporter:
