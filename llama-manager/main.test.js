@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isActive, recordActivity, resetActivityTracking } from './index.js';
+import { isActive, recordActivity, resetActivityTracking } from './main.js';
 
 test('isActive returns true when LLAMA_CPP_SLEEP_IDLE_SECONDS is 0 (disabled)', () => {
   // LLAMA_CPP_SLEEP_IDLE_SECONDS defaults to 0 in test env → always active

@@ -70,7 +70,7 @@ services:
       PORT: 8000
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
-      - './llama-manager/index.js:/app/index.js:ro'
+      - './llama-manager/main.js:/app/index.js:ro'
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
     expose:
       - 8000
