@@ -175,32 +175,40 @@ To only rebuild the cluster without starting:
 
 ### GPU Idle / Power Saving
 
-`llama-metrics-exporter` acts as a reverse proxy in front of `llama-cpp`. All inference traffic
-(from Open WebUI, OpenFang, and external clients) flows through it, so it can track activity.
+All inference traffic (Open WebUI, OpenFang, external clients) flows through `llama-manager`, which acts as an
+activity-aware reverse proxy in front of `llama-cpp`.
 
-When no `/v1/chat/completions` or `/v1/completions` request has been received within the
-`LLAMA_CPP_SLEEP_IDLE_SECONDS` window, the exporter stops polling llama.cpp's `/metrics` endpoint.
-This allows llama.cpp's `--sleep-idle-seconds` flag to take effect — models are unloaded from VRAM
-and the GPUs can enter a low-power state.
+**How it works:**
 
-While idle, Prometheus still receives valid metric payloads (frozen counter values from the last
-active scrape) so Grafana dashboards continue to display history without "No data" gaps. A dedicated
-`llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
+1. `llama-manager` records every `POST /v1/chat/completions` and `POST /v1/completions` request.
+2. When no inference request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, llama.cpp's
+   `--sleep-idle-seconds` flag takes effect — models are unloaded from VRAM and the GPUs enter a low-power state.
+3. `llama-metrics-exporter` polls `llama-manager /status` before each Prometheus scrape cycle. During idle, it serves
+   frozen counter values from the last active scrape instead of hitting llama.cpp, so Grafana dashboards show history
+   without "No data" gaps.
 
-Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely (always poll).
+A dedicated `llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
+
+Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
+
+> [!NOTE]
+> `llama-manager` mounts the Docker socket and is designed to eventually stop and restart the `llama-cpp` container
+> entirely (scale-to-zero), freeing both VRAM and the GPU compute context. This is not yet implemented —
+> `--sleep-idle-seconds` currently unloads model weights but keeps the ROCm context open.
 
 ### Services
 
-| Service                | Description                                                             |
-| ---------------------- | ----------------------------------------------------------------------- |
-| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support          |
-| open-webui             | Chat interface for interacting with LLMs                                |
-| openfang               | Agent orchestration platform                                            |
-| grafana                | Monitoring dashboard with pre-configured GPU and host metrics           |
-| prometheus             | Time-series database for collecting and storing metrics                 |
-| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                  |
-| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)             |
-| llama-metrics-exporter | Exports llama.cpp metrics; proxies all API traffic for GPU idle support |
+| Service                | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support           |
+| llama-manager          | Activity-aware reverse proxy; tracks inference activity for GPU idle mode |
+| open-webui             | Chat interface for interacting with LLMs                                 |
+| openfang               | Agent orchestration platform                                             |
+| grafana                | Monitoring dashboard with pre-configured GPU and host metrics            |
+| prometheus             | Time-series database for collecting and storing metrics                  |
+| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                   |
+| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)              |
+| llama-metrics-exporter | Prometheus exporter for llama.cpp metrics                                |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.
