@@ -9,7 +9,7 @@ import {
   recordActivity,
   resetActivityTracking,
   resetContainerState,
-} from './main.js';
+} from './manager.js';
 
 test('isActive returns true when LLAMA_CPP_SLEEP_IDLE_SECONDS is 0 (disabled)', () => {
   // LLAMA_CPP_SLEEP_IDLE_SECONDS defaults to 0 in test env → always active
