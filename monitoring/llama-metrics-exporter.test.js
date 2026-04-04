@@ -3,12 +3,17 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  buildIdlePayload,
   buildMetricsPayload,
   exporterStatusLines,
   injectModelLabel,
+  isActive,
   mergeMetricsForModels,
   normalizeModelsPayload,
   pickLoadedModel,
+  recordActivity,
+  resetActivityTracking,
+  resetLastSuccessfulScrape,
   resetModelsCache,
 } from './llama-metrics-exporter.js';
 
@@ -88,6 +93,7 @@ test('exporterStatusLines reports discovered and loaded states', () => {
     new Set(['panther-minor'])
   ).join('\n');
 
+  assert.match(lines, /llama_metrics_exporter_idle 0/);
   assert.match(lines, /llama_metrics_exporter_discovered_models 2/);
   assert.match(lines, /llama_metrics_exporter_loaded_models 1/);
   assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 1/);
@@ -97,8 +103,82 @@ test('exporterStatusLines reports discovered and loaded states', () => {
   assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
 });
 
+test('exporterStatusLines reports idle state with all models unloaded and no scrape', () => {
+  const lines = exporterStatusLines(
+    [
+      { id: 'panther-minor', status: 'loaded' },
+      { id: 'panther-coder', status: 'unloaded' },
+    ],
+    new Set(['panther-minor']),
+    true
+  ).join('\n');
+
+  assert.match(lines, /llama_metrics_exporter_idle 1/);
+  assert.match(lines, /llama_metrics_exporter_loaded_models 0/);
+  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 0/);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="panther-minor"} 0/);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="panther-coder"} 0/);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-minor"} 0/);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
+});
+
+test('isActive returns true when LLAMA_CPP_SLEEP_IDLE_SECONDS is 0 (disabled)', () => {
+  // LLAMA_CPP_SLEEP_IDLE_SECONDS defaults to 0 in test env → always active
+  resetActivityTracking();
+  assert.ok(isActive());
+});
+
+test('recordActivity and buildIdlePayload serve stale model metrics', async () => {
+  resetModelsCache();
+  resetActivityTracking();
+  resetLastSuccessfulScrape();
+
+  const fetchImpl = (url, _options) => {
+    const pathname = new URL(url).pathname;
+    if (pathname === '/v1/models') {
+      return new Response(
+        JSON.stringify({
+          data: [{ id: 'panther-minor', status: { value: 'loaded' } }],
+          object: 'list',
+        }),
+        { status: 200 }
+      );
+    }
+    return new Response(
+      '# HELP llamacpp_tokens_predicted_total Total predicted tokens\n' +
+        '# TYPE llamacpp_tokens_predicted_total counter\n' +
+        'llamacpp_tokens_predicted_total 42\n',
+      { status: 200 }
+    );
+  };
+
+  // Build a real payload first to populate lastSuccessfulScrape
+  await buildMetricsPayload(fetchImpl);
+
+  // Record activity then build idle payload
+  recordActivity();
+  const idlePayload = buildIdlePayload();
+
+  assert.match(idlePayload, /llama_metrics_exporter_idle 1/);
+  assert.match(idlePayload, /llama_metrics_exporter_metrics_scrape_up 0/);
+  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="panther-minor"} 0/);
+  // Stale model counter metrics are still present to prevent Grafana "No data"
+  assert.match(idlePayload, /llamacpp_tokens_predicted_total\{model="panther-minor"} 42/);
+});
+
+test('buildIdlePayload with no prior scrape returns only status lines', () => {
+  resetLastSuccessfulScrape();
+  resetModelsCache();
+
+  const payload = buildIdlePayload();
+  assert.match(payload, /llama_metrics_exporter_up 1/);
+  assert.match(payload, /llama_metrics_exporter_idle 1/);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/);
+});
+
 test('buildMetricsPayload scrapes metrics for all available models', async () => {
   resetModelsCache();
+  resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
@@ -132,6 +212,7 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
   assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
+  assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 1/);
@@ -141,6 +222,7 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
 
 test('buildMetricsPayload attempts metrics scrape for all models even when none are loaded', async () => {
   resetModelsCache();
+  resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
@@ -167,6 +249,7 @@ test('buildMetricsPayload attempts metrics scrape for all models even when none 
   assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
+  assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);
   assert.match(payload, /llama_metrics_exporter_model_up\{model="panther-minor"} 0/);

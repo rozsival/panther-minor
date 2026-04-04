@@ -63,14 +63,17 @@ services:
     command: ['node', '/app/main.js']
     environment:
       CACHE_TTL_SECONDS: 5
+      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 9101
+      PROXY_PORT: 8001
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './monitoring/llama-metrics-exporter.js:/app/main.js:ro'
     expose:
       - 9101
+      - 8001
     networks:
       - ai
     healthcheck:
@@ -93,7 +96,7 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: 'http://llama-cpp:8000/v1'
+      OPENAI_API_BASE_URL: 'http://llama-metrics-exporter:8001/v1'
       OPENAI_API_KEY: 'llama-cpp'
       WEBUI_AUTH: 'false'
     volumes:

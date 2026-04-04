@@ -1,8 +1,10 @@
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
+const LLAMA_CPP_SLEEP_IDLE_SECONDS = Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '9101', 10);
+const PROXY_PORT = Number.parseInt(process.env.PROXY_PORT ?? '8001', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 
@@ -54,6 +56,37 @@ const MODELS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 export function resetModelsCache() {
   modelsCache.models = null;
   modelsCache.timestampMs = 0;
+}
+
+let lastActivityAt = 0;
+
+export function recordActivity() {
+  const wasActive = isActive();
+  lastActivityAt = Date.now();
+  if (!wasActive) {
+    log('info', 'inference_activity_detected');
+  }
+}
+
+export function isActive() {
+  if (LLAMA_CPP_SLEEP_IDLE_SECONDS <= 0) {
+    return true;
+  }
+  return Date.now() - lastActivityAt < LLAMA_CPP_SLEEP_IDLE_SECONDS * 1000;
+}
+
+export function resetActivityTracking() {
+  lastActivityAt = 0;
+}
+
+const lastSuccessfulScrape = {
+  modelToMetrics: {},
+  timestampMs: 0,
+};
+
+export function resetLastSuccessfulScrape() {
+  lastSuccessfulScrape.modelToMetrics = {};
+  lastSuccessfulScrape.timestampMs = 0;
 }
 
 export function normalizeModelsPayload(payload) {
@@ -135,12 +168,15 @@ export function mergeMetricsForModels(modelToMetrics) {
   return lines;
 }
 
-export function exporterStatusLines(models, scrapedModelIds) {
-  const loadedCount = models.filter((model) => model.status === 'loaded').length;
+export function exporterStatusLines(models, scrapedModelIds, isIdle = false) {
+  const loadedCount = isIdle ? 0 : models.filter((model) => model.status === 'loaded').length;
   const lines = [
     '# HELP llama_metrics_exporter_up Whether the llama metrics exporter completed its scrape cycle.',
     '# TYPE llama_metrics_exporter_up gauge',
     'llama_metrics_exporter_up 1',
+    '# HELP llama_metrics_exporter_idle Whether the llama.cpp server is currently idle (no recent inference activity).',
+    '# TYPE llama_metrics_exporter_idle gauge',
+    `llama_metrics_exporter_idle ${isIdle ? 1 : 0}`,
     '# HELP llama_metrics_exporter_discovered_models Number of models discovered via /v1/models.',
     '# TYPE llama_metrics_exporter_discovered_models gauge',
     `llama_metrics_exporter_discovered_models ${models.length}`,
@@ -149,7 +185,7 @@ export function exporterStatusLines(models, scrapedModelIds) {
     `llama_metrics_exporter_loaded_models ${loadedCount}`,
     '# HELP llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics succeeded for at least one model.',
     '# TYPE llama_metrics_exporter_metrics_scrape_up gauge',
-    `llama_metrics_exporter_metrics_scrape_up ${scrapedModelIds.size > 0 ? 1 : 0}`,
+    `llama_metrics_exporter_metrics_scrape_up ${!isIdle && scrapedModelIds.size > 0 ? 1 : 0}`,
     '# HELP llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
     '# TYPE llama_metrics_exporter_model_loaded gauge',
     '# HELP llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
@@ -157,10 +193,10 @@ export function exporterStatusLines(models, scrapedModelIds) {
   ];
 
   for (const model of models) {
-    const isLoaded = model.status === 'loaded';
+    const isLoaded = !isIdle && model.status === 'loaded';
     lines.push(`llama_metrics_exporter_model_loaded{model="${escapeLabelValue(model.id)}"} ${isLoaded ? 1 : 0}`);
     lines.push(
-      `llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${scrapedModelIds.has(model.id) ? 1 : 0}`
+      `llama_metrics_exporter_model_up{model="${escapeLabelValue(model.id)}"} ${!isIdle && scrapedModelIds.has(model.id) ? 1 : 0}`
     );
   }
 
@@ -283,9 +319,12 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
 
   if (scrapedModelIds.size === 0) {
     log('warn', 'no_models_scraped');
+  } else {
+    lastSuccessfulScrape.modelToMetrics = { ...modelToMetrics };
+    lastSuccessfulScrape.timestampMs = Date.now();
   }
 
-  const lines = [...exporterStatusLines(models, scrapedModelIds), ...mergeMetricsForModels(modelToMetrics), ''];
+  const lines = [...exporterStatusLines(models, scrapedModelIds, false), ...mergeMetricsForModels(modelToMetrics), ''];
 
   log('info', 'scrape_cycle_done', {
     discoveredModels: models.length,
@@ -293,6 +332,17 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
   });
 
   return lines.join('\n');
+}
+
+export function buildIdlePayload() {
+  const models = modelsCache.models ?? [];
+  const statusLines = exporterStatusLines(models, new Set(), true);
+  const modelMetricsLines = mergeMetricsForModels(lastSuccessfulScrape.modelToMetrics);
+  log('info', 'idle_payload_built', {
+    cachedModels: models.length,
+    hasCachedMetrics: lastSuccessfulScrape.timestampMs > 0,
+  });
+  return [...statusLines, ...modelMetricsLines, ''].join('\n');
 }
 
 function staleSuffix() {
@@ -341,6 +391,19 @@ export function startServer() {
 
     try {
       log('debug', 'scrape_cache_miss');
+
+      if (!isActive()) {
+        log('info', 'scrape_skipped_server_idle');
+        const payload = buildIdlePayload();
+        cache.payload = payload;
+        cache.timestampMs = nowMs;
+        res.writeHead(200, {
+          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
+        });
+        res.end(payload);
+        return;
+      }
+
       const payload = await buildMetricsPayload();
       cache.payload = payload;
       cache.timestampMs = nowMs;
@@ -379,9 +442,62 @@ export function startServer() {
   server.listen(PORT, '0.0.0.0', () => {
     log('info', 'server_started', {
       cacheTtlSeconds: CACHE_TTL_SECONDS,
+      idleSeconds: LLAMA_CPP_SLEEP_IDLE_SECONDS,
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
       timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
+      upstream: LLAMA_SERVER_URL,
+    });
+  });
+
+  if (LLAMA_CPP_SLEEP_IDLE_SECONDS > 0) {
+    startProxyServer();
+  }
+
+  return server;
+}
+
+function startProxyServer() {
+  const upstreamBase = new URL(LLAMA_SERVER_URL);
+
+  const server = createServer((req, res) => {
+    const requestPath = (req.url ?? '/').split('?')[0];
+    const isInference =
+      req.method === 'POST' && (requestPath === '/v1/chat/completions' || requestPath === '/v1/completions');
+
+    if (isInference) {
+      recordActivity();
+    }
+
+    const proxyOptions = {
+      hostname: upstreamBase.hostname,
+      port: Number(upstreamBase.port) || 80,
+      path: req.url,
+      method: req.method,
+      headers: { ...req.headers, host: upstreamBase.host },
+    };
+
+    const proxyReq = httpRequest(proxyOptions, (proxyRes) => {
+      res.writeHead(proxyRes.statusCode, proxyRes.headers);
+      proxyRes.pipe(res);
+    });
+
+    req.pipe(proxyReq);
+
+    req.on('close', () => proxyReq.destroy());
+
+    proxyReq.on('error', (error) => {
+      log('warn', 'proxy_upstream_error', { error: error.message, path: req.url });
+      if (!res.headersSent) {
+        res.writeHead(502);
+        res.end('Bad Gateway\n');
+      }
+    });
+  });
+
+  server.listen(PROXY_PORT, '0.0.0.0', () => {
+    log('info', 'proxy_started', {
+      listen: `0.0.0.0:${PROXY_PORT}`,
       upstream: LLAMA_SERVER_URL,
     });
   });
