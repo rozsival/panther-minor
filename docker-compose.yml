@@ -19,13 +19,13 @@ services:
   # -- llama.cpp --------------------------------------------------------------
   # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
   llama-cpp:
+    container_name: llama-cpp
     build:
       context: ./llama-cpp
       args:
         LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
         LLAMA_CPP_REF: ${LLAMA_CPP_REF}
         ROCM_ARCH: ${ROCM_ARCH}
-    container_name: llama-cpp
     privileged: true
     restart: unless-stopped
     devices:
@@ -61,12 +61,13 @@ services:
   # Activity-aware reverse proxy: records inference activity, stops llama-cpp
   # when idle and starts it back on demand (scale-to-zero).
   llama-manager:
+    container_name: llama-manager
     image: node:24-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
-      LLAMA_CPP_CONTAINER_NAME: llama-cpp
-      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
+      LLAMA_CPP_CONTAINER_NAME: 'panther-minor-llama-cpp-1'
+      LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 8000
@@ -93,6 +94,7 @@ services:
 
   # -- llama.cpp metrics exporter ---------------------------------------------
   llama-metrics-exporter:
+    container_name: llama-metrics-exporter
     image: node:24-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
@@ -126,6 +128,7 @@ services:
 
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
+    container_name: open-webui
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     environment:
@@ -157,6 +160,7 @@ services:
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
+    container_name: openfang
     image: ${OPENFANG_IMAGE}
     restart: unless-stopped
     environment:
@@ -184,6 +188,7 @@ services:
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
+    container_name: amd-gpu-exporter
     image: rocm/device-metrics-exporter:v1.5.0-beta.0
     restart: unless-stopped
     devices:
@@ -199,6 +204,7 @@ services:
 
   # -- Host metrics (CPU, RAM, disk, network) ---------------------------------
   node-exporter:
+    container_name: node-exporter
     image: prom/node-exporter:v1.10.2
     restart: unless-stopped
     pid: host
@@ -220,6 +226,7 @@ services:
 
   # -- Prometheus -------------------------------------------------------------
   prometheus:
+    container_name: prometheus
     image: prom/prometheus:v3.11.0
     restart: unless-stopped
     volumes:
@@ -247,6 +254,7 @@ services:
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
+    container_name: grafana
     image: grafana/grafana-oss:12.4.2
     restart: unless-stopped
     environment:
@@ -272,6 +280,7 @@ services:
 
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
+    container_name: proxy
     image: nginx:1.29.7-trixie
     restart: unless-stopped
     ports:
