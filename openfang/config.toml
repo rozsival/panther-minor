@@ -12,4 +12,4 @@ embedding_provider = "panther-minor"
 embedding_model = "panther-embedding"
 
 [provider_urls]
-panther-minor = "http://llama-metrics-exporter:8000/v1"
+panther-minor = "http://llama-manager:8000/v1"

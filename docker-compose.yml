@@ -56,6 +56,41 @@ services:
       retries: 5
       start_period: 60s
 
+  # -- llama.cpp manager (proxy + autoscaler) -----------------------------------
+  # Activity-aware reverse proxy: records inference activity, stops llama-cpp
+  # when idle and starts it back on demand (scale-to-zero).
+  llama-manager:
+    image: node:24-trixie-slim
+    restart: unless-stopped
+    command: ['node', '/app/index.js']
+    environment:
+      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
+      LLAMA_SERVER_URL: 'http://llama-cpp:8000'
+      LOG_LEVEL: info
+      PORT: 8000
+      UPSTREAM_TIMEOUT_SECONDS: 4
+    volumes:
+      - './llama-manager/index.js:/app/index.js:ro'
+      - '/var/run/docker.sock:/var/run/docker.sock:ro'
+    expose:
+      - 8000
+    networks:
+      - ai
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:8000/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      - llama-cpp
+
   # -- llama.cpp metrics exporter ---------------------------------------------
   llama-metrics-exporter:
     image: node:24-trixie-slim
@@ -63,17 +98,15 @@ services:
     command: ['node', '/app/main.js']
     environment:
       CACHE_TTL_SECONDS: 5
-      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
+      MANAGER_URL: 'http://llama-manager:8000'
       LOG_LEVEL: info
       PORT: 9090
-      PROXY_PORT: 8000
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './monitoring/llama-metrics-exporter.js:/app/main.js:ro'
     expose:
       - 9090
-      - 8000
     networks:
       - ai
     healthcheck:
@@ -89,14 +122,14 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      - llama-cpp
+      - llama-manager
 
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
     image: ghcr.io/open-webui/open-webui:v0.8.12
     restart: unless-stopped
     environment:
-      OPENAI_API_BASE_URL: 'http://llama-metrics-exporter:8000/v1'
+      OPENAI_API_BASE_URL: 'http://llama-manager:8000/v1'
       OPENAI_API_KEY: 'llama-cpp'
       WEBUI_AUTH: 'false'
     volumes:
@@ -112,7 +145,7 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      - llama-metrics-exporter
+      - llama-manager
 
   # -- OpenFang ---------------------------------------------------------------
   openfang:
@@ -139,7 +172,7 @@ services:
       retries: 5
       start_period: 60s
     depends_on:
-      - llama-metrics-exporter
+      - llama-manager
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
@@ -246,7 +279,7 @@ services:
     networks:
       - ai
     depends_on:
-      - llama-metrics-exporter
+      - llama-manager
       - open-webui
       - openfang
       - grafana

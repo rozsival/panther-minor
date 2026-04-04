@@ -7,12 +7,9 @@ import {
   buildMetricsPayload,
   exporterStatusLines,
   injectModelLabel,
-  isActive,
   mergeMetricsForModels,
   normalizeModelsPayload,
   pickLoadedModel,
-  recordActivity,
-  resetActivityTracking,
   resetLastSuccessfulScrape,
   resetModelsCache,
 } from './llama-metrics-exporter.js';
@@ -122,15 +119,8 @@ test('exporterStatusLines reports idle state with all models unloaded and no scr
   assert.match(lines, /llama_metrics_exporter_model_up\{model="panther-coder"} 0/);
 });
 
-test('isActive returns true when LLAMA_CPP_SLEEP_IDLE_SECONDS is 0 (disabled)', () => {
-  // LLAMA_CPP_SLEEP_IDLE_SECONDS defaults to 0 in test env → always active
-  resetActivityTracking();
-  assert.ok(isActive());
-});
-
 test('recordActivity and buildIdlePayload serve stale model metrics', async () => {
   resetModelsCache();
-  resetActivityTracking();
   resetLastSuccessfulScrape();
 
   const fetchImpl = (url, _options) => {
@@ -155,8 +145,7 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
   // Build a real payload first to populate lastSuccessfulScrape
   await buildMetricsPayload(fetchImpl);
 
-  // Record activity then build idle payload
-  recordActivity();
+  // Build idle payload — should serve stale model metrics
   const idlePayload = buildIdlePayload();
 
   assert.match(idlePayload, /llama_metrics_exporter_idle 1/);

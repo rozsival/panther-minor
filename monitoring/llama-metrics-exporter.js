@@ -1,10 +1,9 @@
-import { createServer, request as httpRequest } from 'node:http';
+import { createServer } from 'node:http';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
-const LLAMA_CPP_SLEEP_IDLE_SECONDS = Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
+const MANAGER_URL = (process.env.MANAGER_URL ?? 'http://llama-manager:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '9090', 10);
-const PROXY_PORT = Number.parseInt(process.env.PROXY_PORT ?? '8000', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 
@@ -58,25 +57,21 @@ export function resetModelsCache() {
   modelsCache.timestampMs = 0;
 }
 
-let lastActivityAt = 0;
-
-export function recordActivity() {
-  const wasActive = isActive();
-  lastActivityAt = Date.now();
-  if (!wasActive) {
-    log('info', 'inference_activity_detected');
-  }
-}
-
-export function isActive() {
-  if (LLAMA_CPP_SLEEP_IDLE_SECONDS <= 0) {
+export async function queryManagerActive() {
+  try {
+    const response = await fetch(`${MANAGER_URL}/status`, {
+      signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
+    });
+    if (!response.ok) {
+      log('warn', 'manager_status_request_failed', { status: response.status });
+      return true;
+    }
+    const data = await response.json();
+    return data.active !== false;
+  } catch (error) {
+    log('warn', 'manager_status_unavailable', { error: error?.message ?? String(error) });
     return true;
   }
-  return Date.now() - lastActivityAt < LLAMA_CPP_SLEEP_IDLE_SECONDS * 1000;
-}
-
-export function resetActivityTracking() {
-  lastActivityAt = 0;
 }
 
 const lastSuccessfulScrape = {
@@ -392,7 +387,7 @@ export function startServer() {
     try {
       log('debug', 'scrape_cache_miss');
 
-      if (!isActive()) {
+      if (!(await queryManagerActive())) {
         log('info', 'scrape_skipped_server_idle');
         const payload = buildIdlePayload();
         cache.payload = payload;
@@ -442,84 +437,10 @@ export function startServer() {
   server.listen(PORT, '0.0.0.0', () => {
     log('info', 'server_started', {
       cacheTtlSeconds: CACHE_TTL_SECONDS,
-      idleSeconds: LLAMA_CPP_SLEEP_IDLE_SECONDS,
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
+      managerUrl: MANAGER_URL,
       timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
-      upstream: LLAMA_SERVER_URL,
-    });
-  });
-
-  startProxyServer();
-
-  return server;
-}
-
-// Hop-by-hop headers must not be forwarded (they are connection-specific).
-const HOP_BY_HOP_HEADERS = new Set([
-  'connection',
-  'keep-alive',
-  'proxy-authenticate',
-  'proxy-authorization',
-  'te',
-  'trailer',
-  'transfer-encoding',
-  'upgrade',
-]);
-
-function stripHopByHopHeaders(headers) {
-  const result = {};
-  for (const [key, value] of Object.entries(headers)) {
-    if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
-      result[key] = value;
-    }
-  }
-  return result;
-}
-
-function startProxyServer() {
-  const upstreamBase = new URL(LLAMA_SERVER_URL);
-
-  const server = createServer((req, res) => {
-    const requestPath = (req.url ?? '/').split('?')[0];
-    const isInference =
-      req.method === 'POST' && (requestPath === '/v1/chat/completions' || requestPath === '/v1/completions');
-
-    if (isInference) {
-      recordActivity();
-    }
-
-    const proxyOptions = {
-      hostname: upstreamBase.hostname,
-      port: Number(upstreamBase.port) || 80,
-      path: req.url,
-      method: req.method,
-      headers: { ...stripHopByHopHeaders(req.headers), host: upstreamBase.host },
-    };
-
-    const proxyReq = httpRequest(proxyOptions, (proxyRes) => {
-      res.writeHead(proxyRes.statusCode, stripHopByHopHeaders(proxyRes.headers));
-      proxyRes.pipe(res);
-      res.on('close', () => {
-        proxyRes.destroy();
-        proxyReq.destroy();
-      });
-    });
-
-    req.pipe(proxyReq);
-
-    proxyReq.on('error', (error) => {
-      log('warn', 'proxy_upstream_error', { error: error.message, path: req.url });
-      if (!res.headersSent) {
-        res.writeHead(502);
-        res.end('Bad Gateway\n');
-      }
-    });
-  });
-
-  server.listen(PROXY_PORT, '0.0.0.0', () => {
-    log('info', 'proxy_started', {
-      listen: `0.0.0.0:${PROXY_PORT}`,
       upstream: LLAMA_SERVER_URL,
     });
   });
