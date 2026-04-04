@@ -66,7 +66,7 @@ services:
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
-      LLAMA_CPP_CONTAINER_NAME: 'panther-minor-llama-cpp-1'
+      LLAMA_CPP_CONTAINER_NAME: 'llama-cpp'
       LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
