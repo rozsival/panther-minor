@@ -40,7 +40,8 @@ function log(level, message, fields = undefined) {
 
 // -- Activity tracking --------------------------------------------------------
 
-let lastActivityAt = 0;
+// Initialise to now so the idle window starts from process startup, not epoch.
+let lastActivityAt = Date.now();
 
 export function recordActivity() {
   const wasActive = isActive();
