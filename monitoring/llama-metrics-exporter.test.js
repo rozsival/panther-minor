@@ -209,9 +209,9 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.equal(calls.length, 3);
-  assert.ok(calls.includes('http://llama-cpp:8080/v1/models'));
-  assert.ok(calls.includes('http://llama-cpp:8080/metrics?model=panther-minor&autoload=false'));
-  assert.ok(calls.includes('http://llama-cpp:8080/metrics?model=panther-coder&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
@@ -246,9 +246,9 @@ test('buildMetricsPayload attempts metrics scrape for all models even when none 
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.equal(calls.length, 3);
-  assert.ok(calls.includes('http://llama-cpp:8080/v1/models'));
-  assert.ok(calls.includes('http://llama-cpp:8080/metrics?model=panther-minor&autoload=false'));
-  assert.ok(calls.includes('http://llama-cpp:8080/metrics?model=panther-coder&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-minor&autoload=false'));
+  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=panther-coder&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);

@@ -46,11 +46,11 @@ services:
       - 'llama-cpp-data:/root/.cache'
       - './models:/models:ro'
     expose:
-      - 8080
+      - 8000
     networks:
       - ai
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8080/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
       interval: 30s
       timeout: 10s
       retries: 5
@@ -64,7 +64,7 @@ services:
     environment:
       CACHE_TTL_SECONDS: 5
       LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
-      LLAMA_SERVER_URL: 'http://llama-cpp:8080'
+      LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 9090
       PROXY_PORT: 8000

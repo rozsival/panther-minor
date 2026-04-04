@@ -27,4 +27,4 @@ scrape_configs:
       # Router mode is scraped through an activity-aware proxy exporter to avoid model load/unload thrashing.
       - targets: ['llama-metrics-exporter:9090']
         labels:
-          instance: llama-cpp:8080
+          instance: llama-cpp:8000
