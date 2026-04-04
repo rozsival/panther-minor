@@ -62,7 +62,7 @@ services:
   llama-manager:
     image: node:24-trixie-slim
     restart: unless-stopped
-    command: ['node', '/app/index.js']
+    command: ['node', '/app/main.js']
     environment:
       LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
@@ -70,7 +70,7 @@ services:
       PORT: 8000
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
-      - './llama-manager/main.js:/app/index.js:ro'
+      - './llama-manager/main.js:/app/main.js:ro'
       - '/var/run/docker.sock:/var/run/docker.sock:ro'
     expose:
       - 8000
