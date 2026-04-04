@@ -2,9 +2,9 @@ import { createServer, request as httpRequest } from 'node:http';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
 const LLAMA_CPP_SLEEP_IDLE_SECONDS = Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
-const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
-const PORT = Number.parseInt(process.env.PORT ?? '9101', 10);
-const PROXY_PORT = Number.parseInt(process.env.PROXY_PORT ?? '8001', 10);
+const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8080').replace(/\/$/, '');
+const PORT = Number.parseInt(process.env.PORT ?? '9090', 10);
+const PROXY_PORT = Number.parseInt(process.env.PROXY_PORT ?? '8000', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 

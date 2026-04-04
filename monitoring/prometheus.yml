@@ -15,7 +15,7 @@ scrape_configs:
     static_configs:
       - targets: ['node-exporter:9100']
 
-  # AMD GPU utilisation, VRAM, temperature, power
+  # AMD GPU utilization, VRAM, temperature, power
   - job_name: amd-gpu
     static_configs:
       - targets: ['amd-gpu-exporter:5000']
@@ -23,9 +23,8 @@ scrape_configs:
   # llama.cpp server metrics
   - job_name: llama-cpp
     metrics_path: /metrics
-    scrape_interval: 5s
     static_configs:
-      # Router mode is scraped through a sidecar exporter to avoid model load/unload thrashing.
-      - targets: ['llama-metrics-exporter:9101']
+      # Router mode is scraped through an activity-aware proxy exporter to avoid model load/unload thrashing.
+      - targets: ['llama-metrics-exporter:9090']
         labels:
-          instance: llama-cpp:8000
+          instance: llama-cpp:8080

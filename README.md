@@ -173,18 +173,34 @@ To only rebuild the cluster without starting:
 ./bin/cli cluster build --no-cache
 ```
 
+### GPU Idle / Power Saving
+
+`llama-metrics-exporter` acts as a reverse proxy in front of `llama-cpp`. All inference traffic
+(from Open WebUI, OpenFang, and external clients) flows through it, so it can track activity.
+
+When no `/v1/chat/completions` or `/v1/completions` request has been received within the
+`LLAMA_CPP_SLEEP_IDLE_SECONDS` window, the exporter stops polling llama.cpp's `/metrics` endpoint.
+This allows llama.cpp's `--sleep-idle-seconds` flag to take effect — models are unloaded from VRAM
+and the GPUs can enter a low-power state.
+
+While idle, Prometheus still receives valid metric payloads (frozen counter values from the last
+active scrape) so Grafana dashboards continue to display history without "No data" gaps. A dedicated
+`llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
+
+Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely (always poll).
+
 ### Services
 
-| Service                | Description                                                    |
-| ---------------------- | -------------------------------------------------------------- |
-| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support |
-| open-webui             | Chat interface for interacting with LLMs                       |
-| openfang               | Agent orchestration platform                                   |
-| grafana                | Monitoring dashboard with pre-configured GPU and host metrics  |
-| prometheus             | Time-series database for collecting and storing metrics        |
-| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                         |
-| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)    |
-| llama-metrics-exporter | Exports llama.cpp specific metrics                             |
+| Service                | Description                                                             |
+| ---------------------- | ----------------------------------------------------------------------- |
+| llama-cpp              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support          |
+| open-webui             | Chat interface for interacting with LLMs                                |
+| openfang               | Agent orchestration platform                                            |
+| grafana                | Monitoring dashboard with pre-configured GPU and host metrics           |
+| prometheus             | Time-series database for collecting and storing metrics                 |
+| amd-gpu-exporter       | Exports AMD GPU metrics for monitoring                                  |
+| node-exporter          | Exports host metrics (CPU, RAM, disk, network, temperature)             |
+| llama-metrics-exporter | Exports llama.cpp metrics; proxies all API traffic for GPU idle support |
 
 > [!IMPORTANT]
 > Services are NOT accessible from the public internet. See [PORTS.md](PORTS.md) for details.

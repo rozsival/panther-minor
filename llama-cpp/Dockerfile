@@ -22,5 +22,5 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-EXPOSE 8000/tcp
+EXPOSE 8080/tcp
 ENTRYPOINT ["/entrypoint.sh"]
