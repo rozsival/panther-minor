@@ -28,5 +28,9 @@ RUN chmod +x /entrypoint.sh
 RUN chown -R "${LLAMA_CPP_USER}:${LLAMA_CPP_USER}" /opt/llama-cpp "/home/${LLAMA_CPP_USER}"
 
 USER "$LLAMA_CPP_USER"
+ENV HOME="/home/${LLAMA_CPP_USER}"
+ENV USER="${LLAMA_CPP_USER}"
+WORKDIR "${HOME}"
+
 EXPOSE 8000/tcp
 ENTRYPOINT ["/entrypoint.sh"]
