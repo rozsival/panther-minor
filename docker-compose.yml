@@ -25,7 +25,7 @@ services:
       args:
         LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
         LLAMA_CPP_REF: ${LLAMA_CPP_REF}
-        LLAMA_CPP_USER: ${LLAMA_CPP_USER}
+        LLAMA_CPP_USER: 'llama-cpp'
         ROCM_ARCH: ${ROCM_ARCH}
     privileged: true
     restart: unless-stopped
