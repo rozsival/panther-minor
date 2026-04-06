@@ -12,7 +12,7 @@ import {
   pickLoadedModel,
   resetLastSuccessfulScrape,
   resetModelsCache,
-} from './llama-metrics-exporter.js';
+} from './metrics-exporter.js';
 
 test('normalizeModelsPayload maps OpenAI models response', () => {
   const models = normalizeModelsPayload({

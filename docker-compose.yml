@@ -7,7 +7,7 @@ networks:
 
 # -- Persistent volumes -------------------------------------------------------
 volumes:
-  llama-cpp-data:
+  llama-cpp-comgr:
   open-webui-data:
   openfang-data:
   openfang-workspaces:
@@ -25,6 +25,7 @@ services:
       args:
         LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
         LLAMA_CPP_REF: ${LLAMA_CPP_REF}
+        LLAMA_CPP_USER: ${LLAMA_CPP_USER}
         ROCM_ARCH: ${ROCM_ARCH}
     privileged: true
     restart: unless-stopped
@@ -42,10 +43,11 @@ services:
       LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_CPP_UBATCH_SIZE: ${LLAMA_CPP_UBATCH_SIZE}
     tmpfs:
-      - '/llama-slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
+      - '/home/${LLAMA_CPP_USER}/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
-      - 'llama-cpp-data:/root/.cache'
-      - './models:/models:ro'
+      - 'llama-cpp-comgr:/home/${LLAMA_CPP_USER}/.cache/comgr'
+      - './models/.huggingface:/home/${LLAMA_CPP_USER}/.cache/huggingface/hub'
+      - './models/preset.ini:/home/${LLAMA_CPP_USER}/.cache/huggingface/preset.ini:ro'
     expose:
       - 8000
     networks:
@@ -106,7 +108,7 @@ services:
       PORT: 9090
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
-      - './monitoring/llama-metrics-exporter.js:/app/main.js:ro'
+      - './llama-cpp/metrics-exporter.js:/app/main.js:ro'
     expose:
       - 9090
     networks:

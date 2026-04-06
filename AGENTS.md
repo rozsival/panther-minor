@@ -31,6 +31,6 @@ for monitoring GPU and node performance.
 - `models/README.md` — overview for custom `llama.cpp` models with `./bin/cli models *` usage and `preset.ini` config
 - `docker-compose.yml` — service definitions with health checks
 - `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; stops and restarts the `llama-cpp` container via Docker socket for scale-to-zero GPU power saving
-- `monitoring/llama-metrics-exporter.js` — Prometheus exporter; queries `llama-manager /status` to decide idle vs. active scrape cycle
+- `llama-cpp/metrics-exporter.js` — Prometheus exporter; queries `llama-manager /status` to decide idle vs. active scrape cycle
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
