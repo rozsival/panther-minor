@@ -43,11 +43,11 @@ services:
       LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
       LLAMA_CPP_UBATCH_SIZE: ${LLAMA_CPP_UBATCH_SIZE}
     tmpfs:
-      - '/home/${LLAMA_CPP_USER}/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
+      - '/home/llama-cpp/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
-      - 'llama-cpp-comgr:/home/${LLAMA_CPP_USER}/.cache/comgr'
-      - './models/.huggingface:/home/${LLAMA_CPP_USER}/.cache/huggingface/hub'
-      - './models/preset.ini:/home/${LLAMA_CPP_USER}/.cache/huggingface/preset.ini:ro'
+      - 'llama-cpp-comgr:/home/llama-cpp/.cache/comgr'
+      - './models/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
+      - './models/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
     expose:
       - 8000
     networks:
