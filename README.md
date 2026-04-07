@@ -112,7 +112,7 @@ sudo ./bin/cli setup
 `sudo ./bin/cli setup` automatically prepares the server with:
 
 - **Init** — server workspace and timezone setup
-- **Essential packages** — `build-essential`, `jq`, `nvtop`, `htop`, and more with auto updates
+- **Essential packages** — `build-essential`, `jq`, `nvtop`, `htop`, and more with unattended upgrades
 - **Homebrew** — installs Homebrew, `llmfit`, `huggingface-cli`, and `yq` for the current user
 - **Docker** — Docker Engine and Docker Compose
 - **Tailscale** — Tailscale agent installation
@@ -120,7 +120,7 @@ sudo ./bin/cli setup
 - **UFW** — firewall rules for ports `2222`, `80`, and `443`
 - **fail2ban** — brute-force protection
 - **AMD GPU & ROCm** — latest kernel drivers and ROCm
-- **Kernel parameters** — GRUB config with `amdgpu.mes=1 iommu=pt`
+- **Kernel parameters** — GRUB config with optimized settings for AMD GPUs and LLM workloads
 - **Git** — default name, email, and rebase pull strategy
 - **Shell** — a modern shell prompt for the current user
 - **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
