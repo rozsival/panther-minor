@@ -1,6 +1,6 @@
 # 🐆 Panther Minor
 
-The AI Workstation Setup – light-weight, secure, and optimized LLaMA.cpp cluster on AMD Ryzen with RDNA 4 GPUs.
+The AI Workstation Setup – light-weight, secure, and optimized [LLaMA.cpp](https://github.com/ggml-org/llama.cpp) cluster on AMD Ryzen with RDNA 4 GPUs.
 
 ## Pre-requisites
 
