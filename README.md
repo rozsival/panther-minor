@@ -296,4 +296,4 @@ Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 
 - [Panther Minor CLI](./bin/README.md) — full command reference for managing the cluster
 - [Models](./models/README.md) — model presets and usage
-- [PORTS.md](./PORTS.md) — ports, routing, and service access details
+- [Port Configuration](./PORTS.md) — ports, routing, and service access details
