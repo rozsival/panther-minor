@@ -103,6 +103,7 @@ sudo ./bin/cli setup
 - Server installed with a non-root user that has `sudo` privileges
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
 - A [Tailscale](https://tailscale.com/) account for secure remote access
+- A domain you control for required SSL certificate issuance and secure service access
 
 ---
 
