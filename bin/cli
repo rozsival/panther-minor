@@ -2114,7 +2114,7 @@ cli_setup_grub_command() {
     current_cmdline="$(augtool -n get /files/etc/default/grub/GRUB_CMDLINE_LINUX_DEFAULT | cut -d'=' -f2 | tr -d '"' | tr -d "'")"
     updated_cmdline="$current_cmdline"
 
-    for param in amdgpu.mes=1 iommu=pt; do
+    for param in amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off; do
       if [[ ! "$current_cmdline" =~ $param ]]; then
         updated_cmdline="$updated_cmdline $param"
       fi
