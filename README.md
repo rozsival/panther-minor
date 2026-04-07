@@ -196,7 +196,7 @@ You can easily extend the cluster with additional services or configurations by 
 in the root of the project. This file will be automatically picked up by Docker Compose and merged with the base
 configuration.
 
-Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom compose file(s).
+Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom [compose file(s)](https://docs.docker.com/compose/how-tos/environment-variables/envvars/#compose_file).
 
 > [!IMPORTANT]
 > Ensure the base `docker-compose.yml` is always included.
