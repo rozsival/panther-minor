@@ -293,7 +293,7 @@ function drainQueue() {
 // -- Hop-by-hop headers -------------------------------------------------------
 
 // Hop-by-hop headers must not be forwarded (they are connection-specific).
-const HOP_BY_HOP_HEADERS = new Set([
+const hopByHopHeaders = new Set([
   'connection',
   'keep-alive',
   'proxy-authenticate',
@@ -307,7 +307,7 @@ const HOP_BY_HOP_HEADERS = new Set([
 function stripHopByHopHeaders(headers) {
   const result = {};
   for (const [key, value] of Object.entries(headers)) {
-    if (!HOP_BY_HOP_HEADERS.has(key.toLowerCase())) {
+    if (!hopByHopHeaders.has(key.toLowerCase())) {
       result[key] = value;
     }
   }
@@ -351,8 +351,9 @@ function proxyToUpstream(req, res) {
 
 // -- HTTP server --------------------------------------------------------------
 
-const INFERENCE_PATHS = new Set(['/v1/chat/completions', '/v1/completions']);
-const ACTIVITY_PATHS = new Set(['/v1/models']);
+const activityPaths = new Set(['/v1/models']);
+const embeddingPaths = new Set(['/v1/embeddings']);
+const inferencePaths = new Set(['/v1/chat/completions', '/v1/completions']);
 
 export function startServer() {
   const server = createServer((req, res) => {
@@ -372,9 +373,9 @@ export function startServer() {
       return;
     }
 
-    if (req.method === 'POST' && INFERENCE_PATHS.has(requestPath)) {
+    if (req.method === 'POST' && (inferencePaths.has(requestPath) || embeddingPaths.has(requestPath))) {
       recordActivity();
-    } else if (ACTIVITY_PATHS.has(requestPath)) {
+    } else if (activityPaths.has(requestPath)) {
       recordActivity();
     }
 

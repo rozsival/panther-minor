@@ -203,13 +203,13 @@ Alternatively, you can set `COMPOSE_FILE` in `.env` pointing to your custom comp
 
 ### GPU Idle / Power Saving
 
-All inference traffic (Open WebUI, OpenFang, external clients) flows through `llama-manager`, which acts as an
+All LLM traffic (Open WebUI, OpenFang, external clients) flows through `llama-manager`, which acts as an
 activity-aware reverse proxy in front of `llama-cpp`.
 
 **How it works:**
 
-1. `llama-manager` records every `POST /v1/chat/completions` and `POST /v1/completions` request.
-2. When no inference request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, llama.cpp's
+1. `llama-manager` records every model list, inference and embedding request as activity.
+2. When no request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, llama.cpp's
    `--sleep-idle-seconds` flag takes effect — models are unloaded from VRAM and the GPUs enter a low-power state.
 3. `llama-metrics-exporter` polls `llama-manager /status` before each Prometheus scrape cycle. During idle, it serves
    frozen counter values from the last active scrape instead of hitting llama.cpp, so Grafana dashboards show history
