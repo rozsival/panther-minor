@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   ContainerState,
+  getContainerStartedAt,
   getContainerState,
   isActive,
   recordActivity,
@@ -41,4 +42,13 @@ test('ContainerState constants are defined', () => {
 test('getContainerState returns current state, resetContainerState restores to running', () => {
   resetContainerState();
   assert.equal(getContainerState(), ContainerState.RUNNING);
+});
+
+test('resetContainerState sets containerStartedAt to a recent timestamp', () => {
+  const before = Date.now();
+  resetContainerState();
+  const after = Date.now();
+  const startedAt = getContainerStartedAt();
+  assert.ok(startedAt >= before, 'containerStartedAt should be >= before reset');
+  assert.ok(startedAt <= after, 'containerStartedAt should be <= after reset');
 });

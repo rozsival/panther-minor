@@ -10,6 +10,13 @@ const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 // Scale-to-zero is only active when an idle timeout is configured.
 const SCALE_TO_ZERO = LLAMA_CPP_SLEEP_IDLE_SECONDS > 0;
 
+// Minimum uptime after a cold start before the idle timer may stop the container.
+// Defaults to the idle timeout itself so the container always gets at least one full idle window.
+// This prevents flapping when the idle timeout is shorter than the container cold-start time.
+const SCALE_TO_ZERO_COOLDOWN_SECONDS = Number.parseFloat(
+  process.env.SCALE_TO_ZERO_COOLDOWN_SECONDS ?? String(LLAMA_CPP_SLEEP_IDLE_SECONDS)
+);
+
 const LOG_PRIORITY = {
   debug: 3,
   error: 0,
@@ -75,6 +82,7 @@ export const ContainerState = {
 };
 
 let containerState = ContainerState.RUNNING;
+let containerStartedAt = Date.now();
 let pendingRequests = [];
 let idleTimer = null;
 
@@ -82,8 +90,13 @@ export function getContainerState() {
   return containerState;
 }
 
+export function getContainerStartedAt() {
+  return containerStartedAt;
+}
+
 export function resetContainerState() {
   containerState = ContainerState.RUNNING;
+  containerStartedAt = Date.now();
   pendingRequests = [];
   if (idleTimer) {
     clearTimeout(idleTimer);
@@ -104,14 +117,28 @@ function scheduleIdleCheck() {
   }
 
   const elapsed = Date.now() - lastActivityAt;
-  const remaining = Math.max(0, LLAMA_CPP_SLEEP_IDLE_SECONDS * 1000 - elapsed);
+  const idleRemaining = Math.max(0, LLAMA_CPP_SLEEP_IDLE_SECONDS * 1000 - elapsed);
+
+  // Cooldown: the container must run for at least SCALE_TO_ZERO_COOLDOWN_SECONDS
+  // after it started before the idle timer is allowed to stop it. This prevents
+  // flapping when the cold-start time exceeds the idle timeout.
+  const cooldownElapsed = Date.now() - containerStartedAt;
+  const cooldownRemaining = Math.max(0, SCALE_TO_ZERO_COOLDOWN_SECONDS * 1000 - cooldownElapsed);
+
+  if (cooldownRemaining > 0 && cooldownRemaining > idleRemaining) {
+    log('debug', 'idle_check_deferred_by_cooldown', {
+      cooldownRemainingMs: Math.round(cooldownRemaining),
+    });
+  }
+
+  const delay = Math.max(idleRemaining, cooldownRemaining);
 
   idleTimer = setTimeout(() => {
     idleTimer = null;
     if (!isActive() && containerState === ContainerState.RUNNING) {
       stopContainer().catch(console.error);
     }
-  }, remaining + 100);
+  }, delay + 100);
 }
 
 // -- Docker API ---------------------------------------------------------------
@@ -146,6 +173,10 @@ async function syncContainerState() {
     if (result.status === 200) {
       const info = JSON.parse(result.body);
       containerState = info.State?.Running ? ContainerState.RUNNING : ContainerState.STOPPED;
+      if (containerState === ContainerState.RUNNING) {
+        // Treat an already-running container as freshly started for cooldown purposes.
+        containerStartedAt = Date.now();
+      }
       log('info', 'startup_container_state_synced', { container: LLAMA_CPP_CONTAINER, state: containerState });
     }
   } catch (error) {
@@ -192,6 +223,7 @@ async function startContainer() {
     log('info', 'container_start_requested', { container: LLAMA_CPP_CONTAINER });
     await waitForHealthy();
     containerState = ContainerState.RUNNING;
+    containerStartedAt = Date.now();
     log('info', 'container_running', { container: LLAMA_CPP_CONTAINER });
     scheduleIdleCheck();
     drainQueue();
@@ -320,6 +352,7 @@ function proxyToUpstream(req, res) {
 // -- HTTP server --------------------------------------------------------------
 
 const INFERENCE_PATHS = new Set(['/v1/chat/completions', '/v1/completions']);
+const ACTIVITY_PATHS = new Set(['/v1/models']);
 
 export function startServer() {
   const server = createServer((req, res) => {
@@ -341,6 +374,8 @@ export function startServer() {
 
     if (req.method === 'POST' && INFERENCE_PATHS.has(requestPath)) {
       recordActivity();
+    } else if (ACTIVITY_PATHS.has(requestPath)) {
+      recordActivity();
     }
 
     if (SCALE_TO_ZERO) {
@@ -361,6 +396,7 @@ export function startServer() {
   server.listen(PORT, '0.0.0.0', async () => {
     log('info', 'server_started', {
       container: LLAMA_CPP_CONTAINER,
+      cooldownSeconds: SCALE_TO_ZERO_COOLDOWN_SECONDS,
       idleSeconds: LLAMA_CPP_SLEEP_IDLE_SECONDS,
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
