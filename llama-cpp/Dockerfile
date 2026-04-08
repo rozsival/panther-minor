@@ -12,8 +12,20 @@ RUN apt update && \
     apt install -y cmake git libcurl4-openssl-dev nano && \
     rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --system --gid "${HOST_GID}" "${LLAMA_CPP_USER}" && \
-    useradd --system --uid "${HOST_UID}" --gid "${HOST_GID}" --home "/home/${LLAMA_CPP_USER}" --create-home "${LLAMA_CPP_USER}"
+# Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes
+RUN \
+    if getent group "${HOST_GID}" > /dev/null 2>&1; then \
+        OLD_GROUP=$(getent group "${HOST_GID}" | cut -d: -f1); \
+        groupmod -n "${LLAMA_CPP_USER}" "$OLD_GROUP"; \
+    else \
+        groupadd --system --gid "${HOST_GID}" "${LLAMA_CPP_USER}"; \
+    fi && \
+    if getent passwd "${HOST_UID}" > /dev/null 2>&1; then \
+        OLD_USER=$(getent passwd "${HOST_UID}" | cut -d: -f1); \
+        usermod -l "${LLAMA_CPP_USER}" -d "/home/${LLAMA_CPP_USER}" -m "$OLD_USER"; \
+    else \
+        useradd --system --uid "${HOST_UID}" --gid "${HOST_GID}" --home "/home/${LLAMA_CPP_USER}" --create-home "${LLAMA_CPP_USER}"; \
+    fi
 
 WORKDIR /opt/llama-cpp
 
