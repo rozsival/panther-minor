@@ -56,6 +56,17 @@ AUGEOF
     printf '%s=%s\n' "$key" "$value" >>"$env_file"
   fi
 }
+panther_sync_env_host_uid_and_gid() {
+  local env_file="$1"
+  [[ -f "$env_file" ]] || panther_log_error "Missing env file: $env_file"
+
+  local host_uid host_gid
+  host_uid="$(id -u "$PANTHER_ALLOWED_USER")"
+  host_gid="$(id -g "$PANTHER_ALLOWED_USER")"
+
+  panther_upsert_env_key "$env_file" HOST_UID "$host_uid"
+  panther_upsert_env_key "$env_file" HOST_GID "$host_gid"
+}
 panther_sync_env_gpu_gids() {
   local env_file="$1"
   [[ -f "$env_file" ]] || panther_log_error "Missing env file: $env_file"
