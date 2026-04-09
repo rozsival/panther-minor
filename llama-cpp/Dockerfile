@@ -8,6 +8,7 @@ ARG LLAMA_CPP_REF="master"
 ARG LLAMA_CPP_USER="llama-cpp"
 ARG ROCM_ARCH="gfx1201"
 
+# Install build dependencies
 RUN apt update && \
     apt install -y cmake git libcurl4-openssl-dev nano && \
     rm -rf /var/lib/apt/lists/*
@@ -27,6 +28,7 @@ RUN \
         useradd --system --uid "${HOST_UID}" --gid "${HOST_GID}" --home "/home/${LLAMA_CPP_USER}" --create-home "${LLAMA_CPP_USER}"; \
     fi
 
+# Build llama.cpp from source
 WORKDIR /opt/llama-cpp
 
 RUN git clone "${LLAMA_CPP_REPO}" . && \
@@ -43,8 +45,7 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && \
     chown -R "${LLAMA_CPP_USER}:${LLAMA_CPP_USER}" /opt/llama-cpp "/home/${LLAMA_CPP_USER}"
 
-USER "${LLAMA_CPP_USER}"
-
+# Set environment variables for the user and application
 ENV USER="${LLAMA_CPP_USER}"
 ENV HOME="/home/${USER}"
 ENV UID="${HOST_UID}"
@@ -53,7 +54,8 @@ ENV XDG_CACHE_HOME="${HOME}/.cache"
 ENV HIP_COMPILER_CACHE_DIR="${XDG_CACHE_HOME}/HIP"
 ENV AMD_COMGR_CACHE_DIR="${XDG_CACHE_HOME}/comgr"
 
+# Run llama.cpp
 WORKDIR "${HOME}"
-
+USER "${USER}"
 EXPOSE 8000/tcp
 ENTRYPOINT ["/entrypoint.sh"]
