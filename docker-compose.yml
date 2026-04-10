@@ -171,6 +171,7 @@ services:
     restart: unless-stopped
     environment:
       OPENFANG_HOME: ${OPENFANG_HOME}
+      XDG_CACHE_HOME: '/tmp'
     env_file:
       - path: './openfang/.env'
         required: false
