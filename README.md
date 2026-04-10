@@ -4,7 +4,7 @@
 
 > A self-hosted AI workstation stack for AMD hardware with local LLM inference, agent orchestration, monitoring, and GPU-aware power saving.
 
-![Platform](https://img.shields.io/badge/platform-Ubuntu%2025.10%2B-0A84FF)
+![Platform](https://img.shields.io/badge/Platform-Ubuntu%2025.10%2B-0A84FF)
 ![GPU](https://img.shields.io/badge/GPU-AMD%20RDNA%204-E01F27)
 ![Inference](https://img.shields.io/badge/Inference-llama.cpp-4CAF50)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
