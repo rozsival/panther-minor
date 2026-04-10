@@ -13,6 +13,7 @@
       },
       "models": {
         "panther-coder": {
+          "id": "panther-coder",
           "name": "Panther Coder",
           "limit": {
             "context": 131072,
@@ -20,6 +21,7 @@
           }
         },
         "panther-coder-next": {
+          "id": "panther-coder-next",
           "name": "Panther Coder (next)",
           "limit": {
             "context": 131072,
@@ -27,6 +29,7 @@
           }
         },
         "panther-coder-large": {
+          "id": "panther-coder-large",
           "name": "Panther Coder (large)",
           "limit": {
             "context": 262144,
