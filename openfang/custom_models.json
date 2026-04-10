@@ -1,7 +1,7 @@
 [
   {
     "id": "panther-minor",
-    "display_name": "panther-minor",
+    "display_name": "Panther Minor",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -15,7 +15,7 @@
   },
   {
     "id": "panther-minor-thinking",
-    "display_name": "panther-minor (thinking)",
+    "display_name": "Panther Minor (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -29,7 +29,7 @@
   },
   {
     "id": "panther-coder",
-    "display_name": "panther-coder",
+    "display_name": "Panther Coder",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -43,7 +43,7 @@
   },
   {
     "id": "panther-coder-next",
-    "display_name": "panther-coder (next)",
+    "display_name": "Panther Coder (next)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -57,7 +57,7 @@
   },
   {
     "id": "panther-coder-large",
-    "display_name": "panther-coder (large)",
+    "display_name": "Panther Coder (large)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -71,7 +71,7 @@
   },
   {
     "id": "panther-blazer",
-    "display_name": "panther-blazer",
+    "display_name": "Panther Blazer",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -85,7 +85,7 @@
   },
   {
     "id": "panther-blazer-thinking",
-    "display_name": "panther-blazer (thinking)",
+    "display_name": "Panther Blazer (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
