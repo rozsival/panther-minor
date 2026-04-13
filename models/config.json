@@ -2,8 +2,32 @@
   "$schema": "./schema.json",
   "models": [
     {
+      "name": "Gemma-4-26B-A4B",
+      "file": "gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf",
+      "mmproj": "mmproj-F16.gguf",
+      "repository": "unsloth/gemma-4-26B-A4B-it-GGUF",
+      "thinking": true,
+      "vision": true
+    },
+    {
+      "name": "Gemma-4-31B",
+      "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf",
+      "mmproj": "mmproj-F16.gguf",
+      "repository": "unsloth/gemma-4-31B-it-GGUF",
+      "thinking": true,
+      "vision": true
+    },
+    {
+      "name": "Qwen3.5-27B",
+      "file": "Qwen3.5-27B-UD-Q4_K_XL.gguf",
+      "mmproj": "mmproj-F16.gguf",
+      "repository": "unsloth/Qwen3.5-27B-GGUF",
+      "thinking": true,
+      "vision": true
+    },
+    {
       "name": "Qwen3.5-35B-A3B",
-      "file": "Qwen3.5-35B-A3B-Q8_0.gguf",
+      "file": "Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf",
       "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/Qwen3.5-35B-A3B-GGUF",
       "thinking": true,
