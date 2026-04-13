@@ -15,9 +15,9 @@ panther_models_unload() {
   if [[ "$http_code" == "200" ]]; then
     panther_log_success "Model '$model' unloaded successfully."
   elif [[ "$http_code" == "400" ]]; then
-    panther_log_error "Failed to unload model '$model'. Error: $body"
+    panther_log_error "Failed to unload model '$model'. Error: $(echo "$body" | jq -r '.error.message')"
   else
-    panther_log_error "Failed to unload model '$model'. HTTP status: $http_code. Response: $body"
+    panther_log_error "Failed to unload model '$model'. HTTP status: $http_code. Response: $(echo "$body" | jq -r '.error.message')"
   fi
 }
 
