@@ -5,14 +5,14 @@ This directory documents the model presets supported by Panther Minor and how th
 
 ## 📚 Supported models
 
-| Model                  | Base                                        | Q   | Ctx  | Out        | Purpose                                                        |
-| ---------------------- | ------------------------------------------- | --- | ---- | ---------- | -------------------------------------------------------------- |
-| `panther-minor` 🧠 👀  | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 8   | 128k | 4k (6k 🧠) | Balanced general-purpose model for daily assistance            |
-| `panther-coder`        | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 8   | 128k | 4k         | Balanced default for daily coding work                         |
-| `panther-coder-next`   | `unsloth/Qwen3-Coder-Next-GGUF`             | 4   | 128k | 6k         | Advanced agentic model for complex coding tasks                |
-| `panther-coder-large`  | `unsloth/Qwen3-Coder-Next-GGUF`             | 8   | 256k | 8k         | High-precision, slower model for complex coding tasks          |
-| `panther-blazer` 🧠 👀 | `unsloth/Qwen3.5-2B-GGUF`                   | 8   | 128k | 2k (4k 🧠) | Lightweight general-purpose model for very fast inference      |
-| `panther-embedding` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF`            | 8   | 32k  | -          | Lightweight embedding model for retrieval-augmented generation |
+| Model                               | Base                                        | Q   | Ctx  | Out        | Purpose                                                        |
+| ----------------------------------- | ------------------------------------------- | --- | ---- | ---------- | -------------------------------------------------------------- |
+| `qwen35-35b-a3b-q8_0` 🧠 👀         | `unsloth/Qwen3.5-35B-A3B-GGUF`              | 8   | 128k | 4k (🧠 6k) | Balanced general-purpose model for daily assistance            |
+| `qwen3-coder-30b-a3b-instruct-q8_0` | `unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF` | 8   | 128k | 4k         | Balanced default for daily coding work                         |
+| `qwen3-coder-next-q4_0`             | `unsloth/Qwen3-Coder-Next-GGUF`             | 4   | 128k | 6k         | Advanced agentic model for complex coding tasks                |
+| `qwen3-coder-next-q8_0`             | `unsloth/Qwen3-Coder-Next-GGUF`             | 8   | 256k | 8k         | High-precision, slower model for complex coding tasks          |
+| `qwen35-2b-q8_0` 🧠 👀              | `unsloth/Qwen3.5-2B-GGUF`                   | 8   | 128k | 2k (🧠 4k) | Lightweight general-purpose model for very fast inference      |
+| `qwen3-embedding-0-6b-q8_0` 🪶      | `Qwen/Qwen3-Embedding-0.6B-GGUF`            | 8   | 32k  | -          | Lightweight embedding model for retrieval-augmented generation |
 
 ### Legend
 

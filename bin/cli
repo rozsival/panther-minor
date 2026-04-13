@@ -673,8 +673,8 @@ cli_models_download_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models download panther-minor\n"
-    printf "  HF_TOKEN=token cli models download panther-coder\n"
+    printf "  cli models download qwen35-35b-a3b-q8_0\n"
+    printf "  HF_TOKEN=token cli models download qwen35-35b-a3b-q8_0\n"
     echo
 
   fi

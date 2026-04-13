@@ -191,8 +191,8 @@ commands:
           - name: hf_token
             help: Hugging Face token used by hf download
         examples:
-          - cli models download panther-minor
-          - HF_TOKEN=token cli models download panther-coder
+          - cli models download qwen35-35b-a3b-q8_0
+          - HF_TOKEN=token cli models download qwen35-35b-a3b-q8_0
         completions:
           - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 

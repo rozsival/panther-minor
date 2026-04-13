@@ -1,7 +1,7 @@
 [
   {
-    "id": "panther-minor",
-    "display_name": "Panther Minor",
+    "id": "qwen35-35b-a3b-q8_0",
+    "display_name": "Qwen3.5 35B A3B Q8",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -14,8 +14,8 @@
     "aliases": []
   },
   {
-    "id": "panther-minor-thinking",
-    "display_name": "Panther Minor (thinking)",
+    "id": "qwen35-35b-a3b-q8_0-thinking",
+    "display_name": "Qwen3.5 35B A3B Q8 (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -28,8 +28,8 @@
     "aliases": []
   },
   {
-    "id": "panther-coder",
-    "display_name": "Panther Coder",
+    "id": "qwen3-coder-30b-a3b-instruct-q8_0",
+    "display_name": "Qwen3 Coder 30B A3B Instruct Q8",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -42,8 +42,8 @@
     "aliases": []
   },
   {
-    "id": "panther-coder-next",
-    "display_name": "Panther Coder (next)",
+    "id": "qwen3-coder-next-q4_0",
+    "display_name": "Qwen3 Coder Next Q4",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -56,8 +56,8 @@
     "aliases": []
   },
   {
-    "id": "panther-coder-large",
-    "display_name": "Panther Coder (large)",
+    "id": "qwen3-coder-next-q8_0",
+    "display_name": "Qwen3 Coder Next Q8",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -70,8 +70,8 @@
     "aliases": []
   },
   {
-    "id": "panther-blazer",
-    "display_name": "Panther Blazer",
+    "id": "qwen35-2b-q8_0",
+    "display_name": "Qwen3.5 2B Q8",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -84,8 +84,8 @@
     "aliases": []
   },
   {
-    "id": "panther-blazer-thinking",
-    "display_name": "Panther Blazer (thinking)",
+    "id": "qwen35-2b-q8_0-thinking",
+    "display_name": "Qwen3.5 2B Q8 (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
