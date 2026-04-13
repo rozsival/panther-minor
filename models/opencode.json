@@ -12,28 +12,20 @@
         "timeout": 600000
       },
       "models": {
-        "qwen3-coder-30b-a3b-instruct-q8_0": {
-          "id": "qwen3-coder-30b-a3b-instruct-q8_0",
-          "name": "Qwen3 Coder 30B A3B Instruct Q8",
+        "Qwen3.5-35B-A3B": {
+          "id": "Qwen3.5-35B-A3B",
+          "name": "Qwen3.5 35B A3B",
           "limit": {
             "context": 131072,
             "output": 4096
           }
         },
-        "qwen3-coder-next-q4_0": {
-          "id": "qwen3-coder-next-q4_0",
-          "name": "Qwen3 Coder Next Q4",
+        "Qwen3.5-35B-A3B-thinking": {
+          "id": "Qwen3.5-35B-A3B-thinking",
+          "name": "Qwen3.5 35B A3B (thinking)",
           "limit": {
             "context": 131072,
             "output": 6144
-          }
-        },
-        "qwen3-coder-next-q8_0": {
-          "id": "qwen3-coder-next-q8_0",
-          "name": "Qwen3 Coder Next Q8",
-          "limit": {
-            "context": 262144,
-            "output": 8192
           }
         }
       }

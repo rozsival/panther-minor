@@ -1,7 +1,7 @@
 [
   {
-    "id": "qwen35-35b-a3b-q8_0",
-    "display_name": "Qwen3.5 35B A3B Q8",
+    "id": "Qwen3.5-35B-A3B",
+    "display_name": "Qwen3.5 35B A3B",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -14,8 +14,8 @@
     "aliases": []
   },
   {
-    "id": "qwen35-35b-a3b-q8_0-thinking",
-    "display_name": "Qwen3.5 35B A3B Q8 (thinking)",
+    "id": "Qwen3.5-35B-A3B-thinking",
+    "display_name": "Qwen3.5 35B A3B (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -28,50 +28,8 @@
     "aliases": []
   },
   {
-    "id": "qwen3-coder-30b-a3b-instruct-q8_0",
-    "display_name": "Qwen3 Coder 30B A3B Instruct Q8",
-    "provider": "panther-minor",
-    "tier": "custom",
-    "context_window": 131072,
-    "max_output_tokens": 4096,
-    "input_cost_per_m": 0.0,
-    "output_cost_per_m": 0.0,
-    "supports_tools": true,
-    "supports_vision": false,
-    "supports_streaming": true,
-    "aliases": []
-  },
-  {
-    "id": "qwen3-coder-next-q4_0",
-    "display_name": "Qwen3 Coder Next Q4",
-    "provider": "panther-minor",
-    "tier": "custom",
-    "context_window": 131072,
-    "max_output_tokens": 6144,
-    "input_cost_per_m": 0.0,
-    "output_cost_per_m": 0.0,
-    "supports_tools": true,
-    "supports_vision": false,
-    "supports_streaming": true,
-    "aliases": []
-  },
-  {
-    "id": "qwen3-coder-next-q8_0",
-    "display_name": "Qwen3 Coder Next Q8",
-    "provider": "panther-minor",
-    "tier": "custom",
-    "context_window": 131072,
-    "max_output_tokens": 8192,
-    "input_cost_per_m": 0.0,
-    "output_cost_per_m": 0.0,
-    "supports_tools": true,
-    "supports_vision": false,
-    "supports_streaming": true,
-    "aliases": []
-  },
-  {
-    "id": "qwen35-2b-q8_0",
-    "display_name": "Qwen3.5 2B Q8",
+    "id": "Qwen3.5-2B",
+    "display_name": "Qwen3.5 2B",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -84,8 +42,8 @@
     "aliases": []
   },
   {
-    "id": "qwen35-2b-q8_0-thinking",
-    "display_name": "Qwen3.5 2B Q8 (thinking)",
+    "id": "Qwen3.5-2B-thinking",
+    "display_name": "Qwen3.5 2B (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,

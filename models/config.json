@@ -2,7 +2,7 @@
   "$schema": "./schema.json",
   "models": [
     {
-      "name": "Qwen3.5-35B-A3B-Q8_0",
+      "name": "Qwen3.5-35B-A3B",
       "file": "Qwen3.5-35B-A3B-Q8_0.gguf",
       "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/Qwen3.5-35B-A3B-GGUF",
@@ -10,28 +10,7 @@
       "vision": true
     },
     {
-      "name": "Qwen3-Coder-30B-A3B-Instruct-Q8_0",
-      "file": "Qwen3-Coder-30B-A3B-Instruct-Q8_0.gguf",
-      "repository": "unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF",
-      "thinking": false,
-      "vision": false
-    },
-    {
-      "name": "Qwen3-Coder-Next-Q4_0",
-      "file": "Qwen3-Coder-Next-Q4_0.gguf",
-      "repository": "unsloth/Qwen3-Coder-Next-GGUF",
-      "thinking": false,
-      "vision": false
-    },
-    {
-      "name": "Qwen3-Coder-Next-Q8_0",
-      "file": "Q8_0/*.gguf",
-      "repository": "unsloth/Qwen3-Coder-Next-GGUF",
-      "thinking": false,
-      "vision": false
-    },
-    {
-      "name": "Qwen3.5-2B-Q8_0",
+      "name": "Qwen3.5-2B",
       "file": "Qwen3.5-2B-Q8_0.gguf",
       "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/Qwen3.5-2B-GGUF",
@@ -39,7 +18,7 @@
       "vision": true
     },
     {
-      "name": "Qwen3-Embedding-0.6B-Q8_0",
+      "name": "Qwen3-Embedding-0.6B",
       "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
       "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
       "thinking": false,
