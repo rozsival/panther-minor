@@ -4,7 +4,7 @@ panther_models_load() {
 
   # Make POST request to llama-manager to load the model (via HTTPS as external client)
   local response
-  response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/load" \
+  response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
     -H "Content-Type: application/json" \
     --insecure \
     -d "{\"model\": \"$model\"}")

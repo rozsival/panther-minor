@@ -4,7 +4,7 @@ panther_models_unload() {
 
   # Make POST request to llama-manager to unload the model (via HTTPS as external client)
   local response
-  response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/unload" \
+  response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/unload" \
     -H "Content-Type: application/json" \
     --insecure \
     -d "{\"model\": \"$model\"}")

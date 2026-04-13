@@ -2396,7 +2396,7 @@ cli_models_load_command() {
 
     # Make POST request to llama-manager to load the model (via HTTPS as external client)
     local response
-    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/load" \
+    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
       -H "Content-Type: application/json" \
       --insecure \
       -d "{\"model\": \"$model\"}")
@@ -2427,7 +2427,7 @@ cli_models_unload_command() {
 
     # Make POST request to llama-manager to unload the model (via HTTPS as external client)
     local response
-    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/unload" \
+    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/unload" \
       -H "Content-Type: application/json" \
       --insecure \
       -d "{\"model\": \"$model\"}")
