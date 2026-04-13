@@ -621,6 +621,8 @@ cli_models_usage() {
   printf "  %s   Download a supported model into the local Hugging Face cache\n" "download"
   printf "  %s   List supported models\n" "list    "
   printf "  %s   Remove a downloaded model from the local Hugging Face cache\n" "remove  "
+  printf "  %s   Load a model into the llama.cpp server\n" "load    "
+  printf "  %s   Unload a model from the llama.cpp server\n" "unload  "
   echo
 
   # :command.long_usage
@@ -673,8 +675,8 @@ cli_models_download_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models download qwen35-35b-a3b-q8_0\n"
-    printf "  HF_TOKEN=token cli models download qwen35-35b-a3b-q8_0\n"
+    printf "  cli models download Qwen3.5-35B-A3B\n"
+    printf "  HF_TOKEN=token cli models download Qwen3.5-35B-A3B\n"
     echo
 
   fi
@@ -727,6 +729,76 @@ cli_models_remove_usage() {
     # :argument.usage
     printf "  %s\n" "MODEL"
     printf "    Model name from models/config.json\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_models_load_usage() {
+  printf "cli models load - Load a model into the llama.cpp server\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli models load MODEL\n"
+  printf "  cli models load --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "MODEL"
+    printf "    Model name from models/config.json\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  cli models load Qwen3.5-35B-A3B\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_models_unload_usage() {
+  printf "cli models unload - Unload a model from the llama.cpp server\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli models unload MODEL\n"
+  printf "  cli models unload --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "MODEL"
+    printf "    Model name from models/config.json\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  cli models unload Qwen3.5-35B-A3B\n"
     echo
 
   fi
@@ -1410,11 +1482,11 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'proxy renew-ssl\'*)'
+  echo $'    \'setup tailscale\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup tailscale\'*)'
+  echo $'    \'proxy renew-ssl\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1431,6 +1503,10 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models remove\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/config.json)") --help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models unload\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1458,11 +1534,15 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --volumes -h -v")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'models list\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'models load\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'completions\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models list\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1470,36 +1550,36 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup grub\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'setup init\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -d -h -t")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup brew\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup init\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --lvm-device --timezone -d -h -t")" -- "$cur")'
+  echo $'    \'setup grub\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup env\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup git\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --server-name -h -n -u")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'setup ufw\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h -p")" -- "$cur")'
+  echo $'    \'setup all\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -d -h -n -p -t -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup ssh\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --ssh-port -h -p -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup all\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --lvm-device --server-name --ssh-port --timezone -d -h -n -p -t -u")" -- "$cur")'
+  echo $'    \'setup ufw\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --ssh-port -h -p")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup git\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help --server-name -h -n -u")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup env\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'cluster\'*)'
@@ -1507,7 +1587,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h download list remove")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h download list load remove unload")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'update\'*)'
@@ -2303,6 +2383,68 @@ cli_models_remove_command() {
   }
 
   panther_models_remove
+
+}
+
+# :command.function
+cli_models_load_command() {
+
+  # src/models_load_command.sh
+  panther_models_load() {
+    local model="${args[model]}"
+    panther_assert_supported_model "$model"
+
+    # Make POST request to llama-manager to load the model (via HTTPS as external client)
+    local response
+    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/load" \
+      -H "Content-Type: application/json" \
+      --insecure \
+      -d "{\"model\": \"$model\"}")
+
+    local http_code="${response: -3}"
+    local body="${response%???}"
+
+    if [[ "$http_code" == "200" ]]; then
+      panther_log_success "Model '$model' loaded successfully."
+    elif [[ "$http_code" == "400" ]]; then
+      panther_log_error "Failed to load model '$model'. Error: $body"
+    else
+      panther_log_error "Failed to load model '$model'. HTTP status: $http_code. Response: $body"
+    fi
+  }
+
+  panther_models_load
+
+}
+
+# :command.function
+cli_models_unload_command() {
+
+  # src/models_unload_command.sh
+  panther_models_unload() {
+    local model="${args[model]}"
+    panther_assert_supported_model "$model"
+
+    # Make POST request to llama-manager to unload the model (via HTTPS as external client)
+    local response
+    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/v1/models/unload" \
+      -H "Content-Type: application/json" \
+      --insecure \
+      -d "{\"model\": \"$model\"}")
+
+    local http_code="${response: -3}"
+    local body="${response%???}"
+
+    if [[ "$http_code" == "200" ]]; then
+      panther_log_success "Model '$model' unloaded successfully."
+    elif [[ "$http_code" == "400" ]]; then
+      panther_log_error "Failed to unload model '$model'. Error: $body"
+    else
+      panther_log_error "Failed to unload model '$model'. HTTP status: $http_code. Response: $body"
+    fi
+  }
+
+  panther_models_unload
 
 }
 
@@ -4051,6 +4193,20 @@ cli_models_parse_requirements() {
       shift $#
       ;;
 
+    load)
+      action="load"
+      shift
+      cli_models_load_parse_requirements "$@"
+      shift $#
+      ;;
+
+    unload)
+      action="unload"
+      shift
+      cli_models_unload_parse_requirements "$@"
+      shift $#
+      ;;
+
     # :command.command_fallback
     "")
       cli_models_usage >&2
@@ -4262,6 +4418,146 @@ cli_models_remove_parse_requirements() {
   # :command.required_args_filter
   if [[ -z ${args['model']+x} ]]; then
     printf "missing required argument: MODEL\nusage: cli models remove MODEL\n" >&2
+
+    exit 1
+  fi
+
+  # :command.validations
+  # :argument.validations
+  if [[ -v args['model'] ]]; then
+    validation_output="$(validate_supported_model "${args['model']:-}")"
+    if [[ -n "$validation_output" ]]; then
+      printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+}
+
+# :command.parse_requirements
+cli_models_load_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_models_load_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="models load"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        # :argument.case
+        if [[ -z ${args['model']+x} ]]; then
+          args['model']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args['model']+x} ]]; then
+    printf "missing required argument: MODEL\nusage: cli models load MODEL\n" >&2
+
+    exit 1
+  fi
+
+  # :command.validations
+  # :argument.validations
+  if [[ -v args['model'] ]]; then
+    validation_output="$(validate_supported_model "${args['model']:-}")"
+    if [[ -n "$validation_output" ]]; then
+      printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+}
+
+# :command.parse_requirements
+cli_models_unload_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_models_unload_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="models unload"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        # :argument.case
+        if [[ -z ${args['model']+x} ]]; then
+          args['model']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args['model']+x} ]]; then
+    printf "missing required argument: MODEL\nusage: cli models unload MODEL\n" >&2
 
     exit 1
   fi
@@ -5384,6 +5680,8 @@ run() {
     "models download") cli_models_download_command ;;
     "models list") cli_models_list_command ;;
     "models remove") cli_models_remove_command ;;
+    "models load") cli_models_load_command ;;
+    "models unload") cli_models_unload_command ;;
     "proxy") cli_proxy_command ;;
     "proxy certbot") cli_proxy_certbot_command ;;
     "proxy renew-ssl") cli_proxy_renew_ssl_command ;;

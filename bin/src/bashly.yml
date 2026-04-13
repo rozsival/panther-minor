@@ -191,8 +191,8 @@ commands:
           - name: hf_token
             help: Hugging Face token used by hf download
         examples:
-          - cli models download qwen35-35b-a3b-q8_0
-          - HF_TOKEN=token cli models download qwen35-35b-a3b-q8_0
+          - cli models download Qwen3.5-35B-A3B
+          - HF_TOKEN=token cli models download Qwen3.5-35B-A3B
         completions:
           - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 
@@ -206,6 +206,30 @@ commands:
             required: true
             help: Model name from models/config.json
             validate: supported_model
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
+
+      - name: load
+        help: Load a model into the llama.cpp server
+        args:
+          - name: model
+            required: true
+            help: Model name from models/config.json
+            validate: supported_model
+        examples:
+          - cli models load Qwen3.5-35B-A3B
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
+
+      - name: unload
+        help: Unload a model from the llama.cpp server
+        args:
+          - name: model
+            required: true
+            help: Model name from models/config.json
+            validate: supported_model
+        examples:
+          - cli models unload Qwen3.5-35B-A3B
         completions:
           - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 
