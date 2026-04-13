@@ -12,7 +12,7 @@ This directory documents the model presets supported by Panther Minor and how th
 | `Gemma-4-26B-A4B` 💭 👀   | `unsloth/gemma-4-26B-A4B-it-GGUF` | 128k | 4k / 6k 💭 | Highly efficient MoE model balancing inference speed with deep analytical and multimodal capabilities      |
 | `Gemma-4-31B` 💭 👀       | `unsloth/gemma-4-31B-it-GGUF`     | 128k | 4k / 6k 💭 | Heavyweight dense model providing maximum consistency for extensive analysis and complex workflows         |
 | `Qwen3.5-2B` 💭 👀        | `unsloth/Qwen3.5-2B-GGUF`         | 128k | 2k / 4k 💭 | Lightweight dense model optimized for blazing fast inference and rapid scaffolding                         |
-| `Qwen3-Embedding-0.6B` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF`  | 32k  | -          | Lightweight embedding model strictly for RAG pipelines                                                     |
+| `Qwen3-Embedding-0.6B` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF`  | 32k  | N/A        | Lightweight embedding model strictly for RAG pipelines                                                     |
 
 ### Legend
 
