@@ -3,13 +3,13 @@ api_listen = "0.0.0.0:4200"
 
 [default_model]
 api_key_env = ""
-model = "qwen35-35b-a3b-q8_0"
+model = "Qwen3.5-35B-A3B"
 provider = "panther-minor"
 
 [memory]
 decay_rate = 0.05
 embedding_provider = "panther-minor"
-embedding_model = "qwen3-embedding-0-6b-q8_0"
+embedding_model = "Qwen3-Embedding-0.6B"
 
 [provider_urls]
 panther-minor = "http://llama-manager:8000/v1"
