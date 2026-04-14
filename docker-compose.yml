@@ -80,6 +80,7 @@ services:
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './llama-cpp/manager.js:/app/main.js:ro'
+      - './llama-cpp/models.js:/app/models.js:ro'
     expose:
       - 8000
     networks:
@@ -112,6 +113,7 @@ services:
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './llama-cpp/metrics-exporter.js:/app/main.js:ro'
+      - './llama-cpp/models.js:/app/models.js:ro'
     expose:
       - 9090
     networks:
