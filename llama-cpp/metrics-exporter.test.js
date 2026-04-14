@@ -221,7 +221,7 @@ test('buildIdlePayload with no prior scrape returns only status lines', async ()
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/);
 });
 
-test('buildMetricsPayload scrapes metrics for all available models', async () => {
+test('buildMetricsPayload scrapes metrics only for loaded models', async () => {
   resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
@@ -252,19 +252,21 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
 
   const payload = await buildMetricsPayload(fetchImpl);
 
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 2);
   assert.ok(calls.includes('http://llama-cpp:8000/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen35-35b-a3b-q8_0&autoload=false'));
-  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
+  assert.ok(!calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 1/);
   assert.match(payload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 100/);
-  assert.match(payload, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 200/);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 200/);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 1/);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
 });
 
-test('buildMetricsPayload attempts metrics scrape for all models even when none are loaded', async () => {
+test('buildMetricsPayload skips model scrapes when none are loaded', async () => {
   resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
@@ -288,10 +290,8 @@ test('buildMetricsPayload attempts metrics scrape for all models even when none 
 
   const payload = await buildMetricsPayload(fetchImpl);
 
-  assert.equal(calls.length, 3);
+  assert.equal(calls.length, 1);
   assert.ok(calls.includes('http://llama-cpp:8000/models'));
-  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen35-35b-a3b-q8_0&autoload=false'));
-  assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
   assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
   assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);

@@ -267,10 +267,11 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
 export async function buildMetricsPayload(fetchImpl = fetch) {
   log('info', 'scrape_cycle_start');
   const models = await fetchModelsList(fetchImpl);
+  const loadedModels = models.filter((model) => model.status === 'loaded');
   const modelToMetrics = {};
   const scrapedModelIds = new Set();
 
-  for (const model of models) {
+  for (const model of loadedModels) {
     try {
       modelToMetrics[model.id] = await fetchMetricsText(model.id, fetchImpl);
       scrapedModelIds.add(model.id);
@@ -290,6 +291,7 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
 
   log('info', 'scrape_cycle_done', {
     discoveredModels: models.length,
+    loadedModels: loadedModels.map((model) => model.id),
     scrapedModels: [...scrapedModelIds],
   });
 
