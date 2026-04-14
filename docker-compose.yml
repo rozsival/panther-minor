@@ -148,6 +148,10 @@ services:
       MODELS_CACHE_TTL: 3600
       OPENAI_API_BASE_URL: 'http://llama-manager:8000/v1'
       OPENAI_API_KEY: 'llama-cpp'
+      RAG_EMBEDDING_ENGINE: 'openai'
+      RAG_EMBEDDING_MODEL: 'Qwen3-Embedding-0.6B'
+      RAG_OPENAI_API_BASE_URL: 'http://llama-manager:8000/v1'
+      TASK_MODEL: 'Qwen3.5-2B'
       WEB_SEARCH_ENGINE: 'duckduckgo'
       WEBUI_AUTH: 'false'
     volumes:
