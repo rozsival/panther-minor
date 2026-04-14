@@ -151,6 +151,7 @@ services:
       RAG_EMBEDDING_ENGINE: 'openai'
       RAG_EMBEDDING_MODEL: 'Qwen3-Embedding-0.6B'
       TASK_MODEL: 'Qwen3.5-2B'
+      TASK_MODEL_EXTERNAL: 'Qwen3.5-2B'
       WEB_SEARCH_ENGINE: 'duckduckgo'
       WEBUI_AUTH: 'false'
     volumes:
