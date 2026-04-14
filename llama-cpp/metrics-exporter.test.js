@@ -8,11 +8,10 @@ import {
   exporterStatusLines,
   injectModelLabel,
   mergeMetricsForModels,
-  normalizeModelsPayload,
   pickLoadedModel,
   resetLastSuccessfulScrape,
-  resetModelsCache,
 } from './metrics-exporter.js';
+import { normalizeModelsPayload } from './models.js';
 
 test('normalizeModelsPayload maps OpenAI models response', () => {
   const models = normalizeModelsPayload({
@@ -123,12 +122,11 @@ test('exporterStatusLines reports idle state with all models unloaded and no scr
 });
 
 test('recordActivity and buildIdlePayload serve stale model metrics', async () => {
-  resetModelsCache();
   resetLastSuccessfulScrape();
 
   const fetchImpl = (url, _options) => {
     const pathname = new URL(url).pathname;
-    if (pathname === '/v1/models') {
+    if (pathname === '/models') {
       return new Response(
         JSON.stringify({
           data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'loaded' } }],
@@ -149,7 +147,7 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
   await buildMetricsPayload(fetchImpl);
 
   // Build idle payload — should serve stale model metrics
-  const idlePayload = buildIdlePayload();
+  const idlePayload = await buildIdlePayload(fetchImpl);
 
   assert.match(idlePayload, /llama_metrics_exporter_idle 1/);
   assert.match(idlePayload, /llama_metrics_exporter_metrics_scrape_up 0/);
@@ -158,25 +156,30 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
   assert.match(idlePayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 42/);
 });
 
-test('buildIdlePayload with no prior scrape returns only status lines', () => {
+test('buildIdlePayload with no prior scrape returns only status lines', async () => {
   resetLastSuccessfulScrape();
-  resetModelsCache();
 
-  const payload = buildIdlePayload();
+  const payload = await buildIdlePayload(() => {
+    return new Response(
+      JSON.stringify({
+        data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'unloaded' } }],
+      }),
+      { status: 200 }
+    );
+  });
   assert.match(payload, /llama_metrics_exporter_up 1/);
   assert.match(payload, /llama_metrics_exporter_idle 1/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/);
 });
 
 test('buildMetricsPayload scrapes metrics for all available models', async () => {
-  resetModelsCache();
   resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
 
     const pathname = new URL(url).pathname;
-    if (pathname === '/v1/models') {
+    if (pathname === '/models') {
       return new Response(
         JSON.stringify({
           data: [
@@ -201,7 +204,7 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.equal(calls.length, 3);
-  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen35-35b-a3b-q8_0&autoload=false'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
@@ -213,13 +216,12 @@ test('buildMetricsPayload scrapes metrics for all available models', async () =>
 });
 
 test('buildMetricsPayload attempts metrics scrape for all models even when none are loaded', async () => {
-  resetModelsCache();
   resetLastSuccessfulScrape();
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
     const pathname = new URL(url).pathname;
-    if (pathname === '/v1/models') {
+    if (pathname === '/models') {
       return new Response(
         JSON.stringify({
           data: [
@@ -238,7 +240,7 @@ test('buildMetricsPayload attempts metrics scrape for all models even when none 
   const payload = await buildMetricsPayload(fetchImpl);
 
   assert.equal(calls.length, 3);
-  assert.ok(calls.includes('http://llama-cpp:8000/v1/models'));
+  assert.ok(calls.includes('http://llama-cpp:8000/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen35-35b-a3b-q8_0&autoload=false'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
   assert.match(payload, /llama_metrics_exporter_idle 0/);
@@ -248,4 +250,47 @@ test('buildMetricsPayload attempts metrics scrape for all models even when none 
   assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
+});
+
+test('buildIdlePayload fetches the current /models list instead of using a stale cache', async () => {
+  resetLastSuccessfulScrape();
+  let modelsRequestCount = 0;
+
+  const activeFetchImpl = (url) => {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.pathname === '/models') {
+      modelsRequestCount += 1;
+      return new Response(
+        JSON.stringify({
+          data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'loaded' } }],
+        }),
+        { status: 200 }
+      );
+    }
+
+    return new Response(
+      '# HELP llamacpp_tokens_predicted_total Total predicted tokens\n' +
+        '# TYPE llamacpp_tokens_predicted_total counter\n' +
+        'llamacpp_tokens_predicted_total 42\n',
+      { status: 200 }
+    );
+  };
+
+  await buildMetricsPayload(activeFetchImpl);
+
+  const idlePayload = await buildIdlePayload((url) => {
+    const parsedUrl = new URL(url);
+    assert.equal(parsedUrl.pathname, '/models');
+    modelsRequestCount += 1;
+    return new Response(
+      JSON.stringify({
+        data: [{ id: 'panther-coder-large', status: { value: 'unloaded' } }],
+      }),
+      { status: 200 }
+    );
+  });
+
+  assert.equal(modelsRequestCount, 2);
+  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="panther-coder-large"} 0/);
+  assert.doesNotMatch(idlePayload, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"} 0/);
 });

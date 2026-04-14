@@ -11,7 +11,7 @@
 
 Panther Minor gives you a reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems. It combines
 **llama.cpp**, **Open WebUI**, **OpenFang**, **Prometheus**, and **Grafana** into a secure setup with **Tailscale
-access**, **hardened SSH**, and **scale-to-zero GPU idle behavior**.
+access**, **hardened SSH**, and **idle-triggered VRAM unloading**.
 
 </div>
 
@@ -24,7 +24,7 @@ access**, **hardened SSH**, and **scale-to-zero GPU idle behavior**.
 | **Local inference**      | OpenAI-compatible LLM API powered by [LLaMA.cpp](https://github.com/ggml-org/llama.cpp) |
 | **Agent orchestration**  | [OpenFang](https://www.openfang.sh/) for automation and agent workflows                 |
 | **Built-in monitoring**  | Prometheus, Grafana, and exporters for host + GPU visibility                            |
-| **GPU power saving**     | Automatic idle detection and `llama.cpp` scale-to-zero behavior                         |
+| **GPU power saving**     | Automatic idle detection and `llama.cpp` model unload behavior                          |
 | **Secure remote access** | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                          |
 | **Reproducible setup**   | One CLI-driven installation flow for the whole workstation                              |
 
@@ -269,20 +269,19 @@ All LLM traffic from Open WebUI, OpenFang, and external clients flows through `l
 **How it works**
 
 1. `llama-manager` records every model list, inference, and embedding request as activity.
-2. When no request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `llama.cpp` unloads models from VRAM and
-   the GPUs enter a low-power state.
+2. When no request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `llama-manager` checks `/models` and calls
+   `/models/unload` for each still-loaded model, so `llama.cpp` releases VRAM without restarting the container.
 3. `llama-metrics-exporter` checks `llama-manager /status` before each Prometheus scrape. During idle, it serves the
-   last active counter values instead of querying `llama.cpp`, so Grafana dashboards keep historical continuity without
-   `"No data"` gaps.
+   last active counter values plus a fresh `/models` snapshot instead of querying `/metrics`, so Grafana dashboards keep
+   historical continuity without `"No data"` gaps.
 
 A dedicated `llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
 
 Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
 
 > [!NOTE]
-> `llama-manager` uses the Docker socket to stop the `llama-cpp` container when idle and restart it on demand
-> (scale-to-zero). This releases VRAM and the GPU compute context fully. On the next inference request, the container
-> is started automatically and requests are queued until `llama.cpp` reports healthy.
+> `llama-manager` no longer controls the `llama-cpp` container lifecycle. Idle handling stays inside the llama-server
+> API surface, which keeps cold starts predictable while still releasing model VRAM.
 
 ---
 

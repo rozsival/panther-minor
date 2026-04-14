@@ -63,16 +63,16 @@ services:
       retries: 5
       start_period: 60s
 
-  # -- llama.cpp manager (proxy + autoscaler) -----------------------------------
-  # Activity-aware reverse proxy: records inference activity, stops llama-cpp
-  # when idle and starts it back on demand (scale-to-zero).
+  # -- llama.cpp manager (proxy + idle unload) ----------------------------------
+  # Activity-aware reverse proxy: records inference activity and unloads models
+  # through llama-server when the cluster stays idle.
   llama-manager:
     container_name: llama-manager
     image: node:24-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
-      LLAMA_CPP_CONTAINER_NAME: 'llama-cpp'
+      IDLE_UNLOAD_RETRY_SECONDS: 15
       LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
@@ -80,7 +80,6 @@ services:
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './llama-cpp/manager.js:/app/main.js:ro'
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
     expose:
       - 8000
     networks:

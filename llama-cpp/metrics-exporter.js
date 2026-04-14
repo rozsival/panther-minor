@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { normalizeModelsPayload } from './models.js';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
@@ -45,18 +46,6 @@ const cache = {
   timestampMs: 0,
 };
 
-const modelsCache = {
-  models: null,
-  timestampMs: 0,
-};
-
-const MODELS_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
-
-export function resetModelsCache() {
-  modelsCache.models = null;
-  modelsCache.timestampMs = 0;
-}
-
 export async function queryManagerActive() {
   try {
     const response = await fetch(`${MANAGER_URL}/status`, {
@@ -82,25 +71,6 @@ const lastSuccessfulScrape = {
 export function resetLastSuccessfulScrape() {
   lastSuccessfulScrape.modelToMetrics = {};
   lastSuccessfulScrape.timestampMs = 0;
-}
-
-export function normalizeModelsPayload(payload) {
-  const data = Array.isArray(payload?.data) ? payload.data : [];
-  const models = [];
-  const seen = new Set();
-
-  for (const item of data) {
-    const id = typeof item?.id === 'string' ? item.id.trim() : '';
-    if (!id || seen.has(id) || id.toLowerCase().includes('embedding')) {
-      continue;
-    }
-
-    const statusValue = typeof item?.status?.value === 'string' ? item.status.value.trim().toLowerCase() : 'unknown';
-    seen.add(id);
-    models.push({ id, status: statusValue });
-  }
-
-  return models;
 }
 
 export function pickLoadedModel(models) {
@@ -172,16 +142,16 @@ export function exporterStatusLines(models, scrapedModelIds, isIdle = false) {
     '# HELP llama_metrics_exporter_idle Whether the llama.cpp server is currently idle (no recent inference activity).',
     '# TYPE llama_metrics_exporter_idle gauge',
     `llama_metrics_exporter_idle ${isIdle ? 1 : 0}`,
-    '# HELP llama_metrics_exporter_discovered_models Number of models discovered via /v1/models.',
+    '# HELP llama_metrics_exporter_discovered_models Number of models discovered via /models.',
     '# TYPE llama_metrics_exporter_discovered_models gauge',
     `llama_metrics_exporter_discovered_models ${models.length}`,
-    '# HELP llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /v1/models.',
+    '# HELP llama_metrics_exporter_loaded_models Number of models with status.value="loaded" from /models.',
     '# TYPE llama_metrics_exporter_loaded_models gauge',
     `llama_metrics_exporter_loaded_models ${loadedCount}`,
     '# HELP llama_metrics_exporter_metrics_scrape_up Whether scraping /metrics succeeded for at least one model.',
     '# TYPE llama_metrics_exporter_metrics_scrape_up gauge',
     `llama_metrics_exporter_metrics_scrape_up ${!isIdle && scrapedModelIds.size > 0 ? 1 : 0}`,
-    '# HELP llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /v1/models.',
+    '# HELP llama_metrics_exporter_model_loaded Whether a model is currently reported as loaded by /models.',
     '# TYPE llama_metrics_exporter_model_loaded gauge',
     '# HELP llama_metrics_exporter_model_up Whether /metrics was scraped for a model in this cycle.',
     '# TYPE llama_metrics_exporter_model_up gauge',
@@ -226,21 +196,12 @@ async function fetchJson(pathname, fetchImpl = fetch) {
 }
 
 export async function fetchModelsList(fetchImpl = fetch) {
-  const nowMs = Date.now();
-  if (modelsCache.models && nowMs - modelsCache.timestampMs < MODELS_CACHE_TTL_MS) {
-    log('debug', 'models_cache_hit', { ageMs: nowMs - modelsCache.timestampMs });
-    return modelsCache.models;
-  }
-
-  const payload = await fetchJson('/v1/models', fetchImpl);
+  const payload = await fetchJson('/models', fetchImpl);
   const models = normalizeModelsPayload(payload);
   log('info', 'models_discovered', {
     count: models.length,
     loaded: models.filter((model) => model.status === 'loaded').map((model) => model.id),
   });
-
-  modelsCache.models = models;
-  modelsCache.timestampMs = nowMs;
 
   return models;
 }
@@ -329,12 +290,12 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
   return lines.join('\n');
 }
 
-export function buildIdlePayload() {
-  const models = modelsCache.models ?? [];
+export async function buildIdlePayload(fetchImpl = fetch) {
+  const models = await fetchModelsList(fetchImpl);
   const statusLines = exporterStatusLines(models, new Set(), true);
   const modelMetricsLines = mergeMetricsForModels(lastSuccessfulScrape.modelToMetrics);
   log('info', 'idle_payload_built', {
-    cachedModels: models.length,
+    discoveredModels: models.length,
     hasCachedMetrics: lastSuccessfulScrape.timestampMs > 0,
   });
   return [...statusLines, ...modelMetricsLines, ''].join('\n');
@@ -389,7 +350,7 @@ export function startServer() {
 
       if (!(await queryManagerActive())) {
         log('info', 'scrape_skipped_server_idle');
-        const payload = buildIdlePayload();
+        const payload = await buildIdlePayload();
         cache.payload = payload;
         cache.timestampMs = nowMs;
         res.writeHead(200, {
