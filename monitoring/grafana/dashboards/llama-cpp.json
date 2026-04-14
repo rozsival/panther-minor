@@ -21,7 +21,7 @@
       "collapsed": false,
       "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
       "id": 100,
-      "title": "Throughput Overview",
+      "title": "Average Throughput Overview",
       "type": "row"
     },
     {
@@ -65,7 +65,7 @@
           "refId": "A"
         }
       ],
-      "title": "Prefill Throughput by Model",
+      "title": "Average Prefill Throughput by Model",
       "type": "bargauge"
     },
     {
@@ -109,7 +109,7 @@
           "refId": "A"
         }
       ],
-      "title": "Inference Throughput by Model",
+      "title": "Average Inference Throughput by Model",
       "type": "bargauge"
     },
     {
@@ -172,7 +172,7 @@
           "refId": "A"
         }
       ],
-      "title": "Prefill Tokens/s",
+      "title": "Average Prefill Tokens/s",
       "type": "timeseries"
     },
     {
@@ -228,7 +228,7 @@
           "refId": "A"
         }
       ],
-      "title": "Inference Tokens/s",
+      "title": "Average Inference Tokens/s",
       "type": "timeseries"
     }
   ],
