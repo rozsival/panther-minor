@@ -45,10 +45,11 @@ const cache = {
   payload: '',
   timestampMs: 0,
 };
+let refreshInFlight = null;
 
-export async function queryManagerStatus() {
+export async function queryManagerStatus(fetchImpl = fetch) {
   try {
-    const response = await fetch(`${MANAGER_URL}/status`, {
+    const response = await fetchImpl(`${MANAGER_URL}/status`, {
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
     });
     if (!response.ok) {
@@ -327,15 +328,11 @@ function cachePayload(payload, timestampMs) {
   cache.timestampMs = timestampMs;
 }
 
-async function getCurrentMetricsPayload(nowMs) {
-  log('debug', 'scrape_cache_miss');
-
-  const managerStatus = await queryManagerStatus();
+async function buildCurrentMetricsPayload(fetchImpl = fetch) {
+  const managerStatus = await queryManagerStatus(fetchImpl);
   if (!shouldScrapeFreshMetrics(managerStatus, lastSuccessfulScrape.timestampMs)) {
     log('info', 'scrape_skipped_server_idle');
-    const payload = await buildIdlePayload();
-    cachePayload(payload, nowMs);
-    return payload;
+    return buildIdlePayload(fetchImpl);
   }
 
   if (!managerStatus.active && managerStatus.lastActivityAt > lastSuccessfulScrape.timestampMs) {
@@ -345,12 +342,51 @@ async function getCurrentMetricsPayload(nowMs) {
     });
   }
 
-  const payload = await buildMetricsPayload();
+  const payload = await buildMetricsPayload(fetchImpl);
+  return payload;
+}
+
+export async function refreshMetricsCache(fetchImpl = fetch) {
+  if (refreshInFlight) {
+    return refreshInFlight;
+  }
+
+  refreshInFlight = (async () => {
+    const payload = await buildCurrentMetricsPayload(fetchImpl);
+    cachePayload(payload, Date.now());
+    return payload;
+  })();
+
+  try {
+    return await refreshInFlight;
+  } finally {
+    refreshInFlight = null;
+  }
+}
+
+function startBackgroundRefresh() {
+  const refreshIntervalMs = Math.max(1000, CACHE_TTL_SECONDS * 1000);
+  const timer = setInterval(() => {
+    refreshMetricsCache().catch((error) => {
+      log('warn', 'background_refresh_failed', {
+        error: error?.message ?? String(error),
+      });
+    });
+  }, refreshIntervalMs);
+
+  timer.unref?.();
+  return timer;
+}
+
+async function getCurrentMetricsPayload(nowMs) {
+  log('debug', 'scrape_cache_miss');
+  const payload = await refreshMetricsCache();
   cachePayload(payload, nowMs);
   return payload;
 }
 
 export function startServer() {
+  const backgroundRefreshTimer = startBackgroundRefresh();
   const server = createServer(async (req, res) => {
     const requestUrl = new URL(req.url ?? '/', 'http://localhost');
     const path = requestUrl.pathname;
@@ -410,9 +446,14 @@ export function startServer() {
     }
   });
 
+  server.on('close', () => {
+    clearInterval(backgroundRefreshTimer);
+  });
+
   server.listen(PORT, '0.0.0.0', () => {
     log('info', 'server_started', {
       cacheTtlSeconds: CACHE_TTL_SECONDS,
+      refreshIntervalSeconds: Math.max(1, CACHE_TTL_SECONDS),
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
       managerUrl: MANAGER_URL,

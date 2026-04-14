@@ -9,6 +9,7 @@ import {
   injectModelLabel,
   mergeMetricsForModels,
   pickLoadedModel,
+  refreshMetricsCache,
   resetLastSuccessfulScrape,
   shouldScrapeFreshMetrics,
 } from './metrics-exporter.js';
@@ -126,6 +127,47 @@ test('shouldScrapeFreshMetrics keeps one live scrape after unseen activity', () 
   assert.equal(shouldScrapeFreshMetrics({ active: false, lastActivityAt: 200 }, 100), true);
   assert.equal(shouldScrapeFreshMetrics({ active: false, lastActivityAt: 100 }, 100), false);
   assert.equal(shouldScrapeFreshMetrics({ active: true, lastActivityAt: 50 }, 100), true);
+});
+
+test('refreshMetricsCache reuses the in-flight refresh work', async () => {
+  resetLastSuccessfulScrape();
+  let modelsCalls = 0;
+  const deferredMetrics = Promise.withResolvers();
+
+  const firstRefresh = refreshMetricsCache((url) => {
+    const parsedUrl = new URL(url);
+    if (parsedUrl.toString() === 'http://llama-manager:8000/status') {
+      return new Response(JSON.stringify({ active: true, lastActivityAt: Date.now() }), { status: 200 });
+    }
+    if (parsedUrl.pathname === '/models') {
+      modelsCalls += 1;
+      return new Response(
+        JSON.stringify({
+          data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'loaded' } }],
+        }),
+        { status: 200 }
+      );
+    }
+    deferredMetrics.resolve(
+      new Response(
+        '# HELP llamacpp_tokens_predicted_total Total predicted tokens\n' +
+          '# TYPE llamacpp_tokens_predicted_total counter\n' +
+          'llamacpp_tokens_predicted_total 42\n',
+        { status: 200 }
+      )
+    );
+    return deferredMetrics.promise;
+  });
+
+  const secondRefresh = refreshMetricsCache(() => {
+    throw new Error('second refresh should not start a parallel scrape');
+  });
+
+  const [firstPayload, secondPayload] = await Promise.all([firstRefresh, secondRefresh]);
+
+  assert.equal(modelsCalls, 1);
+  assert.equal(firstPayload, secondPayload);
+  assert.match(firstPayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 42/);
 });
 
 test('recordActivity and buildIdlePayload serve stale model metrics', async () => {
