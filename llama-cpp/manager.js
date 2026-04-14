@@ -249,6 +249,18 @@ export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
   }
 
   return withLargeModelSwitchLock(async () => {
+    log('info', 'large_model_preflight_started', { targetModel: modelId });
+
+    const trackedConflicts = [...largeModelInFlightCounts.keys()].filter(
+      (trackedModelId) => trackedModelId !== modelId
+    );
+    if (trackedConflicts.length > 0) {
+      log('info', 'large_model_preflight_waiting_for_active_requests', {
+        blockingModels: trackedConflicts,
+        targetModel: modelId,
+      });
+    }
+
     for (const trackedModelId of largeModelInFlightCounts.keys()) {
       if (trackedModelId !== modelId) {
         await waitForLargeModelToDrain(trackedModelId);
@@ -258,15 +270,36 @@ export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
     const loadedLargeModels = (await fetchLoadedModels(fetchImpl)).filter(
       (loadedModel) => isLargeModelId(loadedModel.id) && loadedModel.id !== modelId
     );
+
+    log('info', 'large_model_preflight_checked', {
+      conflictingLoadedModels: loadedLargeModels.map((loadedModel) => loadedModel.id),
+      targetModel: modelId,
+      willUnload: loadedLargeModels.length > 0,
+    });
+
     const unloadedModels = [];
 
     for (const loadedModel of loadedLargeModels) {
       await waitForLargeModelToDrain(loadedModel.id);
+      log('info', 'large_model_unload_requested', {
+        model: loadedModel.id,
+        reason: 'large_model_switch',
+        targetModel: modelId,
+      });
       await unloadModel(loadedModel.id, fetchImpl);
+      log('info', 'large_model_unload_succeeded', {
+        model: loadedModel.id,
+        reason: 'large_model_switch',
+        targetModel: modelId,
+      });
       unloadedModels.push(loadedModel.id);
     }
 
     incrementLargeModelInFlight(modelId);
+    log('info', 'large_model_preflight_finished', {
+      reservedModel: modelId,
+      unloadedModels,
+    });
     return { trackedLargeModelId: modelId, unloadedModels };
   });
 }
@@ -446,6 +479,11 @@ async function handleInferenceRequest(req, res) {
   if (isLargeModelId(requestedModelId)) {
     const reservation = await prepareLargeModelForInference(requestedModelId);
     trackedLargeModelId = reservation.trackedLargeModelId;
+  } else {
+    log('info', 'large_model_preflight_skipped', {
+      isLargeModel: false,
+      targetModel: requestedModelId,
+    });
   }
 
   try {
