@@ -54,28 +54,6 @@ flowchart LR
 > [!IMPORTANT]
 > This stack is designed as a **single-tenant** system for one trusted user and workload. It is not suitable for multi-user or untrusted environments.
 
-## 🚀 Quick Start
-
-Clone the repository on the target server and run the setup CLI:
-
-> [!WARNING]
-> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
-> After reboot, SSH will be available on **port 2222** with **key-based authentication only**.
->
-> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
-
-```bash
-ssh <user>@<server-ip>
-git clone https://github.com/rozsival/panther-minor.git
-cd panther-minor
-sudo ./bin/cli setup
-```
-
-> [!TIP]
-> You can discover the server IP after login on the host machine using `ip a`.
-
----
-
 ## 🧰 Prerequisites
 
 ### Hardware
@@ -107,6 +85,28 @@ sudo ./bin/cli setup
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
 - A [Tailscale](https://tailscale.com/) account for secure remote access
 - A domain you control for required SSL certificate issuance and secure service access
+
+---
+
+## 🚀 Quick Start
+
+Clone the repository on the target server and run the setup CLI:
+
+> [!WARNING]
+> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
+> After reboot, SSH will be available on **port 2222** with **key-based authentication only**.
+>
+> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
+
+```bash
+ssh <user>@<server-ip>
+git clone https://github.com/rozsival/panther-minor.git
+cd panther-minor
+sudo ./bin/cli setup
+```
+
+> [!TIP]
+> You can discover the server IP after login on the host machine using `ip a`.
 
 ---
 
