@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest } from 'node:http';
-import { normalizeModelsPayload } from './models.js';
+import { isLargeModelId, normalizeModelsPayload } from './models.js';
 
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
@@ -42,6 +42,9 @@ let lastActivityAt = Date.now();
 let activeProxyRequests = 0;
 let unloadInProgress = false;
 let idleTimer = null;
+let largeModelSwitchLock = Promise.resolve();
+const largeModelInFlightCounts = new Map();
+const largeModelDrainWaiters = new Map();
 
 function getIdleTimeoutSeconds() {
   return Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
@@ -74,6 +77,9 @@ export function resetActivityTracking() {
   lastActivityAt = 0;
   activeProxyRequests = 0;
   unloadInProgress = false;
+  largeModelSwitchLock = Promise.resolve();
+  largeModelInFlightCounts.clear();
+  largeModelDrainWaiters.clear();
   if (idleTimer) {
     clearTimeout(idleTimer);
     idleTimer = null;
@@ -95,6 +101,65 @@ export function endTrackedRequest() {
 
 export function getActiveProxyRequests() {
   return activeProxyRequests;
+}
+
+async function withLargeModelSwitchLock(task) {
+  const previousLock = largeModelSwitchLock;
+  let releaseLock = () => undefined;
+  largeModelSwitchLock = new Promise((resolve) => {
+    releaseLock = resolve;
+  });
+
+  await previousLock;
+  try {
+    return await task();
+  } finally {
+    releaseLock();
+  }
+}
+
+function incrementLargeModelInFlight(modelId) {
+  if (!isLargeModelId(modelId)) {
+    return;
+  }
+
+  largeModelInFlightCounts.set(modelId, (largeModelInFlightCounts.get(modelId) ?? 0) + 1);
+}
+
+export function releaseLargeModelReservation(modelId) {
+  if (!isLargeModelId(modelId)) {
+    return;
+  }
+
+  const nextCount = (largeModelInFlightCounts.get(modelId) ?? 0) - 1;
+  if (nextCount > 0) {
+    largeModelInFlightCounts.set(modelId, nextCount);
+    return;
+  }
+
+  largeModelInFlightCounts.delete(modelId);
+
+  const waiters = largeModelDrainWaiters.get(modelId) ?? [];
+  largeModelDrainWaiters.delete(modelId);
+  for (const waiter of waiters) {
+    waiter();
+  }
+}
+
+export function getLargeModelInFlight(modelId) {
+  return largeModelInFlightCounts.get(modelId) ?? 0;
+}
+
+async function waitForLargeModelToDrain(modelId) {
+  if (!isLargeModelId(modelId) || getLargeModelInFlight(modelId) === 0) {
+    return;
+  }
+
+  await new Promise((resolve) => {
+    const waiters = largeModelDrainWaiters.get(modelId) ?? [];
+    waiters.push(resolve);
+    largeModelDrainWaiters.set(modelId, waiters);
+  });
 }
 
 function scheduleIdleCheck() {
@@ -178,6 +243,34 @@ export async function unloadModel(modelId, fetchImpl = fetch) {
   await postJson('/models/unload', { model: modelId }, fetchImpl);
 }
 
+export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
+  if (!isLargeModelId(modelId)) {
+    return { trackedLargeModelId: null, unloadedModels: [] };
+  }
+
+  return withLargeModelSwitchLock(async () => {
+    for (const trackedModelId of largeModelInFlightCounts.keys()) {
+      if (trackedModelId !== modelId) {
+        await waitForLargeModelToDrain(trackedModelId);
+      }
+    }
+
+    const loadedLargeModels = (await fetchLoadedModels(fetchImpl)).filter(
+      (loadedModel) => isLargeModelId(loadedModel.id) && loadedModel.id !== modelId
+    );
+    const unloadedModels = [];
+
+    for (const loadedModel of loadedLargeModels) {
+      await waitForLargeModelToDrain(loadedModel.id);
+      await unloadModel(loadedModel.id, fetchImpl);
+      unloadedModels.push(loadedModel.id);
+    }
+
+    incrementLargeModelInFlight(modelId);
+    return { trackedLargeModelId: modelId, unloadedModels };
+  });
+}
+
 export async function unloadIdleModels(fetchImpl = fetch) {
   if (!isIdleModeEnabled() || isActive() || unloadInProgress) {
     return [];
@@ -185,31 +278,37 @@ export async function unloadIdleModels(fetchImpl = fetch) {
 
   unloadInProgress = true;
   try {
-    const loadedModels = await fetchLoadedModels(fetchImpl);
-    if (loadedModels.length === 0) {
-      log('debug', 'idle_unload_skipped_no_loaded_models');
-      return [];
-    }
-
-    const unloadedModels = [];
-    for (const model of loadedModels) {
+    return await withLargeModelSwitchLock(async () => {
       if (isActive()) {
-        log('info', 'idle_unload_cancelled_activity_resumed', {
-          unloadedModels,
-        });
-        scheduleIdleCheck();
-        return unloadedModels;
+        return [];
       }
 
-      await unloadModel(model.id, fetchImpl);
-      unloadedModels.push(model.id);
-    }
+      const loadedModels = await fetchLoadedModels(fetchImpl);
+      if (loadedModels.length === 0) {
+        log('debug', 'idle_unload_skipped_no_loaded_models');
+        return [];
+      }
 
-    log('info', 'idle_unload_complete', {
-      count: unloadedModels.length,
-      models: unloadedModels,
+      const unloadedModels = [];
+      for (const model of loadedModels) {
+        if (isActive()) {
+          log('info', 'idle_unload_cancelled_activity_resumed', {
+            unloadedModels,
+          });
+          scheduleIdleCheck();
+          return unloadedModels;
+        }
+
+        await unloadModel(model.id, fetchImpl);
+        unloadedModels.push(model.id);
+      }
+
+      log('info', 'idle_unload_complete', {
+        count: unloadedModels.length,
+        models: unloadedModels,
+      });
+      return unloadedModels;
     });
-    return unloadedModels;
   } catch (error) {
     log('warn', 'idle_unload_retry_scheduled', {
       error: error?.message ?? String(error),
@@ -251,7 +350,9 @@ function stripHopByHopHeaders(headers) {
 const upstreamBase = new URL(LLAMA_SERVER_URL);
 
 function proxyToUpstream(req, res, options = {}) {
+  const bodyBuffer = options.bodyBuffer;
   const trackRequest = options.trackRequest === true;
+  const trackedLargeModelId = options.trackedLargeModelId ?? null;
   let trackedRequestFinished = false;
 
   const finishTrackedRequest = () => {
@@ -260,6 +361,7 @@ function proxyToUpstream(req, res, options = {}) {
     }
     trackedRequestFinished = true;
     endTrackedRequest();
+    releaseLargeModelReservation(trackedLargeModelId);
   };
 
   if (trackRequest) {
@@ -272,7 +374,11 @@ function proxyToUpstream(req, res, options = {}) {
       port: Number(upstreamBase.port) || 80,
       path: req.url,
       method: req.method,
-      headers: { ...stripHopByHopHeaders(req.headers), host: upstreamBase.host },
+      headers: {
+        ...stripHopByHopHeaders(req.headers),
+        ...(bodyBuffer ? { 'content-length': String(bodyBuffer.length) } : {}),
+        host: upstreamBase.host,
+      },
       timeout: UPSTREAM_TIMEOUT_SECONDS * 1000,
     },
     (proxyRes) => {
@@ -289,7 +395,11 @@ function proxyToUpstream(req, res, options = {}) {
     }
   );
 
-  req.pipe(proxyReq);
+  if (bodyBuffer) {
+    proxyReq.end(bodyBuffer);
+  } else {
+    req.pipe(proxyReq);
+  }
 
   proxyReq.on('error', (error) => {
     finishTrackedRequest();
@@ -301,6 +411,53 @@ function proxyToUpstream(req, res, options = {}) {
   });
 
   req.on('aborted', finishTrackedRequest);
+}
+
+async function readRequestBody(req) {
+  const chunks = [];
+
+  for await (const chunk of req) {
+    chunks.push(chunk);
+  }
+
+  return Buffer.concat(chunks.map((chunk) => (Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))));
+}
+
+export function extractRequestedModel(bodyBuffer) {
+  if (!bodyBuffer || bodyBuffer.length === 0) {
+    return null;
+  }
+
+  try {
+    const payload = JSON.parse(bodyBuffer.toString('utf8'));
+    return typeof payload?.model === 'string' ? payload.model.trim() : null;
+  } catch {
+    return null;
+  }
+}
+
+async function handleInferenceRequest(req, res) {
+  recordActivity();
+
+  const bodyBuffer = await readRequestBody(req);
+  const requestedModelId = extractRequestedModel(bodyBuffer);
+
+  let trackedLargeModelId = null;
+  if (isLargeModelId(requestedModelId)) {
+    const reservation = await prepareLargeModelForInference(requestedModelId);
+    trackedLargeModelId = reservation.trackedLargeModelId;
+  }
+
+  try {
+    proxyToUpstream(req, res, {
+      bodyBuffer,
+      trackRequest: true,
+      trackedLargeModelId,
+    });
+  } catch (error) {
+    releaseLargeModelReservation(trackedLargeModelId);
+    throw error;
+  }
 }
 
 // -- HTTP server --------------------------------------------------------------
@@ -334,7 +491,22 @@ export function startServer() {
       return;
     }
 
-    const trackRequest = req.method === 'POST' && (inferencePaths.has(requestPath) || embeddingPaths.has(requestPath));
+    const isInferenceRequest = req.method === 'POST' && inferencePaths.has(requestPath);
+    const trackRequest = isInferenceRequest || (req.method === 'POST' && embeddingPaths.has(requestPath));
+
+    if (isInferenceRequest) {
+      handleInferenceRequest(req, res).catch((error) => {
+        log('warn', 'inference_request_failed', {
+          error: error?.message ?? String(error),
+          path: requestPath,
+        });
+        if (!res.headersSent) {
+          res.writeHead(502);
+          res.end('Bad Gateway\n');
+        }
+      });
+      return;
+    }
 
     if (trackRequest) {
       recordActivity();

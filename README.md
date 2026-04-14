@@ -234,7 +234,7 @@ See [Models](./models/README.md) for available LLMs and their usage.
 | Service                  | Role                                                                          |
 | ------------------------ | ----------------------------------------------------------------------------- |
 | `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support                |
-| `llama-manager`          | Activity-aware reverse proxy that tracks inference activity for GPU idle mode |
+| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling |
 | `open-webui`             | Chat interface for interacting with LLMs                                      |
 | `openfang`               | Agent orchestration platform                                                  |
 | `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                 |
@@ -274,6 +274,19 @@ All LLM traffic from Open WebUI, OpenFang, and external clients flows through `l
 3. `llama-metrics-exporter` checks `llama-manager /status` before each Prometheus scrape. During idle, it serves the
    last active counter values plus a fresh `/models` snapshot instead of querying `/metrics`, so Grafana dashboards keep
    historical continuity without `"No data"` gaps.
+
+### Large-model switching
+
+`llama-manager` also prevents avoidable OOM spikes when you switch between bigger models while keeping a lightweight
+second model resident.
+
+1. A static list of large model IDs lives in `llama-cpp/models.js`.
+2. Before proxying an inference request for one of those models, the manager reads the request body, checks `/models`,
+   and unloads any other loaded large model first.
+3. Large-model switches are serialized, and a loaded large model is never unloaded while one of its proxied inference
+   requests is still in flight.
+
+This keeps the small helper model untouched while making large-model handovers deterministic.
 
 A dedicated `llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
 

@@ -30,7 +30,8 @@ for monitoring GPU and node performance.
 - `bin/README.md` — overview of the `./bin/cli` command tree (strictly follow rules there for CLI changes)
 - `models/README.md` — overview for custom `llama.cpp` models with `./bin/cli models *` usage and `preset.ini` config
 - `docker-compose.yml` — service definitions with health checks
-- `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models through llama-server `/models/unload`
+- `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models and arbitrates large-model switches before proxying inference
+- `llama-cpp/models.js` — shared model helpers, including normalization and the static list of model IDs treated as large by the manager
 - `llama-cpp/metrics-exporter.js` — Prometheus exporter; queries `llama-manager /status` to decide idle vs. active scrape cycle
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
