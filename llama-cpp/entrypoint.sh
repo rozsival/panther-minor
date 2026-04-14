@@ -7,6 +7,7 @@ exec /opt/llama-cpp/build/bin/llama-server \
   --metrics \
   --models-max "$LLAMA_CPP_MODELS_MAX" \
   --models-preset "$HOME/.cache/huggingface/preset.ini" \
+  --parallel 1 \
   --port 8000 \
   --sleep-idle-seconds "$LLAMA_CPP_SLEEP_IDLE_SECONDS" \
   --slot-save-path "$HOME/.cache/slots" \
