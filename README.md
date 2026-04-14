@@ -2,7 +2,7 @@
 
 # 🐆 Panther Minor
 
-> A self-hosted AI workstation stack for [AMD](https://www.amd.com/en.html) with local LLM inference, agent orchestration, monitoring, and GPU-saving features.
+#### Self-hosted AI workstation stack for [AMD](https://www.amd.com/en.html)
 
 ![Platform](https://img.shields.io/badge/Platform-Ubuntu%2025.10%2B-0A84FF)
 ![GPU](https://img.shields.io/badge/GPU-AMD%20RDNA%204-E01F27)
