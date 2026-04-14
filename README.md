@@ -51,6 +51,9 @@ flowchart LR
     D[Grafana] --> P
 ```
 
+> [!IMPORTANT]
+> This stack is designed as a **single-tenant** system for one trusted user and workload. It is not suitable for multi-user or untrusted environments.
+
 ## 🚀 Quick Start
 
 Clone the repository on the target server and run the setup CLI:
