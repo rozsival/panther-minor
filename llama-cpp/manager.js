@@ -523,6 +523,7 @@ export function startServer() {
           active: isActive(),
           activeProxyRequests,
           idleTimeoutSeconds: getIdleTimeoutSeconds(),
+          lastActivityAt,
           unloadInProgress,
         })
       );

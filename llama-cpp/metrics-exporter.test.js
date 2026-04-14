@@ -10,6 +10,7 @@ import {
   mergeMetricsForModels,
   pickLoadedModel,
   resetLastSuccessfulScrape,
+  shouldScrapeFreshMetrics,
 } from './metrics-exporter.js';
 import { normalizeModelsPayload } from './models.js';
 
@@ -119,6 +120,12 @@ test('exporterStatusLines reports idle state with all models unloaded and no scr
   assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
   assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 0/);
   assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
+});
+
+test('shouldScrapeFreshMetrics keeps one live scrape after unseen activity', () => {
+  assert.equal(shouldScrapeFreshMetrics({ active: false, lastActivityAt: 200 }, 100), true);
+  assert.equal(shouldScrapeFreshMetrics({ active: false, lastActivityAt: 100 }, 100), false);
+  assert.equal(shouldScrapeFreshMetrics({ active: true, lastActivityAt: 50 }, 100), true);
 });
 
 test('recordActivity and buildIdlePayload serve stale model metrics', async () => {

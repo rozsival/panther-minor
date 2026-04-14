@@ -46,21 +46,28 @@ const cache = {
   timestampMs: 0,
 };
 
-export async function queryManagerActive() {
+export async function queryManagerStatus() {
   try {
     const response = await fetch(`${MANAGER_URL}/status`, {
       signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_SECONDS * 1000),
     });
     if (!response.ok) {
       log('warn', 'manager_status_request_failed', { status: response.status });
-      return true;
+      return { active: true, lastActivityAt: 0 };
     }
     const data = await response.json();
-    return data.active !== false;
+    return {
+      active: data.active !== false,
+      lastActivityAt: Number.isFinite(data.lastActivityAt) ? data.lastActivityAt : 0,
+    };
   } catch (error) {
     log('warn', 'manager_status_unavailable', { error: error?.message ?? String(error) });
-    return true;
+    return { active: true, lastActivityAt: 0 };
   }
+}
+
+export function shouldScrapeFreshMetrics(managerStatus, lastSuccessfulScrapeTimestampMs) {
+  return managerStatus.active || managerStatus.lastActivityAt > lastSuccessfulScrapeTimestampMs;
 }
 
 const lastSuccessfulScrape = {
@@ -310,6 +317,41 @@ function staleSuffix() {
   ].join('\n');
 }
 
+function writeMetricsResponse(res, statusCode, payload) {
+  res.writeHead(statusCode, {
+    'content-type': 'text/plain; version=0.0.4; charset=utf-8',
+  });
+  res.end(payload);
+}
+
+function cachePayload(payload, timestampMs) {
+  cache.payload = payload;
+  cache.timestampMs = timestampMs;
+}
+
+async function getCurrentMetricsPayload(nowMs) {
+  log('debug', 'scrape_cache_miss');
+
+  const managerStatus = await queryManagerStatus();
+  if (!shouldScrapeFreshMetrics(managerStatus, lastSuccessfulScrape.timestampMs)) {
+    log('info', 'scrape_skipped_server_idle');
+    const payload = await buildIdlePayload();
+    cachePayload(payload, nowMs);
+    return payload;
+  }
+
+  if (!managerStatus.active && managerStatus.lastActivityAt > lastSuccessfulScrape.timestampMs) {
+    log('info', 'scrape_catchup_for_recent_activity', {
+      lastActivityAt: managerStatus.lastActivityAt,
+      lastSuccessfulScrapeAt: lastSuccessfulScrape.timestampMs,
+    });
+  }
+
+  const payload = await buildMetricsPayload();
+  cachePayload(payload, nowMs);
+  return payload;
+}
+
 export function startServer() {
   const server = createServer(async (req, res) => {
     const requestUrl = new URL(req.url ?? '/', 'http://localhost');
@@ -346,27 +388,8 @@ export function startServer() {
     }
 
     try {
-      log('debug', 'scrape_cache_miss');
-
-      if (!(await queryManagerActive())) {
-        log('info', 'scrape_skipped_server_idle');
-        const payload = await buildIdlePayload();
-        cache.payload = payload;
-        cache.timestampMs = nowMs;
-        res.writeHead(200, {
-          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
-        });
-        res.end(payload);
-        return;
-      }
-
-      const payload = await buildMetricsPayload();
-      cache.payload = payload;
-      cache.timestampMs = nowMs;
-      res.writeHead(200, {
-        'content-type': 'text/plain; version=0.0.4; charset=utf-8',
-      });
-      res.end(payload);
+      const payload = await getCurrentMetricsPayload(nowMs);
+      writeMetricsResponse(res, 200, payload);
     } catch (error) {
       log('error', 'scrape_cycle_failed', {
         error: error?.message ?? String(error),
@@ -374,10 +397,7 @@ export function startServer() {
       if (cache.payload) {
         log('warn', 'serving_stale_payload');
         const payload = `${cache.payload}${staleSuffix()}`;
-        res.writeHead(200, {
-          'content-type': 'text/plain; version=0.0.4; charset=utf-8',
-        });
-        res.end(payload);
+        writeMetricsResponse(res, 200, payload);
         return;
       }
 
@@ -388,10 +408,7 @@ export function startServer() {
         `# upstream_error ${error?.name ?? 'Error'}: ${error?.message ?? String(error)}`,
         '',
       ].join('\n');
-      res.writeHead(503, {
-        'content-type': 'text/plain; version=0.0.4; charset=utf-8',
-      });
-      res.end(payload);
+      writeMetricsResponse(res, 503, payload);
     }
   });
 

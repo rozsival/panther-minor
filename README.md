@@ -272,8 +272,8 @@ All LLM traffic from Open WebUI, OpenFang, and external clients flows through `l
 2. When no request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `llama-manager` checks `/models` and calls
    `/models/unload` for each still-loaded model, so `llama.cpp` releases VRAM without restarting the container.
 3. `llama-metrics-exporter` checks `llama-manager /status` before each Prometheus scrape. During idle, it serves the
-   last active counter values plus a fresh `/models` snapshot instead of querying `/metrics`, so Grafana dashboards keep
-   historical continuity without `"No data"` gaps.
+   last active counter values plus a fresh `/models` snapshot instead of querying `/metrics`, but it still performs one
+   catch-up scrape after unseen activity so short requests are not missed between Prometheus scrape intervals.
 
 ### Large-model switching
 
