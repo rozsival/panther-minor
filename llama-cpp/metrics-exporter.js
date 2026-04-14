@@ -269,16 +269,14 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
   const modelToMetrics = {};
   const scrapedModelIds = new Set();
 
-  await Promise.all(
-    models.map(async (model) => {
-      try {
-        modelToMetrics[model.id] = await fetchMetricsText(model.id, fetchImpl);
-        scrapedModelIds.add(model.id);
-      } catch {
-        // scrape failed for this model, continue with others
-      }
-    })
-  );
+  for (const model of models) {
+    try {
+      modelToMetrics[model.id] = await fetchMetricsText(model.id, fetchImpl);
+      scrapedModelIds.add(model.id);
+    } catch {
+      // scrape failed for this model, continue with others
+    }
+  }
 
   if (scrapedModelIds.size === 0) {
     log('warn', 'no_models_scraped');
