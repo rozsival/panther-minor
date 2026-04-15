@@ -59,13 +59,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "max by (model) (llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
+          "expr": "max by (model) (max_over_time(llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Average Prefill Throughput by Model",
+      "title": "Max Average Prefill Throughput by Model",
       "type": "bargauge"
     },
     {
@@ -103,13 +103,13 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "max by (model) (llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
+          "expr": "max by (model) (max_over_time(llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Average Inference Throughput by Model",
+      "title": "Max Average Inference Throughput by Model",
       "type": "bargauge"
     },
     {
@@ -154,7 +154,7 @@
       "id": 3,
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "lastNotNull"],
+          "calcs": ["mean", "lastNotNull"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -210,7 +210,7 @@
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["mean", "max", "lastNotNull"],
+          "calcs": ["mean", "lastNotNull"],
           "displayMode": "table",
           "placement": "bottom",
           "showLegend": true
@@ -266,14 +266,14 @@
           "value": "$__all"
         },
         "datasource": { "type": "prometheus", "uid": "prometheus" },
-        "definition": "label_values({job=\"llama-cpp\", instance=~\"$instance\"}, model)",
+        "definition": "label_values({__name__=~\"llamacpp:(prompt|predicted)_tokens_seconds\", job=\"llama-cpp\", instance=~\"$instance\"}, model)",
         "includeAll": true,
         "label": "Model",
         "multi": true,
         "name": "model",
         "options": [],
         "query": {
-          "query": "label_values({job=\"llama-cpp\", instance=~\"$instance\"}, model)",
+          "query": "label_values({__name__=~\"llamacpp:(prompt|predicted)_tokens_seconds\", job=\"llama-cpp\", instance=~\"$instance\"}, model)",
           "refId": "PrometheusVariableQueryEditor-Model"
         },
         "refresh": 1,
