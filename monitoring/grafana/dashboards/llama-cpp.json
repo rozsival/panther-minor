@@ -166,7 +166,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "max by (model) (llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
+          "expr": "max by (model) (last_over_time(llamacpp:prompt_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__interval]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
@@ -222,7 +222,7 @@
         {
           "datasource": { "type": "prometheus", "uid": "prometheus" },
           "editorMode": "code",
-          "expr": "max by (model) (llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"})",
+          "expr": "max by (model) (last_over_time(llamacpp:predicted_tokens_seconds{job=\"llama-cpp\",instance=~\"$instance\",model=~\"$model\"}[$__interval]))",
           "legendFormat": "{{model}}",
           "range": true,
           "refId": "A"
