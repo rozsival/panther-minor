@@ -136,7 +136,7 @@ services:
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
     container_name: open-webui
-    image: ghcr.io/open-webui/open-webui:v0.8.12
+    image: ghcr.io/open-webui/open-webui:git-70a6a24
     restart: unless-stopped
     environment:
       DEFAULT_MODELS: 'Qwen3.5-35B-A3B'
