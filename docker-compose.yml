@@ -154,8 +154,6 @@ services:
       RAG_OPENAI_API_KEY: 'llama-cpp'
       TASK_MODEL: 'Qwen3.5-2B'
       TASK_MODEL_EXTERNAL: 'Qwen3.5-2B'
-      TAVILY_API_KEY: '${TAVILY_API_KEY}'
-      WEB_SEARCH_ENGINE: 'tavily'
       WEBUI_AUTH: 'false'
     volumes:
       - 'open-webui-data:/app/backend/data'
@@ -179,7 +177,6 @@ services:
     restart: unless-stopped
     environment:
       OPENFANG_HOME: ${OPENFANG_HOME}
-      TAVILY_API_KEY: ${TAVILY_API_KEY}
     env_file:
       - path: './openfang/.env'
         required: false
