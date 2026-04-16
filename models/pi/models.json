@@ -1,0 +1,59 @@
+{
+  "providers": {
+    "panther-minor": {
+      "baseUrl": "https://<domain>:8000/v1",
+      "apiKey": "llama-cpp",
+      "api": "openai-completions",
+      "models": [
+        {
+          "id": "Qwen3.6-35B-A3B",
+          "name": "Qwen3.6-35B-A3B",
+          "reasoning": false,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 4096
+        },
+        {
+          "id": "Qwen3.6-35B-A3B-thinking",
+          "name": "Qwen3.6-35B-A3B (thinking)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        },
+        {
+          "id": "Qwen3.5-27B",
+          "name": "Qwen3.5-27B",
+          "reasoning": false,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 4096
+        },
+        {
+          "id": "Qwen3.5-27B-thinking",
+          "name": "Qwen3.5-27B (thinking)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        },
+        {
+          "id": "Gemma-4-31B",
+          "name": "Gemma-4-31B",
+          "reasoning": false,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 4096
+        },
+        {
+          "id": "Gemma-4-31B-thinking",
+          "name": "Gemma-4-31B (thinking)",
+          "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 131072,
+          "maxTokens": 8192
+        }
+      ]
+    }
+  }
+}

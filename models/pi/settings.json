@@ -1,0 +1,20 @@
+{
+  "defaultProvider": "panther-minor",
+  "defaultModel": "Qwen3.6-35B-A3B",
+  "compaction": {
+    "enabled": true
+  },
+  "retry": {
+    "enabled": true,
+    "baseDelayMs": 600000,
+    "maxDelayMs": 600000
+  },
+  "enabledModels": [
+    "Qwen3.6-35B-A3B",
+    "Qwen3.6-35B-A3B-thinking",
+    "Qwen3.5-27B",
+    "Qwen3.5-27B-thinking",
+    "Gemma-4-31B",
+    "Gemma-4-31B-thinking"
+  ]
+}
