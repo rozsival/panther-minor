@@ -3,7 +3,7 @@ api_listen = "0.0.0.0:4200"
 
 [default_model]
 api_key_env = ""
-model = "Qwen3.5-35B-A3B"
+model = "Qwen3.6-35B-A3B"
 provider = "panther-minor"
 
 [memory]
