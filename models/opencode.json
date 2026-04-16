@@ -1,6 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "autoupdate": true,
+  "compaction": {
+    "auto": true,
+    "prune": true
+  },
   "provider": {
     "panther-minor": {
       "name": "Panther Minor",
@@ -12,25 +16,28 @@
         "timeout": 600000
       },
       "models": {
-        "Qwen3.5-35B-A3B": {
-          "id": "Qwen3.5-35B-A3B",
-          "name": "Qwen3.5 35B A3B",
+        "Qwen3.6-35B-A3B": {
+          "id": "Qwen3.6-35B-A3B",
+          "name": "Qwen3.6 35B A3B",
+          "reasoning": false,
           "limit": {
             "context": 131072,
             "output": 4096
           }
         },
-        "Qwen3.5-35B-A3B-thinking": {
-          "id": "Qwen3.5-35B-A3B-thinking",
-          "name": "Qwen3.5 35B A3B (thinking)",
+        "Qwen3.6-35B-A3B-thinking": {
+          "id": "Qwen3.6-35B-A3B-thinking",
+          "name": "Qwen3.6 35B A3B (thinking)",
+          "reasoning": true,
           "limit": {
             "context": 131072,
-            "output": 6144
+            "output": 8192
           }
         },
         "Qwen3.5-27B": {
           "id": "Qwen3.5-27B",
           "name": "Qwen3.5 27B",
+          "reasoning": false,
           "limit": {
             "context": 131072,
             "output": 4096
@@ -39,31 +46,16 @@
         "Qwen3.5-27B-thinking": {
           "id": "Qwen3.5-27B-thinking",
           "name": "Qwen3.5 27B (thinking)",
+          "reasoning": true,
           "limit": {
             "context": 131072,
-            "output": 6144
-          }
-        },
-
-        "Gemma-4-26B-A4B": {
-          "id": "Gemma-4-26B-A4B",
-          "name": "Gemma 4 24B A4B",
-          "limit": {
-            "context": 131072,
-            "output": 4096
-          }
-        },
-        "Gemma-4-26B-A4B-thinking": {
-          "id": "Gemma-4-26B-A4B-thinking",
-          "name": "Gemma 4 24B A4B (thinking)",
-          "limit": {
-            "context": 131072,
-            "output": 6144
+            "output": 8192
           }
         },
         "Gemma-4-31B": {
           "id": "Gemma-4-31B",
           "name": "Gemma 4 31B",
+          "reasoning": false,
           "limit": {
             "context": 131072,
             "output": 4096
@@ -72,9 +64,10 @@
         "Gemma-4-31B-thinking": {
           "id": "Gemma-4-31B-thinking",
           "name": "Gemma 4 31B (thinking)",
+          "reasoning": true,
           "limit": {
             "context": 131072,
-            "output": 6144
+            "output": 8192
           }
         }
       }
