@@ -154,7 +154,7 @@ services:
       RAG_OPENAI_API_KEY: 'llama-cpp'
       TASK_MODEL: 'Qwen3.5-2B'
       TASK_MODEL_EXTERNAL: 'Qwen3.5-2B'
-      WEBUI_AUTH: 'false'
+      WEBUI_AUTH: false
     volumes:
       - 'open-webui-data:/app/backend/data'
     expose:
