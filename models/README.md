@@ -36,6 +36,8 @@ Use the Panther Minor CLI to manage models in the `.huggingface` cache:
 ./bin/cli models list             # List supported models
 ./bin/cli models download <model> # Download a model into the .huggingface cache
 ./bin/cli models remove <model>   # Remove a model from the .huggingface cache
+./bin/cli models load <model>     # Manually load a model into the llama.cpp cluster
+./bin/cli models unload <model>   # Manually unload a model from the llama.cpp cluster
 ```
 
 ## 💻 Coding Agent Presets

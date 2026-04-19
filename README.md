@@ -71,6 +71,7 @@ flowchart LR
 
 - Above 4G decoding enabled
 - Resize BAR enabled
+- IOMMU enabled
 - iGPU disabled
 - PCIe slots set to Gen5 and x8/x8 mode
 - `M2_1` slot set to Gen4 for the NVMe SSD
