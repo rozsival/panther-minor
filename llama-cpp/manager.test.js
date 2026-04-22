@@ -98,17 +98,18 @@ test('fetchModelsList reads /models and excludes embedding models', async () => 
 });
 
 test('fetchLoadedModels returns only loaded models', async () => {
-  const models = await fetchLoadedModels(() => {
-    return new Response(
-      JSON.stringify({
-        data: [
-          { id: 'qwen35-35b-a3b-q8_0', status: { value: 'loaded' } },
-          { id: 'panther-coder-large', status: { value: 'unloaded' } },
-        ],
-      }),
-      { status: 200 }
-    );
-  });
+  const models = await fetchLoadedModels(
+    () =>
+      new Response(
+        JSON.stringify({
+          data: [
+            { id: 'qwen35-35b-a3b-q8_0', status: { value: 'loaded' } },
+            { id: 'panther-coder-large', status: { value: 'unloaded' } },
+          ],
+        }),
+        { status: 200 }
+      )
+  );
 
   assert.deepEqual(models, [{ id: 'qwen35-35b-a3b-q8_0', status: 'loaded' }]);
 });
@@ -157,9 +158,10 @@ test('prepareLargeModelForInference unloads conflicting loaded large model befor
 test('prepareLargeModelForInference waits for conflicting large requests to drain', async () => {
   const calls = [];
 
-  const firstReservation = await prepareLargeModelForInference('Qwen3.6-35B-A3', () => {
-    return new Response(JSON.stringify({ data: [] }), { status: 200 });
-  });
+  const firstReservation = await prepareLargeModelForInference(
+    'Qwen3.6-35B-A3',
+    () => new Response(JSON.stringify({ data: [] }), { status: 200 })
+  );
 
   const secondReservationPromise = prepareLargeModelForInference('Qwen3.5-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });

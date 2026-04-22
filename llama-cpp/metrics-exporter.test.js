@@ -208,14 +208,15 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
 test('buildIdlePayload with no prior scrape returns only status lines', async () => {
   resetLastSuccessfulScrape();
 
-  const payload = await buildIdlePayload(() => {
-    return new Response(
-      JSON.stringify({
-        data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'unloaded' } }],
-      }),
-      { status: 200 }
-    );
-  });
+  const payload = await buildIdlePayload(
+    () =>
+      new Response(
+        JSON.stringify({
+          data: [{ id: 'qwen35-35b-a3b-q8_0', status: { value: 'unloaded' } }],
+        }),
+        { status: 200 }
+      )
+  );
   assert.match(payload, /llama_metrics_exporter_up 1/);
   assert.match(payload, /llama_metrics_exporter_idle 1/);
   assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/);

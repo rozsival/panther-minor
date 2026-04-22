@@ -19,15 +19,15 @@
     "test": "node --test \"**/*.test.js\""
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.10",
+    "@biomejs/biome": "2.4.12",
     "@commitlint/cli": "20.5.0",
     "@commitlint/config-conventional": "20.5.0",
     "is-ci": "4.1.0",
-    "lefthook": "2.1.4",
-    "prettier": "3.8.1",
+    "lefthook": "2.1.6",
+    "prettier": "3.8.3",
     "prettier-plugin-packagejson": "3.0.2",
     "prettier-plugin-toml": "2.0.6",
-    "ultracite": "7.4.2"
+    "ultracite": "7.6.0"
   },
   "packageManager": "pnpm@10.33.0",
   "engines": {

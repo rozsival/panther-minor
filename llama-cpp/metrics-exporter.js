@@ -21,7 +21,7 @@ function shouldLog(level) {
   return (LOG_PRIORITY[level] ?? LOG_PRIORITY.info) <= (LOG_PRIORITY[LOG_LEVEL] ?? LOG_PRIORITY.info);
 }
 
-function log(level, message, fields = undefined) {
+function log(level, message, fields) {
   if (!shouldLog(level)) {
     return;
   }
