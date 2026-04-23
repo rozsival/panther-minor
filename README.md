@@ -263,6 +263,8 @@ Alternatively, you can set `COMPOSE_FILE` in `.env` to point to your custom
 > [!IMPORTANT]
 > Always include the base `docker-compose.yml`.
 
+Put any extra files, scripts, configurations, or assets in the `./extra` directory and mount it into your custom services as needed. The directory is kept out of VCS.
+
 ---
 
 ## 🔋 GPU power and VRAM management

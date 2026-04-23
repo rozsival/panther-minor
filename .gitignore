@@ -25,3 +25,6 @@ tmp
 
 # Docker
 docker-compose.override.yml
+
+# Extras (for cluster extensions)
+/extra
