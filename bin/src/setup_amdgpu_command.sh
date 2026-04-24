@@ -17,7 +17,7 @@ panther_setup_amdgpu() {
   apt update
 
   apt install -y "linux-headers-$(uname -r)" amdgpu-dkms python3-setuptools python3-wheel
-  usermod -a -G render,video "$LOGNAME"
+  usermod -a -G render,video "$PANTHER_ALLOWED_USER"
   apt install -y rocm
   panther_log_success 'AMD GPU and ROCm installed.'
 }

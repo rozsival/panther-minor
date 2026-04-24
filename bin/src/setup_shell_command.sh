@@ -4,8 +4,7 @@ panther_setup_shell() {
   panther_log_info "Setting up shell with Starship prompt for ${PANTHER_ALLOWED_USER}..."
   apt install -y starship
 
-  usermod -aG video "$PANTHER_ALLOWED_USER"
-  usermod -aG render "$PANTHER_ALLOWED_USER"
+  panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
   loginctl enable-linger "$PANTHER_ALLOWED_USER"
 
   panther_register_bashrc_entry 'Panther Minor CLI' "source '$PANTHER_REPO_ROOT/.bashrc'"

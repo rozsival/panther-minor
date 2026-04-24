@@ -2174,7 +2174,7 @@ cli_setup_amdgpu_command() {
     apt update
 
     apt install -y "linux-headers-$(uname -r)" amdgpu-dkms python3-setuptools python3-wheel
-    usermod -a -G render,video "$LOGNAME"
+    usermod -a -G render,video "$PANTHER_ALLOWED_USER"
     apt install -y rocm
     panther_log_success 'AMD GPU and ROCm installed.'
   }
@@ -2249,8 +2249,7 @@ cli_setup_shell_command() {
     panther_log_info "Setting up shell with Starship prompt for ${PANTHER_ALLOWED_USER}..."
     apt install -y starship
 
-    usermod -aG video "$PANTHER_ALLOWED_USER"
-    usermod -aG render "$PANTHER_ALLOWED_USER"
+    panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
     loginctl enable-linger "$PANTHER_ALLOWED_USER"
 
     panther_register_bashrc_entry 'Panther Minor CLI' "source '$PANTHER_REPO_ROOT/.bashrc'"
