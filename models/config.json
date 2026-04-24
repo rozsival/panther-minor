@@ -10,10 +10,10 @@
       "vision": true
     },
     {
-      "name": "Qwen3.5-27B",
-      "file": "Qwen3.5-27B-UD-Q4_K_XL.gguf",
+      "name": "Qwen3.6-27B",
+      "file": "Qwen3.6-27B-UD-Q4_K_XL.gguf",
       "mmproj": "mmproj-F16.gguf",
-      "repository": "unsloth/Qwen3.5-27B-GGUF",
+      "repository": "unsloth/Qwen3.6-27B-GGUF",
       "thinking": true,
       "vision": true
     },

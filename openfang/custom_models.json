@@ -28,8 +28,8 @@
     "aliases": []
   },
   {
-    "id": "Qwen3.5-27B",
-    "display_name": "Qwen3.5 27B",
+    "id": "Qwen3.6-27B",
+    "display_name": "Qwen3.6 27B",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
@@ -42,8 +42,8 @@
     "aliases": []
   },
   {
-    "id": "Qwen3.5-27B-thinking",
-    "display_name": "Qwen3.5 27B (thinking)",
+    "id": "Qwen3.6-27B-thinking",
+    "display_name": "Qwen3.6 27B (thinking)",
     "provider": "panther-minor",
     "tier": "custom",
     "context_window": 131072,
