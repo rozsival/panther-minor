@@ -10,7 +10,7 @@ panther_models_remove() {
   model_name="$(jq -r '.name' <<<"$model_config")"
   target_dir="$PANTHER_MODELS_DIR/.huggingface/$model_name"
 
-  if [[ -d "$target_dir" ]]; then
+  if [[ ! -d "$target_dir" ]]; then
     panther_log_error "Model '$model' not found in local directory"
   fi
 
