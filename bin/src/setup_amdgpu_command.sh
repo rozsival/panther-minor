@@ -2,34 +2,25 @@ panther_setup_amdgpu() {
   panther_prepare_setup_step 'Install AMD GPU kernel drivers and ROCm.'
 
   panther_log_info 'Installing AMD GPU & ROCm...'
-  mkdir --parents --mode=0755 /etc/apt/keyrings
-  wget https://repo.radeon.com/rocm/rocm.gpg.key -O - | gpg --dearmor | tee /etc/apt/keyrings/rocm.gpg
 
-  apt autoremove -y amdgpu-dkms || true
-  rm -f /etc/apt/sources.list.d/amdgpu.list
+  apt autoremove -y amdgpu-dkms rocm rocm-core || true
+  apt purge amdgpu-install
+  apt autoremove
+
   rm -rf /var/cache/apt/*
   apt clean all
   apt update
 
-  tee /etc/apt/sources.list.d/amdgpu.list <<EOF
-deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/amdgpu/30.30/ubuntu noble main
-EOF
+  wget https://repo.radeon.com/amdgpu-install/7.2.2/ubuntu/noble/amdgpu-install_7.2.2.70202-1_all.deb
+  apt install ./amdgpu-install_7.2.2.70202-1_all.deb
+  sed -i "s|graphics/7.2.2|graphics/7.2.1|" /etc/apt/sources.list.d/rocm.list
   apt update
-  apt install -y amdgpu-dkms
 
-  tee /etc/apt/sources.list.d/rocm.list <<EOF
-deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/rocm/apt/7.2 noble main
-deb [arch=amd64 signed-by=/etc/apt/keyrings/rocm.gpg] https://repo.radeon.com/graphics/7.2/ubuntu noble main
-EOF
-
-  tee /etc/apt/preferences.d/rocm-pin-600 <<EOF
-Package: *
-Pin: release o=repo.radeon.com
-Pin-Priority: 600
-EOF
-
-  apt update
-  apt install -y rocm
+  apt install "linux-headers-$(uname -r)" "linux-modules-extra-$(uname -r)"
+  apt install amdgpu-dkms
+  apt install python3-setuptools python3-wheel
+  usermod -a -G render,video $LOGNAME # Add the current user to the render and video groups
+  apt install rocm
   panther_log_success 'AMD GPU and ROCm installed.'
 }
 
