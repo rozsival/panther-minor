@@ -4,7 +4,7 @@ panther_setup_amdgpu() {
   panther_log_info 'Installing AMD GPU & ROCm...'
 
   apt autoremove -y amdgpu-dkms rocm rocm-core || true
-  apt purge amdgpu-install -y || true
+  apt purge -y amdgpu-install || true
   apt autoremove
 
   rm -rf /var/cache/apt/*
@@ -12,15 +12,13 @@ panther_setup_amdgpu() {
   apt update
 
   wget https://repo.radeon.com/amdgpu-install/7.2.2/ubuntu/noble/amdgpu-install_7.2.2.70202-1_all.deb
-  apt install ./amdgpu-install_7.2.2.70202-1_all.deb
+  apt install -y ./amdgpu-install_7.2.2.70202-1_all.deb
   sed -i "s|graphics/7.2.2|graphics/7.2.1|" /etc/apt/sources.list.d/rocm.list
   apt update
 
-  apt install "linux-headers-$(uname -r)"
-  apt install amdgpu-dkms -y
-  apt install python3-setuptools python3-wheel -y
+  apt install -y "linux-headers-$(uname -r)" amdgpu-dkms python3-setuptools python3-wheel
   usermod -a -G render,video "$LOGNAME"
-  apt install rocm -y
+  apt install -y rocm
   panther_log_success 'AMD GPU and ROCm installed.'
 }
 
