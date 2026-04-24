@@ -25,7 +25,7 @@ jobs:
       - name: Quality Assurance
         # language=bash
         run: |
-          pnpm commitlint --from=${{ github.sha }}
+          pnpm exec commitlint --from=${{ github.sha }}
           pnpm exec biome ci .
           pnpm exec prettier --check .
 
