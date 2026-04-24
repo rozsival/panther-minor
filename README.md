@@ -91,7 +91,7 @@ flowchart LR
 
 ## 🚀 Quick Start
 
-Clone the repository on the target server and run the setup CLI:
+SSH into your server, clone the repository and run the setup CLI:
 
 > [!WARNING]
 > **Reboot is required** after the script completes to load the new kernel drivers and parameters.
@@ -100,14 +100,10 @@ Clone the repository on the target server and run the setup CLI:
 > Reconnect with: `ssh -p 2222 <user>@<server-ip>`
 
 ```bash
-ssh <user>@<server-ip>
 git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
 sudo ./bin/cli setup
 ```
-
-> [!TIP]
-> You can discover the server IP after login on the host machine using `ip a`.
 
 ---
 
@@ -126,7 +122,7 @@ sudo ./bin/cli setup
 - **AMD GPU & ROCm** — latest kernel drivers and ROCm
 - **Kernel parameters** — GRUB config with optimized settings for AMD GPUs and LLM workloads
 - **Git** — default name, email, and rebase pull strategy
-- **Shell** — a modern shell prompt for the current user
+- **Shell** — modern shell prompt for the current user
 - **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
 
 > [!TIP]
