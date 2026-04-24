@@ -4,7 +4,7 @@ panther_setup_amdgpu() {
   panther_log_info 'Installing AMD GPU & ROCm...'
 
   apt autoremove -y amdgpu-dkms rocm rocm-core || true
-  apt purge amdgpu-install
+  apt purge amdgpu-install -y || true
   apt autoremove
 
   rm -rf /var/cache/apt/*
