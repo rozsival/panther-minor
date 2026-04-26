@@ -219,7 +219,7 @@ services:
   # -- Host metrics (CPU, RAM, disk, network) ---------------------------------
   node-exporter:
     container_name: node-exporter
-    image: prom/node-exporter:v1.10.2
+    image: prom/node-exporter:v1.11.1
     restart: unless-stopped
     pid: host
     volumes:
