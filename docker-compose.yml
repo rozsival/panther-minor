@@ -295,7 +295,7 @@ services:
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
     container_name: proxy
-    image: nginx:1.29.7-trixie
+    image: nginx:1.30.0-trixie
     restart: unless-stopped
     ports:
       - '3000:3000'
