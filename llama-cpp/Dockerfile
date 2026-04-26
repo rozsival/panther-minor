@@ -14,9 +14,21 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes
-RUN groupadd --gid "$HOST_GID" "$LLAMA_CPP_USER" || true \
-    && useradd --uid "$HOST_UID" --gid "$HOST_GID" -m "$LLAMA_CPP_USER" \
-    && usermod -aG sudo "$LLAMA_CPP_USER" \
+RUN \
+    if getent group "${HOST_GID}" > /dev/null 2>&1; then \
+        OLD_GROUP=$(getent group "${HOST_GID}" | cut -d: -f1); \
+        groupmod -n "${LLAMA_CPP_USER}" "$OLD_GROUP"; \
+    else \
+        groupadd --system --gid "${HOST_GID}" "${LLAMA_CPP_USER}"; \
+    fi && \
+    if getent passwd "${HOST_UID}" > /dev/null 2>&1; then \
+        OLD_USER=$(getent passwd "${HOST_UID}" | cut -d: -f1); \
+        usermod -l "${LLAMA_CPP_USER}" -d "/home/${LLAMA_CPP_USER}" -m "$OLD_USER"; \
+    else \
+        useradd --system --uid "${HOST_UID}" --gid "${HOST_GID}" --home "/home/${LLAMA_CPP_USER}" --create-home "${LLAMA_CPP_USER}"; \
+    fi
+
+RUN usermod -aG sudo "$LLAMA_CPP_USER" \
     && echo "$LLAMA_CPP_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Build llama.cpp from source
