@@ -1,5 +1,5 @@
 # -- llama.cpp build for AMD ROCm 7 and gfx1201 -------------------------------
-FROM rocm/dev-ubuntu-24.04:7.2.1-complete
+FROM rocm/dev-ubuntu-24.04:7.2.2-complete
 
 ARG HOST_UID=1000
 ARG HOST_GID=1000
