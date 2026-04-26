@@ -1,2 +1,6 @@
 allowBuilds:
   lefthook: true
+
+autoInstallPeers: false
+strictPeerDependencies: true
+saveExact: true
