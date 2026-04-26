@@ -15,16 +15,18 @@ node_modules
 # Hugging Face cache
 /models/.huggingface
 
-# Temporary files
-*.backup
-*.log
-log
-logs
-temp
-tmp
-
 # Docker
 docker-compose.override.yml
 
 # Extras (for cluster extensions)
 /extra
+
+# Temporary files
+*.backup
+*.bak
+*.log
+*.tmp
+log
+logs
+temp
+tmp
