@@ -8,6 +8,8 @@ ARG LLAMA_CPP_REF="master"
 ARG LLAMA_CPP_USER="llama-cpp"
 ARG ROCM_ARCH="gfx1201"
 
+ENV DEBIAN_FRONTEND="noninteractive"
+
 # Install build dependencies
 RUN apt update && \
     apt install -y cmake git libcurl4-openssl-dev nano && \
