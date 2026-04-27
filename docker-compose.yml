@@ -241,7 +241,7 @@ services:
   # -- Prometheus -------------------------------------------------------------
   prometheus:
     container_name: prometheus
-    image: prom/prometheus:v3.11.2
+    image: prom/prometheus:v3.11.3
     restart: unless-stopped
     volumes:
       - 'prometheus-data:/prometheus'
