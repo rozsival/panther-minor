@@ -51,24 +51,6 @@
             "context": 131072,
             "output": 8192
           }
-        },
-        "Gemma-4-31B": {
-          "id": "Gemma-4-31B",
-          "name": "Gemma 4 31B",
-          "reasoning": false,
-          "limit": {
-            "context": 131072,
-            "output": 4096
-          }
-        },
-        "Gemma-4-31B-thinking": {
-          "id": "Gemma-4-31B-thinking",
-          "name": "Gemma 4 31B (thinking)",
-          "reasoning": true,
-          "limit": {
-            "context": 131072,
-            "output": 8192
-          }
         }
       }
     }

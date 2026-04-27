@@ -36,22 +36,6 @@
           "input": ["text", "image"],
           "contextWindow": 131072,
           "maxTokens": 8192
-        },
-        {
-          "id": "Gemma-4-31B",
-          "name": "Gemma-4-31B",
-          "reasoning": false,
-          "input": ["text", "image"],
-          "contextWindow": 131072,
-          "maxTokens": 4096
-        },
-        {
-          "id": "Gemma-4-31B-thinking",
-          "name": "Gemma-4-31B (thinking)",
-          "reasoning": true,
-          "input": ["text", "image"],
-          "contextWindow": 131072,
-          "maxTokens": 8192
         }
       ]
     }
