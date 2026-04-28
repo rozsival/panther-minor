@@ -1,4 +1,11 @@
-export const LARGE_MODEL_IDS = Object.freeze(['Qwen3.6-35B-A3', 'Qwen3.5-27B', 'Gemma-4-31B']);
+export const LARGE_MODEL_IDS = Object.freeze([
+  'Qwen3.6-35B-A3',
+  'Qwen3.6-35B-A3-thinking',
+  'Qwen3.5-27B',
+  'Qwen3.5-27B-thinking',
+  'Gemma-4-31B',
+  'Gemma-4-31B-thinking',
+]);
 
 const largeModelIds = new Set(LARGE_MODEL_IDS);
 

@@ -71,7 +71,14 @@ test('tracked proxy requests keep the manager active until the response closes',
 });
 
 test('large model list lives in models.js', () => {
-  assert.deepEqual(LARGE_MODEL_IDS, ['Qwen3.6-35B-A3', 'Qwen3.5-27B', 'Gemma-4-31B']);
+  assert.deepEqual(LARGE_MODEL_IDS, [
+    'Qwen3.6-35B-A3',
+    'Qwen3.6-35B-A3-thinking',
+    'Qwen3.5-27B',
+    'Qwen3.5-27B-thinking',
+    'Gemma-4-31B',
+    'Gemma-4-31B-thinking',
+  ]);
   assert.equal(isLargeModelId('Qwen3.6-35B-A3'), true);
   assert.equal(isLargeModelId('panther-coder-large'), false);
 });
