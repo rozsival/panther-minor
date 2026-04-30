@@ -56,6 +56,20 @@
     "aliases": []
   },
   {
+    "id": "Qwen3-Coder-Next",
+    "display_name": "Qwen3 Coder Next",
+    "provider": "panther-minor",
+    "tier": "custom",
+    "context_window": 131072,
+    "max_output_tokens": 4096,
+    "input_cost_per_m": 0.0,
+    "output_cost_per_m": 0.0,
+    "supports_tools": true,
+    "supports_vision": false,
+    "supports_streaming": true,
+    "aliases": []
+  },
+  {
     "id": "Gemma-4-31B",
     "display_name": "Gemma 4 31B",
     "provider": "panther-minor",

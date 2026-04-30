@@ -76,6 +76,7 @@ test('large model list lives in models.js', () => {
     'Qwen3.6-35B-A3-thinking',
     'Qwen3.5-27B',
     'Qwen3.5-27B-thinking',
+    'Qwen3-Coder-Next',
     'Gemma-4-31B',
     'Gemma-4-31B-thinking',
   ]);

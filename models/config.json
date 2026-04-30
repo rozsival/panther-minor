@@ -18,6 +18,13 @@
       "vision": true
     },
     {
+      "name": "Qwen3-Coder-Next",
+      "file": "Qwen3-Coder-Next-UD-Q4_K_S.gguf",
+      "repository": "unsloth/Qwen3-Coder-Next-GGUF",
+      "thinking": false,
+      "vision": false
+    },
+    {
       "name": "Gemma-4-31B",
       "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf",
       "mmproj": "mmproj-F16.gguf",
