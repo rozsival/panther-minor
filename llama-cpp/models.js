@@ -1,6 +1,6 @@
 export const LARGE_MODEL_IDS = Object.freeze([
-  'Qwen3.6-35B-A3',
-  'Qwen3.6-35B-A3-thinking',
+  'Qwen3.6-35B-A3B',
+  'Qwen3.6-35B-A3B-thinking',
   'Qwen3.5-27B',
   'Qwen3.5-27B-thinking',
   'Qwen3-Coder-Next',

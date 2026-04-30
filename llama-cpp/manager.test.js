@@ -72,15 +72,15 @@ test('tracked proxy requests keep the manager active until the response closes',
 
 test('large model list lives in models.js', () => {
   assert.deepEqual(LARGE_MODEL_IDS, [
-    'Qwen3.6-35B-A3',
-    'Qwen3.6-35B-A3-thinking',
+    'Qwen3.6-35B-A3B',
+    'Qwen3.6-35B-A3B-thinking',
     'Qwen3.5-27B',
     'Qwen3.5-27B-thinking',
     'Qwen3-Coder-Next',
     'Gemma-4-31B',
     'Gemma-4-31B-thinking',
   ]);
-  assert.equal(isLargeModelId('Qwen3.6-35B-A3'), true);
+  assert.equal(isLargeModelId('Qwen3.6-35B-A3B'), true);
   assert.equal(isLargeModelId('panther-coder-large'), false);
 });
 
@@ -131,7 +131,7 @@ test('extractRequestedModel returns model id from JSON request body', () => {
 test('prepareLargeModelForInference unloads conflicting loaded large model before reserving target', async () => {
   const calls = [];
 
-  const reservation = await prepareLargeModelForInference('Qwen3.6-35B-A3', (url, options = {}) => {
+  const reservation = await prepareLargeModelForInference('Qwen3.6-35B-A3B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
 
     if (url.pathname === '/models') {
@@ -152,22 +152,22 @@ test('prepareLargeModelForInference unloads conflicting loaded large model befor
   });
 
   assert.deepEqual(reservation, {
-    trackedLargeModelId: 'Qwen3.6-35B-A3',
+    trackedLargeModelId: 'Qwen3.6-35B-A3B',
     unloadedModels: ['Qwen3.5-27B'],
   });
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  assert.equal(getLargeModelInFlight('Qwen3.6-35B-A3'), 1);
-  releaseLargeModelReservation('Qwen3.6-35B-A3');
+  assert.equal(getLargeModelInFlight('Qwen3.6-35B-A3B'), 1);
+  releaseLargeModelReservation('Qwen3.6-35B-A3B');
 });
 
 test('prepareLargeModelForInference waits for conflicting large requests to drain', async () => {
   const calls = [];
 
   const firstReservation = await prepareLargeModelForInference(
-    'Qwen3.6-35B-A3',
+    'Qwen3.6-35B-A3B',
     () => new Response(JSON.stringify({ data: [] }), { status: 200 })
   );
 
@@ -176,7 +176,7 @@ test('prepareLargeModelForInference waits for conflicting large requests to drai
     if (url.pathname === '/models') {
       return new Response(
         JSON.stringify({
-          data: [{ id: 'Qwen3.6-35B-A3', status: { value: 'loaded' } }],
+          data: [{ id: 'Qwen3.6-35B-A3B', status: { value: 'loaded' } }],
         }),
         { status: 200 }
       );
@@ -192,7 +192,7 @@ test('prepareLargeModelForInference waits for conflicting large requests to drai
 
   assert.deepEqual(secondReservation, {
     trackedLargeModelId: 'Qwen3.5-27B',
-    unloadedModels: ['Qwen3.6-35B-A3'],
+    unloadedModels: ['Qwen3.6-35B-A3B'],
   });
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
