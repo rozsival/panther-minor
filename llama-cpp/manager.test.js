@@ -74,8 +74,8 @@ test('large model list lives in models.js', () => {
   assert.deepEqual(LARGE_MODEL_IDS, [
     'Qwen3.6-35B-A3B',
     'Qwen3.6-35B-A3B-thinking',
-    'Qwen3.5-27B',
-    'Qwen3.5-27B-thinking',
+    'Qwen3.6-27B',
+    'Qwen3.6-27B-thinking',
     'Qwen3-Coder-Next',
     'Gemma-4-31B',
     'Gemma-4-31B-thinking',
@@ -138,7 +138,7 @@ test('prepareLargeModelForInference unloads conflicting loaded large model befor
       return new Response(
         JSON.stringify({
           data: [
-            { id: 'Qwen3.5-27B', status: { value: 'loaded' } },
+            { id: 'Qwen3.6-27B', status: { value: 'loaded' } },
             { id: 'tiny-task-model', status: { value: 'loaded' } },
           ],
         }),
@@ -147,13 +147,13 @@ test('prepareLargeModelForInference unloads conflicting loaded large model befor
     }
 
     assert.equal(url.pathname, '/models/unload');
-    assert.equal(options.body, JSON.stringify({ model: 'Qwen3.5-27B' }));
+    assert.equal(options.body, JSON.stringify({ model: 'Qwen3.6-27B' }));
     return new Response(null, { status: 200 });
   });
 
   assert.deepEqual(reservation, {
     trackedLargeModelId: 'Qwen3.6-35B-A3B',
-    unloadedModels: ['Qwen3.5-27B'],
+    unloadedModels: ['Qwen3.6-27B'],
   });
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
@@ -171,7 +171,7 @@ test('prepareLargeModelForInference waits for conflicting large requests to drai
     () => new Response(JSON.stringify({ data: [] }), { status: 200 })
   );
 
-  const secondReservationPromise = prepareLargeModelForInference('Qwen3.5-27B', (url, options = {}) => {
+  const secondReservationPromise = prepareLargeModelForInference('Qwen3.6-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
       return new Response(
@@ -191,7 +191,7 @@ test('prepareLargeModelForInference waits for conflicting large requests to drai
   const secondReservation = await secondReservationPromise;
 
   assert.deepEqual(secondReservation, {
-    trackedLargeModelId: 'Qwen3.5-27B',
+    trackedLargeModelId: 'Qwen3.6-27B',
     unloadedModels: ['Qwen3.6-35B-A3B'],
   });
   assert.deepEqual(calls, [
