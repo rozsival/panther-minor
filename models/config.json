@@ -42,7 +42,7 @@
     },
     {
       "name": "Qwen3-Embedding-0.6B",
-      "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+      "file": "Qwen3-Embedding-0.6B-f16.gguf",
       "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
       "thinking": false,
       "vision": false

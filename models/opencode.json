@@ -21,7 +21,7 @@
           "name": "Qwen3.6 35B A3B",
           "reasoning": false,
           "limit": {
-            "context": 131072,
+            "context": 262144,
             "output": 4096
           }
         },
@@ -30,7 +30,7 @@
           "name": "Qwen3.6 35B A3B (thinking)",
           "reasoning": true,
           "limit": {
-            "context": 131072,
+            "context": 262144,
             "output": 8192
           }
         },
@@ -39,7 +39,7 @@
           "name": "Qwen3.6 27B",
           "reasoning": false,
           "limit": {
-            "context": 131072,
+            "context": 262144,
             "output": 4096
           }
         },
@@ -48,7 +48,7 @@
           "name": "Qwen3.6 27B (thinking)",
           "reasoning": true,
           "limit": {
-            "context": 131072,
+            "context": 262144,
             "output": 8192
           }
         },
