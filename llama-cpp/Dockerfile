@@ -41,10 +41,13 @@ RUN git clone "${LLAMA_CPP_REPO}" . && \
 
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     cmake -S . \
-    -B build -G Ninja -DGGML_HIP=ON -DAMDGPU_TARGETS="${ROCM_ARCH}" \
-    -DGGML_CUDA_FA_ALL_QUANTS=ON -DCMAKE_C_COMPILER=clang \
-    -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release \
-    && cmake --build build --config Release
+    -B build \
+    -DGGML_HIP=ON \
+    -DAMDGPU_TARGETS="${ROCM_ARCH}" \
+    -DGGML_CUDA_FA_ALL_QUANTS=ON \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DLLAMA_CURL=ON \
+    && cmake --build build --config Release -j$(nproc)
 
 COPY entrypoint.sh /entrypoint.sh
 
