@@ -19,14 +19,14 @@ access**, **hardened SSH**, and **smart GPU usage management**.
 
 ## ✨ Why Panther Minor?
 
-| Feature                     | What it gives you                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------- |
-| **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp](https://github.com/ggml-org/llama.cpp) |
-| **Agent orchestration**     | [OpenFang](https://www.openfang.sh/) for automation and agent workflows                 |
-| **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                            |
-| **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                          |
-| **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                          |
-| **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                              |
+| Feature                     | What it gives you                                                                                                |
+| --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp with TurboQuant](https://github.com/TheTom/llama-cpp-turboquant) |
+| **Agent orchestration**     | [OpenFang](https://www.openfang.sh/) for automation and agent workflows                                          |
+| **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                     |
+| **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                                                   |
+| **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                                                   |
+| **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                                                       |
 
 ## 🏗️ Architecture
 
