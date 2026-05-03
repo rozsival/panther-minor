@@ -3,8 +3,8 @@ FROM rocm/dev-ubuntu-24.04:7.2.2-complete
 
 ARG HOST_UID="1000"
 ARG HOST_GID="$HOST_UID"
-ARG LLAMA_CPP_REPO="https://github.com/ggml-org/llama.cpp"
-ARG LLAMA_CPP_REF="master"
+ARG LLAMA_CPP_REPO="https://github.com/TheTom/llama-cpp-turboquant"
+ARG LLAMA_CPP_REF="feature/turboquant-kv-cache"
 ARG LLAMA_CPP_USER="llama-cpp"
 ARG ROCM_ARCH="gfx1201"
 
@@ -41,9 +41,10 @@ RUN git clone "${LLAMA_CPP_REPO}" . && \
 
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     cmake -S . \
-    -B build -DGGML_HIP=ON -DAMDGPU_TARGETS="${ROCM_ARCH}" \
-    -DCMAKE_BUILD_TYPE=Release -DLLAMA_CURL=ON \
-    && cmake --build build --config Release -j$(nproc)
+    -B build -G Ninja -DGGML_HIP=ON -DAMDGPU_TARGETS="${ROCM_ARCH}" \
+    -DGGML_CUDA_FA_ALL_QUANTS=ON -DCMAKE_C_COMPILER=clang \
+    -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_BUILD_TYPE=Release \
+    && cmake --build build --config Release
 
 COPY entrypoint.sh /entrypoint.sh
 
