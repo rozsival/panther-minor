@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install build dependencies
 RUN apt update && \
-    apt install -y cmake git libcurl4-openssl-dev nano && \
+    apt install -y cmake git libcurl4-openssl-dev nano ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes
@@ -30,9 +30,6 @@ RUN \
         useradd --system --uid "${HOST_UID}" --gid "${HOST_GID}" --home "/home/${LLAMA_CPP_USER}" --create-home "${LLAMA_CPP_USER}"; \
     fi
 
-RUN usermod -aG sudo "$LLAMA_CPP_USER" \
-    && echo "$LLAMA_CPP_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
 # Build llama.cpp from source
 WORKDIR /opt/llama-cpp
 
@@ -42,10 +39,13 @@ RUN git clone "${LLAMA_CPP_REPO}" . && \
 RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     cmake -S . \
     -B build \
-    -DGGML_HIP=ON \
+    -G "Ninja" \
     -DAMDGPU_TARGETS="${ROCM_ARCH}" \
-    -DGGML_CUDA_FA_ALL_QUANTS=ON \
     -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_C_COMPILER=/opt/rocm/llvm/bin/clang \
+    -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++ \
+    -DGGML_CUDA_FA_ALL_QUANTS=ON \
+    -DGGML_HIP=ON \
     -DLLAMA_CURL=ON \
     && cmake --build build --config Release -j$(nproc)
 
