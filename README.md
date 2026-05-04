@@ -305,6 +305,10 @@ This keeps the small helper model untouched while making large-model handovers d
 ./bin/cli cluster stop
 ```
 
+## 🖲️Remote control
+
+See [Panther Minor Controller](https://github.com/rozsival/panther-minor-controller) for a companion tool running on Raspberry Pi (or other low-power devices) that gives you remote control over Panther Minor power state (on/off/reboot).
+
 ## 📚 More documentation
 
 - [Panther Minor CLI](./bin/README.md) — full command reference for managing the cluster
