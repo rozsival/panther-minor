@@ -42,16 +42,19 @@ Read `README.md` and update the references to the version in `git` commands (sec
    ```bash
    pnpm run build:cli
    ```
-3. **Commit** the changes:
+3. **Gather all changed files**:
    ```bash
-   git add {changed files}
+   git add $(git diff --name-only HEAD)
+   ```
+4. **Commit**:
+   ```bash
    git commit -m "chore(release): vX.Y.Z"
    ```
-4. **Create a git tag**:
+5. **Create a git tag**:
    ```bash
    git tag -a "vX.Y.Z" -m "Release vX.Y.Z"
    ```
-5. **Push to remote**:
+6. **Push to remote**:
    ```bash
    git push origin main
    git push origin vX.Y.Z
@@ -63,8 +66,8 @@ Report back to the user:
 
 ```
 ✅ Release vX.Y.Z created successfully.
-   - Version bumped in {changed files}
-   - Committed: chore: bump version to X.Y.Z
+   - Version bumped in: {list all files that were modified during the release}
+   - Committed: chore(release): vX.Y.Z
    - Tagged: vX.Y.Z
    - Pushed to remote
 ```
