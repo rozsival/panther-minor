@@ -3,20 +3,30 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
   workflow_dispatch:
-    inputs:
-      tag:
-        description: 'Tag to release (e.g., v1.0.0)'
-        required: true
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  validate-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate tag format
+        # language=bash
+        run: |
+          # Ensure tag follows SemVer format with optional channel suffix (e.g., v1.2.3 or v1.2.3-beta, v1.2.3-rc.1)
+          TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$'
+          if [[ ! "${{ github.ref_name }}" =~ ${TAG_REGEX} ]]; then
+            echo "::error::Ref ${{ github.ref_name }} does not match the required tag format (e.g., v1.2.3 or v1.2.3-beta, v1.2.3-rc.1)"
+            exit 1
+          fi
+
   wait-for-checks:
     runs-on: ubuntu-latest
+    needs: validate-ref
     permissions:
       checks: read
     steps:
