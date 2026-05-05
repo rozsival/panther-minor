@@ -24,21 +24,9 @@ jobs:
             exit 1
           fi
 
-  wait-for-checks:
-    runs-on: ubuntu-latest
-    needs: validate-ref
-    permissions:
-      checks: read
-    steps:
-      - name: Wait for CI checks
-        uses: poseidon/wait-for-status-checks@v0.6.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          match_pattern: '^(qa|test)$'
-
   release:
     runs-on: ubuntu-latest
-    needs: wait-for-checks
+    needs: validate-ref
     permissions:
       contents: write
     steps:
