@@ -7,7 +7,7 @@ panther_update() {
     git pull --rebase
     # Checkout latest tag
     latest_tag=$(git describe --tags --abbrev=0)
-    git checkout "$latest_tag"
+    git switch --detach "$latest_tag"
   )
   panther_log_success 'Repository updated.'
 }
