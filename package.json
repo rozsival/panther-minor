@@ -22,7 +22,7 @@
     "@biomejs/biome": "2.4.15",
     "@commitlint/cli": "21.0.0",
     "@commitlint/config-conventional": "21.0.0",
-    "@types/node": "24.12.3",
+    "@types/node": "24.12.4",
     "is-ci": "4.1.0",
     "lefthook": "2.1.6",
     "prettier": "3.8.3",
