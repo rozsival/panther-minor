@@ -35,7 +35,6 @@ These services are intended for Tailscale clients or direct host access.
 | ------ | --------------- | -------------------------------------------------- |
 | `8000` | `llama-manager` | OpenAI-compatible proxy and activity-aware routing |
 | `8080` | `open-webui`    | Browser UI for chatting with models                |
-| `4200` | `openfang`      | Agent orchestration                                |
 | `3000` | `grafana`       | Dashboards and visualization                       |
 | `9090` | `prometheus`    | Metrics scraping and storage                       |
 

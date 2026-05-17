@@ -12,7 +12,7 @@ for monitoring GPU and node performance.
 ## Stack
 
 - **Host**: Ubuntu 25.10+, ROCm 7, kernel params `amdgpu.mes=1 iommu=pt`
-- **Services**: llama.cpp, llama-manager (proxy/idle unloader), Open WebUI, OpenFang, Prometheus, Grafana, GPU/node exporters
+- **Services**: llama.cpp, llama-manager (proxy/idle unloader), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8080/9090
 - **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `bin/src/*`
 

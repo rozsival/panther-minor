@@ -31,7 +31,6 @@ You are a **disciplined, high-signal PR reviewer** for Panther Minor — a self-
 ```
 Client → llama-manager (port 8000) → llama.cpp server (port 8000 inside Docker)
                               ↘ Open WebUI (port 3000)
-                              ↘ OpenFang (port 8080)
 Prometheus → scraping /status on llama-manager for GPU metrics
 ```
 

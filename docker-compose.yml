@@ -9,8 +9,6 @@ networks:
 volumes:
   llama-cpp-comgr:
   open-webui-data:
-  openfang-data:
-  openfang-workspaces:
   prometheus-data:
   grafana-data:
   proxy-logs:
@@ -170,36 +168,6 @@ services:
     depends_on:
       - llama-manager
 
-  # -- OpenFang ---------------------------------------------------------------
-  openfang:
-    container_name: openfang
-    image: ${OPENFANG_IMAGE}
-    restart: unless-stopped
-    environment:
-      OPENFANG_HOME: ${OPENFANG_HOME}
-    env_file:
-      - path: './openfang/.env'
-        required: false
-    cap_add:
-      - SYS_ADMIN
-    volumes:
-      - 'openfang-data:${OPENFANG_HOME}/data'
-      - 'openfang-workspaces:${OPENFANG_HOME}/workspaces'
-      - './openfang/config.toml:${OPENFANG_HOME}/config.toml.default'
-      - './openfang/custom_models.json:${OPENFANG_HOME}/custom_models.json'
-    expose:
-      - 4200
-    networks:
-      - ai
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:4200/api/health']
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    depends_on:
-      - llama-manager
-
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
     container_name: amd-gpu-exporter
@@ -312,6 +280,5 @@ services:
     depends_on:
       - llama-manager
       - open-webui
-      - openfang
       - grafana
       - prometheus

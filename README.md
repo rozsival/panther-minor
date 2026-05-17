@@ -10,7 +10,7 @@
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
 
 Panther Minor gives you a reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems. It combines
-**llama.cpp**, **Open WebUI**, **OpenFang**, **Prometheus**, and **Grafana** into a secure setup with **Tailscale
+**llama.cpp**, **Open WebUI**, **Prometheus**, and **Grafana** into a secure setup with **Tailscale
 access**, **hardened SSH**, and **smart GPU usage management**.
 
 </div>
@@ -22,7 +22,6 @@ access**, **hardened SSH**, and **smart GPU usage management**.
 | Feature                     | What it gives you                                                                                                |
 | --------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp with TurboQuant](https://github.com/TheTom/llama-cpp-turboquant) |
-| **Agent orchestration**     | [OpenFang](https://www.openfang.sh/) for automation and agent workflows                                          |
 | **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                     |
 | **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                                                   |
 | **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                                                   |
@@ -33,11 +32,9 @@ access**, **hardened SSH**, and **smart GPU usage management**.
 ```mermaid
 flowchart LR
     U[Users / Clients] --> W[Open WebUI]
-    U --> F[OpenFang]
     U --> A[External API Clients]
 
     W --> M[llama-manager]
-    F --> M
     A --> M
 
     M --> L[llama.cpp]
@@ -184,8 +181,7 @@ SSL is part of Panther Minor's secure design. Complete these steps to issue and 
 
 ## 🧠 LLaMA.cpp cluster
 
-Panther Minor runs local LLMs across both GPUs with an OpenAI-compatible API, a monitoring stack, and
-[OpenFang](https://www.openfang.sh/) for agent orchestration.
+Panther Minor runs local LLMs across both GPUs with an OpenAI-compatible API, and a monitoring stack.
 
 ### Configuration
 
@@ -195,22 +191,6 @@ See `.env` for configurable parameters. Defaults are provided for all non-sensit
 
 A [Hugging Face token](https://huggingface.co/settings/tokens) is not required, but it is recommended to avoid rate
 limits when downloading models.
-
-#### OpenFang
-
-It is strongly recommended to build and use your own private image with your custom agents and dependencies. This keeps
-the agent environment under your control while preserving the infrastructure-as-code workflow.
-
-> [!TIP]
-> Follow the
-> [Docker Credential Helper Setup for Ubuntu Server](https://gist.github.com/rozsival/7d82711ca08d5159633db241d698810d)
-> to enable secure authentication with private registries from the server.
-
-The default config is mounted at `${OPENFANG_HOME}/config.toml.default`. Your image can use it as a base for
-connecting to cluster services and layering custom agent configuration on top.
-
-You can also define custom variables in `./openfang/.env`. They are injected into the OpenFang container at runtime so
-you can align the service with your image build and orchestration requirements.
 
 ### Model management
 
@@ -237,7 +217,6 @@ See [Models](./models/README.md) for available LLMs and their usage.
 | `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support                |
 | `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling |
 | `open-webui`             | Chat interface for interacting with LLMs                                      |
-| `openfang`               | Agent orchestration platform                                                  |
 | `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                 |
 | `prometheus`             | Time-series database for scraping and storing metrics                         |
 | `amd-gpu-exporter`       | AMD GPU metrics exporter                                                      |
@@ -266,7 +245,7 @@ Put any extra files, scripts, configurations, or assets in the `./extra` directo
 
 ## 🔋 GPU power and VRAM management
 
-All LLM traffic from Open WebUI, OpenFang, and external clients flows through `llama-manager`, which sits in front of
+All LLM traffic from Open WebUI and external clients flows through `llama-manager`, which sits in front of
 `llama-cpp` as an activity-aware reverse proxy.
 
 ### Idle VRAM unloading
