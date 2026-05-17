@@ -9,6 +9,7 @@ exec /opt/llama-cpp/build/bin/llama-server \
   --models-preset "$HOME/.cache/huggingface/preset.ini" \
   --parallel 1 \
   --port 8000 \
+  --spec-default \
   --sleep-idle-seconds "$LLAMA_CPP_SLEEP_IDLE_SECONDS" \
   --slot-save-path "$HOME/.cache/slots" \
   --ubatch-size "$LLAMA_CPP_UBATCH_SIZE"
