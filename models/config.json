@@ -5,7 +5,7 @@
       "name": "Qwen3.6-35B-A3B",
       "file": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
       "mmproj": "mmproj-F16.gguf",
-      "repository": "unsloth/Qwen3.6-35B-A3B-GGUF",
+      "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
       "thinking": true,
       "vision": true
     },
@@ -13,16 +13,9 @@
       "name": "Qwen3.6-27B",
       "file": "Qwen3.6-27B-UD-Q4_K_XL.gguf",
       "mmproj": "mmproj-F16.gguf",
-      "repository": "unsloth/Qwen3.6-27B-GGUF",
+      "repository": "unsloth/Qwen3.6-27B-MTP-GGUF",
       "thinking": true,
       "vision": true
-    },
-    {
-      "name": "Qwen3-Coder-Next",
-      "file": "Qwen3-Coder-Next-UD-Q4_K_S.gguf",
-      "repository": "unsloth/Qwen3-Coder-Next-GGUF",
-      "thinking": false,
-      "vision": false
     },
     {
       "name": "Gemma-4-31B",
@@ -36,7 +29,7 @@
       "name": "Qwen3.5-2B",
       "file": "Qwen3.5-2B-Q8_0.gguf",
       "mmproj": "mmproj-F16.gguf",
-      "repository": "unsloth/Qwen3.5-2B-GGUF",
+      "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
       "thinking": true,
       "vision": true
     },

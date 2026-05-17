@@ -51,15 +51,6 @@
             "context": 262144,
             "output": 8192
           }
-        },
-        "Qwen3-Coder-Next": {
-          "id": "Qwen3-Coder-Next",
-          "name": "Qwen3 Coder Next",
-          "reasoning": false,
-          "limit": {
-            "context": 131072,
-            "output": 4096
-          }
         }
       }
     }

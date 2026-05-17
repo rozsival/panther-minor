@@ -9,7 +9,6 @@ This directory documents the model presets supported by Panther Minor and how th
 | ------------------------- | -------------------------------- | ---- | ---------- | ---------------------------------------------------------------------------------------------------------- |
 | `Qwen3.6-35B-A3B` 💭 👀   | `unsloth/Qwen3.6-35B-A3B-GGUF`   | 256K | 4K / 8K 💭 | Primary MoE model for complex reasoning, system architecture, and advanced problem-solving across domains  |
 | `Qwen3.6-27B` 💭 👀       | `unsloth/Qwen3.6-27B-GGUF`       | 256K | 4K / 8K 💭 | Versatile dense model optimized for a wide range of tasks, from general reasoning to multimodal processing |
-| `Qwen3-Coder-Next`        | `unsloth/Qwen3-Coder-Next-GGUF`  | 128K | 4K         | Non-reasoning coding-focused MoE model optimized for software development tasks                            |
 | `Gemma-4-31B` 💭 👀       | `unsloth/gemma-4-31B-it-GGUF`    | 128K | 4K / 8K 💭 | Heavyweight dense model providing maximum consistency for extensive analysis and text generation tasks     |
 | `Qwen3.5-2B` 💭 👀        | `unsloth/Qwen3.5-2B-GGUF`        | 8K   | 1K / 2K 💭 | Lightweight dense model optimized for blazing fast inference and rapid scaffolding                         |
 | `Qwen3-Embedding-0.6B` 🪶 | `Qwen/Qwen3-Embedding-0.6B-GGUF` | 8K   | N/A        | Lightweight embedding model strictly for RAG pipelines                                                     |
