@@ -11,7 +11,7 @@
           "reasoning": false,
           "input": ["text", "image"],
           "contextWindow": 262144,
-          "maxTokens": 4096
+          "maxTokens": 65536
         },
         {
           "id": "Qwen3.6-35B-A3B-thinking",
@@ -19,7 +19,7 @@
           "reasoning": true,
           "input": ["text", "image"],
           "contextWindow": 262144,
-          "maxTokens": 8192
+          "maxTokens": 65536
         },
         {
           "id": "Qwen3.6-27B",
@@ -27,7 +27,7 @@
           "reasoning": false,
           "input": ["text", "image"],
           "contextWindow": 262144,
-          "maxTokens": 4096
+          "maxTokens": 65536
         },
         {
           "id": "Qwen3.6-27B-thinking",
@@ -35,7 +35,7 @@
           "reasoning": true,
           "input": ["text", "image"],
           "contextWindow": 262144,
-          "maxTokens": 8192
+          "maxTokens": 65536
         }
       ]
     }

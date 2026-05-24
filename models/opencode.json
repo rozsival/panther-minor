@@ -22,7 +22,7 @@
           "reasoning": false,
           "limit": {
             "context": 262144,
-            "output": 4096
+            "output": 65536
           }
         },
         "Qwen3.6-35B-A3B-thinking": {
@@ -31,7 +31,7 @@
           "reasoning": true,
           "limit": {
             "context": 262144,
-            "output": 8192
+            "output": 65536
           }
         },
         "Qwen3.6-27B": {
@@ -40,7 +40,7 @@
           "reasoning": false,
           "limit": {
             "context": 262144,
-            "output": 4096
+            "output": 65536
           }
         },
         "Qwen3.6-27B-thinking": {
@@ -49,7 +49,7 @@
           "reasoning": true,
           "limit": {
             "context": 262144,
-            "output": 8192
+            "output": 65536
           }
         }
       }
