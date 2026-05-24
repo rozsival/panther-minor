@@ -99,7 +99,7 @@ SSH into your server, clone the repository and run the setup CLI:
 ```bash
 git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
-git checkout v2.0.0
+git checkout v2.1.0
 sudo ./bin/cli setup
 ```
 
