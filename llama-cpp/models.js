@@ -1,4 +1,4 @@
-export const LARGE_MODEL_IDS = Object.freeze([
+export const largeModelIds = new Set([
   'Qwen3.6-35B-A3B',
   'Qwen3.6-35B-A3B-thinking',
   'Qwen3.6-27B',
@@ -6,8 +6,6 @@ export const LARGE_MODEL_IDS = Object.freeze([
   'Gemma-4-31B',
   'Gemma-4-31B-thinking',
 ]);
-
-const largeModelIds = new Set(LARGE_MODEL_IDS);
 
 export function isLargeModelId(modelId) {
   return typeof modelId === 'string' && largeModelIds.has(modelId.trim());

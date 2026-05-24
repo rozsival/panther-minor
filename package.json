@@ -11,11 +11,17 @@
   "type": "module",
   "scripts": {
     "build:cli": "cd bin && rm src/lib/send_completions.sh && bashly add completions && bashly generate",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "fix:unsafe": "ultracite fix --unsafe",
-    "format": "prettier --check --write .",
+    "check": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run check:code\" \"pnpm run check:misc\"",
+    "check:code": "biome check .",
+    "check:misc": "prettier --check .",
+    "fix": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run fix:code\" \"pnpm run format:misc\"",
+    "fix:code": "ultracite fix .",
+    "fix:code:unsafe": "pnpm run fix:code --unsafe",
+    "format": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run format:code\" \"pnpm run format:misc\"",
+    "format:code": "biome format --write .",
+    "format:misc": "prettier --check --write .",
     "postinstall": "is-ci || lefthook install",
+    "lint": "biome lint .",
     "test": "node --test \"**/*.test.js\""
   },
   "devDependencies": {

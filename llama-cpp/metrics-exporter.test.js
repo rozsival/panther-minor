@@ -1,4 +1,3 @@
-// biome-ignore-all lint/performance/useTopLevelRegex: We don't need hoisted regexes for tests.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 

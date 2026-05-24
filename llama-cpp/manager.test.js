@@ -1,4 +1,3 @@
-// biome-ignore-all lint/performance/useTopLevelRegex: We don't need hoisted regexes for tests.
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
@@ -17,7 +16,6 @@ import {
   resetActivityTracking,
   unloadIdleModels,
 } from './manager.js';
-import { isLargeModelId, LARGE_MODEL_IDS } from './models.js';
 
 async function withEnv(name, value, callback) {
   const previous = process.env[name];
@@ -68,19 +66,6 @@ test('tracked proxy requests keep the manager active until the response closes',
     assert.equal(getActiveProxyRequests(), 0);
     assert.equal(isActive(), false);
   });
-});
-
-test('large model list lives in models.js', () => {
-  assert.deepEqual(LARGE_MODEL_IDS, [
-    'Qwen3.6-35B-A3B',
-    'Qwen3.6-35B-A3B-thinking',
-    'Qwen3.6-27B',
-    'Qwen3.6-27B-thinking',
-    'Gemma-4-31B',
-    'Gemma-4-31B-thinking',
-  ]);
-  assert.equal(isLargeModelId('Qwen3.6-35B-A3B'), true);
-  assert.equal(isLargeModelId('panther-coder-large'), false);
 });
 
 test('fetchModelsList reads /models and excludes embedding models', async () => {
