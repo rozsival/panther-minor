@@ -171,7 +171,7 @@ services:
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
     container_name: amd-gpu-exporter
-    image: rocm/device-metrics-exporter:v1.5.0-beta.0
+    image: rocm/device-metrics-exporter:v1.5.1-beta.0
     restart: unless-stopped
     devices:
       - '/dev/kfd:/dev/kfd'
