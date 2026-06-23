@@ -2,5 +2,9 @@ allowBuilds:
   lefthook: true
 
 autoInstallPeers: false
+
+minimumReleaseAge: 1140
+
 strictPeerDependencies: true
+
 saveExact: true
