@@ -137,7 +137,7 @@ services:
     image: ghcr.io/open-webui/open-webui:v0.9.6
     restart: unless-stopped
     environment:
-      DEFAULT_MODELS: 'Qwen3.6-35B-A3B'
+      DEFAULT_MODELS: 'Qwen3.6-35B-A3B-thinking'
       ENABLE_EVALUATION_ARENA_MODELS: false
       ENABLE_MODELS_CACHE: true
       ENABLE_OLLAMA_API: false
