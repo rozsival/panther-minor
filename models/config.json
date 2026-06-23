@@ -20,6 +20,7 @@
     {
       "name": "Gemma-4-31B",
       "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf",
+      "draft": "mtp-gemma-4-31B-it.gguf",
       "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/gemma-4-31B-it-GGUF",
       "thinking": true,

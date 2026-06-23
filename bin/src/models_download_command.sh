@@ -10,6 +10,7 @@ panther_models_download() {
 
   hf_repository="$(jq -r '.repository' <<<"$model_config")"
   hf_file="$(jq -r '.file' <<<"$model_config")"
+  draft="$(jq -r '.draft // empty' <<<"$model_config")"
   mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
   model_name="$(jq -r '.name' <<<"$model_config")"
   target_dir="$PANTHER_MODELS_DIR/.huggingface/$model_name"
@@ -24,6 +25,10 @@ panther_models_download() {
   fi
 
   hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$target_dir")
+
+  if [[ -n "$draft" ]]; then
+    hf_download_args+=(--include "$draft")
+  fi
 
   if [[ -n "$mmproj" ]]; then
     hf_download_args+=(--include "$mmproj")

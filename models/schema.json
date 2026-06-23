@@ -15,6 +15,10 @@
             "description": "Model file name",
             "type": "string"
           },
+          "draft": {
+            "description": "Model drafter to use for MTP",
+            "type": "string"
+          },
           "mmproj": {
             "description": "Model multimodal project file name",
             "type": "string"
