@@ -11,11 +11,10 @@ panther_setup_amdgpu() {
   apt clean all
   apt update
 
-  wget https://repo.radeon.com/amdgpu-install/7.2.2/ubuntu/noble/amdgpu-install_7.2.2.70202-1_all.deb -O ./temp/amdgpu-install_7.2.2.70202-1_all.deb
-  apt install -y ./temp/amdgpu-install_7.2.2.70202-1_all.deb
-  sed -i "s|graphics/7.2.2|graphics/7.2.1|" /etc/apt/sources.list.d/rocm.list
+  wget ttps://repo.radeon.com/amdgpu-install/7.2.4/ubuntu/noble/amdgpu-install_7.2.4.70204-1_all.deb -O ./temp/amdgpu-install_7.2.4.70204-1_all.deb
+  apt install -y ./temp/amdgpu-install_7.2.4.70204-1_all.deb
   apt update
-  rm ./temp/amdgpu-install_7.2.2.70202-1_all.deb
+  rm ./temp/amdgpu-install_7.2.4.70204-1_all.deb
 
   apt install -y "linux-headers-$(uname -r)" amdgpu-dkms python3-setuptools python3-wheel
   usermod -a -G render,video "$PANTHER_ALLOWED_USER"
