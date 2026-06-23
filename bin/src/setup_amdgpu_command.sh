@@ -11,7 +11,7 @@ panther_setup_amdgpu() {
   apt clean all
   apt update
 
-  wget ttps://repo.radeon.com/amdgpu-install/7.2.4/ubuntu/noble/amdgpu-install_7.2.4.70204-1_all.deb -O ./temp/amdgpu-install_7.2.4.70204-1_all.deb
+  wget https://repo.radeon.com/amdgpu-install/7.2.4/ubuntu/noble/amdgpu-install_7.2.4.70204-1_all.deb -O ./temp/amdgpu-install_7.2.4.70204-1_all.deb
   apt install -y ./temp/amdgpu-install_7.2.4.70204-1_all.deb
   apt update
   rm ./temp/amdgpu-install_7.2.4.70204-1_all.deb
