@@ -35,3 +35,9 @@ for monitoring GPU and node performance.
 - `llama-cpp/metrics-exporter.js` — Prometheus exporter; queries `llama-manager /status` to decide idle vs. active scrape cycle
 - `monitoring/prometheus.yml` — node and GPU exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
+
+## Planning
+
+When requested to plan a new feature or change, provide a clear outline that can be reviewed and approved before implementation.
+It should also be a complete guide to any agent taking over the work and implementing it. Go straight to the point, and avoid unnecessary verbosity.
+Each plan is written in a separate file in the `.agents/plans` directory, with a name constructed as `YYYY-MM-DD-<short-description>.md`.

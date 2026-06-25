@@ -30,3 +30,6 @@ log
 logs
 temp
 tmp
+
+# Agents
+.agents/plans
