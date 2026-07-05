@@ -8,6 +8,7 @@ networks:
 # -- Persistent volumes -------------------------------------------------------
 volumes:
   llama-cpp-comgr:
+  sd-cpp-comgr:
   open-webui-data:
   prometheus-data:
   grafana-data:
@@ -131,6 +132,118 @@ services:
     depends_on:
       - llama-manager
 
+  # -- stable-diffusion.cpp ---------------------------------------------------
+  # OpenAI-compatible image generation (sd-server), native RDNA 4 and ROCm 7 support.
+  # Pinned to a single GPU via HIP_VISIBLE_DEVICES so it does not contend with the LLMs.
+  stable-diffusion-cpp:
+    container_name: stable-diffusion-cpp
+    build:
+      context: ./stable-diffusion-cpp
+      args:
+        HOST_UID: ${HOST_UID}
+        HOST_GID: ${HOST_GID}
+        SD_CPP_REPO: ${SD_CPP_REPO}
+        SD_CPP_REF: ${SD_CPP_REF}
+        SD_CPP_USER: 'stable-diffusion-cpp'
+        ROCM_ARCH: ${ROCM_ARCH}
+    privileged: true
+    restart: unless-stopped
+    devices:
+      - '/dev/kfd:/dev/kfd'
+      - '/dev/dri:/dev/dri'
+    group_add:
+      - ${VIDEO_GID}
+      - ${RENDER_GID}
+    environment:
+      HIP_VISIBLE_DEVICES: ${SD_VISIBLE_DEVICES}
+    volumes:
+      - 'sd-cpp-comgr:/home/stable-diffusion-cpp/.cache/comgr'
+      - './models/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
+    ulimits:
+      memlock: -1
+    expose:
+      - 8000
+    networks:
+      - ai
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/v1/models']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # -- stable-diffusion.cpp manager (proxy + activity tracking) ---------------
+  # Activity-aware reverse proxy in front of sd-server: records image activity and
+  # exposes /status for the exporter. Uses a long proxy timeout because image
+  # generation streams no bytes for tens of seconds.
+  sd-manager:
+    container_name: sd-manager
+    image: node:24-trixie-slim
+    restart: unless-stopped
+    command: ['node', '/app/main.js']
+    environment:
+      LOG_LEVEL: info
+      PORT: 8000
+      PROXY_TIMEOUT_SECONDS: 900
+      SD_CPP_SLEEP_IDLE_SECONDS: '${SD_CPP_SLEEP_IDLE_SECONDS}'
+      SD_SERVER_URL: 'http://stable-diffusion-cpp:8000'
+    volumes:
+      - './stable-diffusion-cpp/manager.js:/app/main.js:ro'
+      - './stable-diffusion-cpp/models.js:/app/models.js:ro'
+    expose:
+      - 8000
+    networks:
+      - ai
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:8000/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      - stable-diffusion-cpp
+
+  # -- stable-diffusion.cpp metrics exporter ----------------------------------
+  sd-metrics-exporter:
+    container_name: sd-metrics-exporter
+    image: node:24-trixie-slim
+    restart: unless-stopped
+    command: ['node', '/app/main.js']
+    environment:
+      CACHE_TTL_SECONDS: 5
+      LOG_LEVEL: info
+      MANAGER_URL: 'http://sd-manager:8000'
+      PORT: 9090
+      SD_SERVER_URL: 'http://stable-diffusion-cpp:8000'
+      UPSTREAM_TIMEOUT_SECONDS: 4
+    volumes:
+      - './stable-diffusion-cpp/metrics-exporter.js:/app/main.js:ro'
+      - './stable-diffusion-cpp/models.js:/app/models.js:ro'
+    expose:
+      - 9090
+    networks:
+      - ai
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://localhost:9090/health').then((r)=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      - sd-manager
+
   # -- Open WebUI (chat interface) --------------------------------------------
   open-webui:
     container_name: open-webui
@@ -139,10 +252,16 @@ services:
     environment:
       DEFAULT_MODELS: 'Qwen3.6-35B-A3B-thinking'
       ENABLE_EVALUATION_ARENA_MODELS: false
+      ENABLE_IMAGE_GENERATION: true
       ENABLE_MODELS_CACHE: true
       ENABLE_OLLAMA_API: false
       ENABLE_PERSISTENT_CONFIG: true
       ENABLE_WEB_SEARCH: true
+      IMAGE_GENERATION_ENGINE: 'openai'
+      IMAGE_GENERATION_MODEL: 'ideogram-4'
+      IMAGE_SIZE: '1024x1024'
+      IMAGES_OPENAI_API_BASE_URL: 'http://sd-manager:8000/v1'
+      IMAGES_OPENAI_API_KEY: 'stable-diffusion-cpp'
       MODELS_CACHE_TTL: 3600
       OPENAI_API_BASE_URL: 'http://llama-manager:8000/v1'
       OPENAI_API_KEY: 'llama-cpp'
@@ -167,6 +286,7 @@ services:
       start_period: 60s
     depends_on:
       - llama-manager
+      - sd-manager
 
   # -- AMD GPU metrics exporter -----------------------------------------------
   amd-gpu-exporter:
@@ -233,6 +353,7 @@ services:
       - node-exporter
       - amd-gpu-exporter
       - llama-metrics-exporter
+      - sd-metrics-exporter
 
   # -- Grafana ----------------------------------------------------------------
   grafana:
@@ -269,6 +390,7 @@ services:
       - '3000:3000'
       - '4200:4200'
       - '8000:8000'
+      - '8001:8001'
       - '8080:8080'
       - '9090:9090'
     volumes:
@@ -279,6 +401,7 @@ services:
       - ai
     depends_on:
       - llama-manager
+      - sd-manager
       - open-webui
       - grafana
       - prometheus

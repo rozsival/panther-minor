@@ -11,7 +11,7 @@ declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
 
 panther_is_logs_service() {
   case "${1:-}" in
-  llama-cpp | llama-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
+  llama-cpp | llama-manager | llama-metrics-exporter | stable-diffusion-cpp | sd-manager | sd-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
     return 0
     ;;
   *)

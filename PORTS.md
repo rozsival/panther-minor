@@ -34,6 +34,7 @@ These services are intended for Tailscale clients or direct host access.
 | Port   | Service         | Role                                               |
 | ------ | --------------- | -------------------------------------------------- |
 | `8000` | `llama-manager` | OpenAI-compatible proxy and activity-aware routing |
+| `8001` | `sd-manager`    | OpenAI-compatible image generation API             |
 | `8080` | `open-webui`    | Browser UI for chatting with models                |
 | `3000` | `grafana`       | Dashboards and visualization                       |
 | `9090` | `prometheus`    | Metrics scraping and storage                       |
