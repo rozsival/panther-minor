@@ -6,12 +6,12 @@
 
 ![Platform](https://img.shields.io/badge/Platform-Ubuntu%2025.10%2B-0A84FF)
 ![GPU](https://img.shields.io/badge/GPU-AMD%20RDNA%204-E01F27)
-![Inference](https://img.shields.io/badge/Inference-llama.cpp-4CAF50)
+![Inference](https://img.shields.io/badge/Inference-llama.cpp%20%2B%20stable--diffusion.cpp-4CAF50)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
 
 Panther Minor gives you a reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems. It combines
-**llama.cpp**, **Open WebUI**, **Prometheus**, and **Grafana** into a secure setup with **Tailscale
-access**, **hardened SSH**, and **smart GPU usage management**.
+**llama.cpp**, **stable-diffusion.cpp**, **Open WebUI**, **Prometheus**, and **Grafana** into a secure setup with
+**Tailscale access**, **hardened SSH**, and **smart GPU usage management**.
 
 </div>
 
@@ -19,13 +19,14 @@ access**, **hardened SSH**, and **smart GPU usage management**.
 
 ## ✨ Why Panther Minor?
 
-| Feature                     | What it gives you                                                                       |
-| --------------------------- | --------------------------------------------------------------------------------------- |
-| **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp](https://github.com/ggml-org/llama.cpp) |
-| **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                            |
-| **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                          |
-| **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                          |
-| **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                              |
+| Feature                     | What it gives you                                                                                             |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp](https://github.com/ggml-org/llama.cpp)                       |
+| **Local image generation**  | OpenAI-compatible image API powered by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) |
+| **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                  |
+| **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                                                |
+| **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                                                |
+| **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                                                    |
 
 ## 🏗️ Architecture
 
@@ -36,14 +37,19 @@ flowchart LR
 
     W --> M[llama-manager]
     A --> M
+    W --> S[sd-manager]
+    A --> S
 
     M --> L[llama.cpp]
+    S --> I[stable-diffusion.cpp]
 
     P[Prometheus] --> X[llama-metrics-exporter]
+    P --> Y[sd-metrics-exporter]
     P --> G[amd-gpu-exporter]
     P --> N[node-exporter]
     X --> M
     X --> L
+    Y --> S
 
     D[Grafana] --> P
 ```
@@ -212,16 +218,19 @@ See [Models](./models/README.md) for available LLMs and their usage.
 
 ### Services
 
-| Service                  | Role                                                                          |
-| ------------------------ | ----------------------------------------------------------------------------- |
-| `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support                |
-| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling |
-| `open-webui`             | Chat interface for interacting with LLMs                                      |
-| `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                 |
-| `prometheus`             | Time-series database for scraping and storing metrics                         |
-| `amd-gpu-exporter`       | AMD GPU metrics exporter                                                      |
-| `node-exporter`          | Host metrics exporter for CPU, RAM, disk, network, and temperature            |
-| `llama-metrics-exporter` | Prometheus exporter for `llama.cpp` metrics                                   |
+| Service                  | Role                                                                            |
+| ------------------------ | ------------------------------------------------------------------------------- |
+| `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support                  |
+| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling   |
+| `stable-diffusion-cpp`   | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 7 support |
+| `sd-manager`             | Activity-aware reverse proxy in front of `sd-server`                            |
+| `open-webui`             | Chat and image-generation interface                                             |
+| `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                   |
+| `prometheus`             | Time-series database for scraping and storing metrics                           |
+| `amd-gpu-exporter`       | AMD GPU metrics exporter                                                        |
+| `node-exporter`          | Host metrics exporter for CPU, RAM, disk, network, and temperature              |
+| `llama-metrics-exporter` | Prometheus exporter for `llama.cpp` metrics                                     |
+| `sd-metrics-exporter`    | Prometheus exporter for `stable-diffusion.cpp` metrics                          |
 
 > [!IMPORTANT]
 > Services are **not** accessible from the public internet. See [PORTS.md](PORTS.md) for network details and access
@@ -240,6 +249,42 @@ Alternatively, you can set `COMPOSE_FILE` in `.env` to point to your custom
 > Always include the base `docker-compose.yml`.
 
 Put any extra files, scripts, configurations, or assets in the `./extra` directory and mount it into your custom services as needed. The directory is kept out of VCS.
+
+---
+
+## 🎨 Image generation
+
+Panther Minor also serves local **text-to-image** generation through
+[stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
+**OpenAI-compatible image API** (`POST /v1/images/generations`). The default model is
+[Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF).
+
+The image service is **pinned to a dedicated GPU** (`SD_VISIBLE_DEVICES` in `.env`, default `1`) so image
+generation does not contend with the LLMs for VRAM.
+
+### Download the model
+
+```bash
+./bin/cli images download ideogram-4
+```
+
+See [Models](./models/README.md) for the full list of image models and management commands.
+
+### Generate an image
+
+The API is exposed on port `8001` (see [PORTS.md](PORTS.md)):
+
+```bash
+curl -k https://<domain>:8001/v1/images/generations \
+  -H 'content-type: application/json' \
+  -d '{"model":"ideogram-4","prompt":"a red panther, studio photo","size":"1024x1024","n":1,"response_format":"b64_json"}'
+```
+
+Open WebUI is wired to the same endpoint, so the image icon on a chat message generates images through `sd-manager`.
+
+> [!TIP]
+> Ideogram 4 favors richly structured prompts. You can pass native `stable-diffusion.cpp` options (seed, steps, cfg)
+> by embedding `<sd_cpp_extra_args>{"seed":357925}</sd_cpp_extra_args>` inside the prompt.
 
 ---
 
@@ -276,6 +321,12 @@ second model resident (for embeddings or quick tasks). The logic is as follows:
    requests is still in flight.
 
 This keeps the small helper model untouched while making large-model handovers deterministic.
+
+### Image generation VRAM
+
+`sd-server` loads a single model and exposes no unload endpoint, so image-generation VRAM is not idle-unloaded. Instead,
+the image service is pinned to its own GPU via `SD_VISIBLE_DEVICES` so it stays isolated from the LLMs. `sd-manager`
+still records image activity and exposes a `sd_metrics_exporter_idle` gauge for visibility in Grafana.
 
 ---
 

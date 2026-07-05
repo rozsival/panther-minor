@@ -41,6 +41,28 @@ Use the Panther Minor CLI to manage models in the `.huggingface` cache:
 ./bin/cli models unload <model>   # Manually unload a model from the llama.cpp cluster
 ```
 
+## 🎨 Image models
+
+Panther Minor also serves text-to-image generation through
+[stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an OpenAI-compatible
+image API on port `8001`.
+
+| Model        | Base                     | Notes                                                                              |
+| ------------ | ------------------------ | ---------------------------------------------------------------------------------- |
+| `ideogram-4` | `leejet/ideogram-4-GGUF` | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE |
+
+Image models are defined in `images.json` (see `images.schema.json` for the schema). Each model lists the weight
+`components` it needs (diffusion, unconditional diffusion, LLM text encoder, VAE), which may come from different
+Hugging Face repositories and are downloaded into a single per-model directory in the `.huggingface` cache.
+
+Manage image models with the Panther Minor CLI:
+
+```bash
+./bin/cli images list             # List supported image models
+./bin/cli images download <model> # Download an image model into the .huggingface cache
+./bin/cli images remove <model>   # Remove an image model from the .huggingface cache
+```
+
 ## 💻 Coding Agent Presets
 
 ### OpenCode

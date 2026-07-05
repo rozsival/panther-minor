@@ -28,3 +28,12 @@ scrape_configs:
       - targets: ['llama-metrics-exporter:9090']
         labels:
           instance: llama-cpp:8000
+
+  # stable-diffusion.cpp image generation metrics
+  - job_name: stable-diffusion-cpp
+    metrics_path: /metrics
+    static_configs:
+      # Scraped through an activity-aware exporter that reads sd-manager /status.
+      - targets: ['sd-metrics-exporter:9090']
+        labels:
+          instance: stable-diffusion-cpp:8000

@@ -234,6 +234,38 @@ commands:
         completions:
           - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/config.json)")
 
+  - name: images
+    help: Manage Panther Minor image-generation model files
+    commands:
+      - name: download
+        help: Download a supported image model into the local Hugging Face cache
+        args:
+          - name: model
+            required: true
+            help: Model name from models/images.json
+            validate: supported_image_model
+        environment_variables:
+          - name: hf_token
+            help: Hugging Face token used by hf download
+        examples:
+          - cli images download ideogram-4
+          - HF_TOKEN=token cli images download ideogram-4
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/images.json)")
+
+      - name: list
+        help: List supported image models
+
+      - name: remove
+        help: Remove a downloaded image model from the local Hugging Face cache
+        args:
+          - name: model
+            required: true
+            help: Model name from models/images.json
+            validate: supported_image_model
+        completions:
+          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/images.json)")
+
   - name: proxy
     help: Manage proxy SSL and certificate automation
     commands:

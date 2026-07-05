@@ -1,0 +1,36 @@
+{
+  "$schema": "./images.schema.json",
+  "models": [
+    {
+      "name": "ideogram-4",
+      "description": "Ideogram 4 — strong prompt adherence and text rendering. Uses a Qwen3-VL-8B text encoder and the Flux2 autoencoder.",
+      "components": [
+        {
+          "role": "diffusion",
+          "repository": "leejet/ideogram-4-GGUF",
+          "file": "ideogram4-Q4_0.gguf",
+          "target": "ideogram4-Q4_0.gguf"
+        },
+        {
+          "role": "uncond",
+          "repository": "leejet/ideogram-4-GGUF",
+          "file": "ideogram4_uncond-Q4_0.gguf",
+          "target": "ideogram4_uncond-Q4_0.gguf"
+        },
+        {
+          "role": "llm",
+          "repository": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
+          "file": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
+          "target": "Qwen3VL-8B-Instruct-Q4_K_M.gguf"
+        },
+        {
+          "role": "vae",
+          "repository": "Comfy-Org/flux2-dev",
+          "file": "split_files/vae/flux2-vae.safetensors",
+          "target": "flux2-vae.safetensors"
+        }
+      ]
+    }
+  ],
+  "version": "1.0.0"
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Configuration schema for image-generation models served by stable-diffusion.cpp",
+  "properties": {
+    "models": {
+      "description": "List of image-generation models",
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "description": "Name of the model (also the local cache directory and the API model id)",
+            "type": "string"
+          },
+          "description": {
+            "description": "Human-readable description of the model",
+            "type": "string"
+          },
+          "components": {
+            "description": "Weight files that make up the model, downloaded into the model directory",
+            "items": {
+              "additionalProperties": false,
+              "properties": {
+                "role": {
+                  "description": "Role of the component in stable-diffusion.cpp",
+                  "enum": ["diffusion", "uncond", "llm", "vae", "clip", "t5"],
+                  "type": "string"
+                },
+                "repository": {
+                  "description": "Hugging Face repository containing the file",
+                  "type": "string"
+                },
+                "file": {
+                  "description": "Path of the file inside the repository",
+                  "type": "string"
+                },
+                "target": {
+                  "description": "Flat file name to store the component as inside the model directory",
+                  "type": "string"
+                }
+              },
+              "required": ["role", "repository", "file", "target"],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": ["name", "components"],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "version": {
+      "description": "Configuration version",
+      "type": "string"
+    }
+  },
+  "required": ["version", "models"],
+  "title": "Image Models Configuration",
+  "type": "object"
+}
