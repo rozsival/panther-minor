@@ -1,6 +1,6 @@
-panther_models_load() {
+panther_llm_load() {
   local model="${args[model]}"
-  panther_assert_supported_model "$model"
+  panther_assert_supported_llm "$model"
 
   # Make POST request to llama-manager to load the model (via HTTPS as external client)
   local response
@@ -21,4 +21,4 @@ panther_models_load() {
   fi
 }
 
-panther_models_load
+panther_llm_load

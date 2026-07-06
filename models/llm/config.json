@@ -1,5 +1,5 @@
 {
-  "$schema": "./schema.json",
+  "$schema": "./config.schema.json",
   "models": [
     {
       "name": "Qwen3.6-35B-A3B",

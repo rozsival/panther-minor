@@ -1,9 +1,15 @@
 # 🧠 Models
 
-This directory documents the model presets supported by Panther Minor and how they are wired into the local
-`llama.cpp` cluster.
+This directory documents the models supported by Panther Minor. It is split by modality:
 
-## 📚 Supported models
+- **`llm/`** — large language models served by `llama.cpp` (`config.json`, `config.schema.json`, `preset.ini`, coding-agent presets)
+- **`t2i/`** — text-to-image models served by `stable-diffusion.cpp` (`config.json`, `config.schema.json`)
+
+Downloaded weights live in a per-modality Hugging Face cache: `models/llm/.huggingface` and `models/t2i/.huggingface`.
+
+## 📚 Large language models
+
+Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 | Model                      | Base                             | Ctx  | Purpose                                                                                                    |
 | -------------------------- | -------------------------------- | ---- | ---------------------------------------------------------------------------------------------------------- |
@@ -22,7 +28,7 @@ This directory documents the model presets supported by Panther Minor and how th
 
 ## ⚙️ How model configuration works
 
-Supported models are defined in `config.json`. See `schema.json` for the configuration schema.
+Supported models are defined in `llm/config.json`. See `llm/config.schema.json` for the configuration schema.
 
 At runtime, the `llama-cpp` service runs in
 [router mode](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#using-multiple-models) and serves models
@@ -31,17 +37,17 @@ through `preset.ini`
 
 ## 🛠️ Model management
 
-Use the Panther Minor CLI to manage models in the `.huggingface` cache:
+Use the Panther Minor CLI to manage LLMs in the `models/llm/.huggingface` cache:
 
 ```bash
-./bin/cli models list             # List supported models
-./bin/cli models download <model> # Download a model into the .huggingface cache
-./bin/cli models remove <model>   # Remove a model from the .huggingface cache
-./bin/cli models load <model>     # Manually load a model into the llama.cpp cluster
-./bin/cli models unload <model>   # Manually unload a model from the llama.cpp cluster
+./bin/cli models llm list             # List supported LLMs
+./bin/cli models llm download <model> # Download an LLM into the cache
+./bin/cli models llm remove <model>   # Remove an LLM from the cache
+./bin/cli models llm load <model>     # Manually load an LLM into the llama.cpp cluster
+./bin/cli models llm unload <model>   # Manually unload an LLM from the llama.cpp cluster
 ```
 
-## 🎨 Image models
+## 🎨 Text-to-image models
 
 Panther Minor also serves text-to-image generation through
 [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an OpenAI-compatible
@@ -51,26 +57,27 @@ image API on port `8001`.
 | ------------ | ------------------------ | ---------------------------------------------------------------------------------- |
 | `ideogram-4` | `leejet/ideogram-4-GGUF` | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE |
 
-Image models are defined in `images.json` (see `images.schema.json` for the schema). Each model lists the weight
-`components` it needs (diffusion, unconditional diffusion, LLM text encoder, VAE), which may come from different
-Hugging Face repositories and are downloaded into a single per-model directory in the `.huggingface` cache.
+Text-to-image models are defined in `t2i/config.json` (see `t2i/config.schema.json` for the schema). Each model lists
+the weight `components` it needs (diffusion, unconditional diffusion, LLM text encoder, VAE), which may come from
+different Hugging Face repositories and are downloaded into a single per-model directory in the
+`models/t2i/.huggingface` cache.
 
-Manage image models with the Panther Minor CLI:
+Manage text-to-image models with the Panther Minor CLI:
 
 ```bash
-./bin/cli images list             # List supported image models
-./bin/cli images download <model> # Download an image model into the .huggingface cache
-./bin/cli images remove <model>   # Remove an image model from the .huggingface cache
+./bin/cli models t2i list             # List supported text-to-image models
+./bin/cli models t2i download <model> # Download a text-to-image model into the cache
+./bin/cli models t2i remove <model>   # Remove a text-to-image model from the cache
 ```
 
 ## 💻 Coding Agent Presets
 
 ### OpenCode
 
-Use `opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode:
+Use `llm/opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode:
 
 ```bash
-cp opencode.json ~/.config/opencode/opencode.json
+cp llm/opencode.json ~/.config/opencode/opencode.json
 ```
 
 > [!IMPORTANT]
@@ -78,10 +85,10 @@ cp opencode.json ~/.config/opencode/opencode.json
 
 ### Pi
 
-Use `pi/models.json` and `pi/settings.json` as the recommended [settings](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#settings) for Pi:
+Use `llm/pi/models.json` and `llm/pi/settings.json` as the recommended [settings](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#settings) for Pi:
 
 ```bash
-cp pi/*.json ~/.pi/agent/
+cp llm/pi/*.json ~/.pi/agent/
 ```
 
 > [!IMPORTANT]

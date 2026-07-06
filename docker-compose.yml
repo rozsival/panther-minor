@@ -47,8 +47,8 @@ services:
       - '/home/llama-cpp/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
       - 'llama-cpp-comgr:/home/llama-cpp/.cache/comgr'
-      - './models/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
-      - './models/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
+      - './models/llm/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
+      - './models/llm/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
     ulimits:
       memlock: -1
     expose:
@@ -158,7 +158,7 @@ services:
       HIP_VISIBLE_DEVICES: ${SD_VISIBLE_DEVICES}
     volumes:
       - 'sd-cpp-comgr:/home/stable-diffusion-cpp/.cache/comgr'
-      - './models/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
+      - './models/t2i/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
     ulimits:
       memlock: -1
     expose:

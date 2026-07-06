@@ -15,6 +15,22 @@ panther_resolve_option() {
 
   printf '%s\n' "$default_value"
 }
+panther_load_dotenv() {
+  local env_file="$1"
+  [[ -f "$env_file" ]] || return 0
+
+  local line key value
+  while IFS= read -r line || [[ -n "$line" ]]; do
+    [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+    key="${line%%=*}"
+    value="${line#*=}"
+    key="${key%%[[:space:]]*}"
+    [[ -n "$key" ]] || continue
+    if ! [[ -v $key ]]; then
+      export "$key=$value"
+    fi
+  done <"$env_file"
+}
 panther_require_root() {
   [[ $EUID -eq 0 ]] || panther_log_error "This command must be run as root (use sudo)."
 }
