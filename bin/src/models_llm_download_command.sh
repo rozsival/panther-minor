@@ -1,19 +1,19 @@
-panther_models_download() {
+panther_llm_download() {
   local model="${args[model]}"
-  panther_assert_supported_model "$model"
-  mkdir -p "$PANTHER_MODELS_DIR/.huggingface"
+  panther_assert_supported_llm "$model"
+  mkdir -p "$PANTHER_MODELS_DIR/llm/.huggingface"
   panther_load_dotenv "$PANTHER_ENV_FILE"
 
   local model_config hf_repository hf_file model_name target_dir
-  model_config="$(panther_model_config "$model")"
-  [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_models_config_file)"
+  model_config="$(panther_llm_config "$model")"
+  [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_llm_config_file)"
 
   hf_repository="$(jq -r '.repository' <<<"$model_config")"
   hf_file="$(jq -r '.file' <<<"$model_config")"
   draft="$(jq -r '.draft // empty' <<<"$model_config")"
   mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
   model_name="$(jq -r '.name' <<<"$model_config")"
-  target_dir="$PANTHER_MODELS_DIR/.huggingface/$model_name"
+  target_dir="$PANTHER_MODELS_DIR/llm/.huggingface/$model_name"
 
   if [[ -f "$target_dir/$hf_file" ]]; then
     read -r -p "Model '$model_name' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
@@ -38,4 +38,4 @@ panther_models_download() {
   panther_log_success "Model '$model_name' ready for use."
 }
 
-panther_models_download
+panther_llm_download

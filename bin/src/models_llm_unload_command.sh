@@ -1,6 +1,6 @@
-panther_models_unload() {
+panther_llm_unload() {
   local model="${args[model]}"
-  panther_assert_supported_model "$model"
+  panther_assert_supported_llm "$model"
 
   # Make POST request to llama-manager to unload the model (via HTTPS as external client)
   local response
@@ -21,4 +21,4 @@ panther_models_unload() {
   fi
 }
 
-panther_models_unload
+panther_llm_unload

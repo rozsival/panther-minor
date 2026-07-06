@@ -27,8 +27,9 @@ Wait for their answer. Then bump the version using semver:
 | patch | `X.Y.Z`         | `X.Y.Z+1`   |
 
 Read `bin/src/bashly.yml` to find the current `version: X.Y.Z` field. Update it in-place.
-Read `models/config.json` to find the current `version: "X.Y.Z"` field. Update it in-place.
-Read `models/preset.ini` to find the current `version = X.Y.Z` line. Update it in-place.
+Read `models/llm/config.json` to find the current `version: "X.Y.Z"` field. Update it in-place.
+Read `models/llm/preset.ini` to find the current `version = X.Y.Z` line. Update it in-place.
+Read `models/t2i/config.json` to find the current `version: "X.Y.Z"` field. Update it in-place.
 Read `package.json` to find the current `version: "X.Y.Z"` field. Update it in-place.
 Read `README.md` and update the references to the version in `git` commands (section "Quick Start").
 

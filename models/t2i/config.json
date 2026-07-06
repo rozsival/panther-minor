@@ -1,5 +1,5 @@
 {
-  "$schema": "./images.schema.json",
+  "$schema": "./config.schema.json",
   "models": [
     {
       "name": "ideogram-4",
@@ -32,5 +32,5 @@
       ]
     }
   ],
-  "version": "1.0.0"
+  "version": "2.2.0"
 }

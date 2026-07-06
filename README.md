@@ -265,7 +265,7 @@ generation does not contend with the LLMs for VRAM.
 ### Download the model
 
 ```bash
-./bin/cli images download ideogram-4
+./bin/cli models t2i download ideogram-4
 ```
 
 See [Models](./models/README.md) for the full list of image models and management commands.

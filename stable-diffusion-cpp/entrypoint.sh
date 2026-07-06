@@ -17,7 +17,7 @@ vae="$model_dir/${SD_CPP_VAE:-flux2-vae.safetensors}"
 for file in "$diffusion_model" "$uncond_diffusion_model" "$llm" "$vae"; do
   if [[ ! -f "$file" ]]; then
     echo "[stable-diffusion-cpp] missing model file: $file" >&2
-    echo "[stable-diffusion-cpp] run './bin/cli images download ${SD_CPP_MODEL:-ideogram-4}' on the host first" >&2
+    echo "[stable-diffusion-cpp] run './bin/cli models t2i download ${SD_CPP_MODEL:-ideogram-4}' on the host first" >&2
     exit 1
   fi
 done
