@@ -15,7 +15,7 @@ panther_llm_download() {
   model_name="$(jq -r '.name' <<<"$model_config")"
   target_dir="$PANTHER_MODELS_DIR/llm/.huggingface/$model_name"
 
-  if [[ -f "$target_dir/$hf_file" ]]; then
+  if [[ -d "$target_dir/$hf_file" ]]; then
     read -r -p "Model '$model_name' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
     echo ''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then

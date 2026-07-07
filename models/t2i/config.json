@@ -19,8 +19,8 @@
         {
           "role": "llm",
           "repository": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
-          "file": "Qwen3VL-8B-Instruct-Q4_K_XL.gguf",
-          "target": "Qwen3VL-8B-Instruct-Q4_K_XL.gguf"
+          "file": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
+          "target": "Qwen3VL-8B-Instruct-Q4_K_M.gguf"
         },
         {
           "role": "vae",
@@ -41,9 +41,9 @@
         },
         {
           "role": "llm",
-          "repository": "mradermacher/Qwen2.5-VL-7B-Instruct-GGUF",
-          "file": "Qwen2.5-VL-7B-Instruct.Q4_K_XL.gguf",
-          "target": "Qwen2.5-VL-7B-Instruct-Q4_K_XL.gguf"
+          "repository": "unsloth/Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf",
+          "file": "Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf",
+          "target": "Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf"
         },
         {
           "role": "vae",
