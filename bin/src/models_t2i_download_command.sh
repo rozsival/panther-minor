@@ -8,6 +8,18 @@ panther_t2i_download() {
   [[ -n "$model_config" ]] || panther_log_error "Text-to-image model '$model' not found in $(panther_t2i_config_file)"
 
   target_dir="$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
+
+  if [[ -f "$target_dir" ]]; then
+    read -r -p "Model '$model' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
+    echo ''
+    if [[ ! "$reply" =~ ^[Yy]$ ]]; then
+      panther_log_warn 'Download aborted.'
+      exit 0
+    else
+      rm -rf "$target_dir"
+    fi
+  fi
+
   staging_dir="$target_dir/.staging"
   mkdir -p "$staging_dir"
 

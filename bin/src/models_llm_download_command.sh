@@ -21,6 +21,8 @@ panther_llm_download() {
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
       panther_log_warn 'Download aborted.'
       exit 0
+    else
+      rm -rf "$target_dir"
     fi
   fi
 
