@@ -2795,11 +2795,6 @@ cli_models_t2i_download_command() {
       file="$(jq -r '.file' <<<"$component")"
       target="$(jq -r '.target' <<<"$component")"
 
-      if [[ -f "$target_dir/$target" ]]; then
-        panther_log_info "Skipping '$target' (already present)."
-        continue
-      fi
-
       panther_log_info "Downloading '$target' from '$repository'..."
       hf download "$repository" --include "$file" --local-dir "$staging_dir"
       mv "$staging_dir/$file" "$target_dir/$target"
