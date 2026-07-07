@@ -272,8 +272,9 @@ text-to-image model is ever resident.
 ```
 
 `load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
-replacing whatever was loaded before — so switching never leaves two models in VRAM. When switching, update Open
-WebUI's image model (admin image settings) to match. See [Models](./models/README.md) for the full list and commands.
+replacing whatever was loaded before — so switching never leaves two models in VRAM. To also point Open WebUI at the
+new model, either set it in the admin image settings (no chat downtime) or `cluster restart open-webui`. See
+[Models](./models/README.md#switching-the-model-open-webui-uses) for both flows and the full command list.
 
 ### Generate an image
 
