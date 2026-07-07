@@ -2874,7 +2874,6 @@ cli_models_t2i_load_command() {
     panther_compose up --detach --force-recreate --no-deps stable-diffusion-cpp
 
     panther_log_success "Text-to-image model '$model' loaded. sd-server now serves only this model."
-    panther_log_info "Set Open WebUI's image model to '$model' (admin image settings) to generate with it in chat."
   }
 
   panther_t2i_load

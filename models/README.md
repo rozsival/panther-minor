@@ -115,16 +115,13 @@ Use the Panther Minor CLI to manage text-to-image models in the `models/t2i/.hug
 > rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container, replacing the
 > previously loaded model.
 
-### Switching the model Open WebUI uses
+### Switching the loaded model
 
-`models t2i load` already recreates `sd-server`, so the API on port `8001` serves the new model immediately. Open WebUI
-keeps its image settings in persistent config storage — `IMAGE_GENERATION_MODEL` (`${SD_CPP_MODEL}` in `.env`) only
-seeds the value the first time that config is created — so the model **cannot** be switched from `.env` or by
-restarting the container. Change it in the UI:
-
-**Admin → Settings → Images → Default Model** → set it to `<model>`.
+Switching is entirely a CLI operation — `models t2i load <model>` recreates `sd-server` with the new model and that is
+all. `sd-server` serves whatever model it currently has loaded and ignores the model id in the request, so **Open WebUI
+needs no changes**: leave its image model field at `default`. You never touch the admin image settings when switching.
 
 > [!NOTE]
-> The image itself is produced by whatever model `sd-server` currently has loaded, regardless of Open WebUI's setting —
-> keeping them in sync is about the UI referencing the correct model id. Because `sd-server` reports only the loaded
-> model at `/v1/models`, the Images panel lists just that one model.
+> Because the requested model id plays no role, `IMAGE_GENERATION_MODEL` (`${SD_CPP_MODEL}` in `.env`) is just a label.
+> The Images panel in Open WebUI lists only the currently-loaded model, since that is all `sd-server` reports at
+> `/v1/models`.
