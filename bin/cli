@@ -618,8 +618,9 @@ cli_models_usage() {
   echo
   # :command.usage_commands
   printf "%s\n" "Commands:"
-  printf "  %s   Manage large language models\n" "llm"
-  printf "  %s   Manage text-to-image models\n" "t2i"
+  printf "  %s   Manage large language models\n" "llm  "
+  printf "  %s   Manage text-to-image models\n" "t2i  "
+  printf "  %s   Delete cached model files no config references anymore\n" "prune"
   echo
 
   # :command.long_usage
@@ -670,7 +671,7 @@ cli_models_llm_download_usage() {
   printf "cli models llm download - Download a supported LLM into the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm download MODEL\n"
+  printf "  cli models llm download MODEL [OPTIONS]\n"
   printf "  cli models llm download --help | -h\n"
   echo
 
@@ -678,6 +679,12 @@ cli_models_llm_download_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--force, -f"
+    printf "    Re-download even if the model's files already exist\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -866,7 +873,7 @@ cli_models_t2i_download_usage() {
   printf "cli models t2i download - Download a supported text-to-image model into the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i download MODEL\n"
+  printf "  cli models t2i download MODEL [OPTIONS]\n"
   printf "  cli models t2i download --help | -h\n"
   echo
 
@@ -874,6 +881,12 @@ cli_models_t2i_download_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--force, -f"
+    printf "    Re-download even if the component files already exist\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -999,6 +1012,28 @@ cli_models_t2i_unload_usage() {
   printf "%s\n" "Usage:"
   printf "  cli models t2i unload\n"
   printf "  cli models t2i unload --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_models_prune_usage() {
+  printf "cli models prune - Delete cached model files no config references anymore\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli models prune\n"
+  printf "  cli models prune --help | -h\n"
   echo
 
   # :command.long_usage
@@ -1606,6 +1641,15 @@ panther_llm_config() {
   local model="$1"
   jq -r --arg model "$model" '.models[] | select(.name == $model)' "$(panther_llm_config_file)"
 }
+# Hub-relative paths (<repository>/<file>) of every file the given model needs.
+panther_llm_model_files() {
+  local model="$1"
+  panther_llm_config "$model" | jq -r \
+    '.repository as $r
+       | ($r + "/" + .file),
+         (if .mmproj then $r + "/" + .mmproj else empty end),
+         (if .draft then $r + "/" + .draft else empty end)'
+}
 
 # src/lib/logging.sh
 panther_log_info() {
@@ -1620,6 +1664,106 @@ panther_log_warn() {
 panther_log_error() {
   echo -e "\033[0;31m[ERROR]\033[0m $*" >&2
   exit 1
+}
+
+# src/lib/models.sh
+# Shared helpers for the single, repository-keyed Hugging Face weight cache.
+#
+# All LLM and text-to-image weights live in one cache directory, with each file
+# stored at its repo-relative path `<repository>/<file>`. Keying by repository
+# means identical files shared across configs (e.g. the Qwen3-VL-8B encoder used
+# by several t2i models) dedupe to a single copy, while same-named files from
+# different repos (e.g. every LLM's mmproj-F16.gguf) never collide.
+
+panther_hf_cache_dir() {
+  printf '%s\n' "$PANTHER_MODELS_DIR/.huggingface"
+}
+
+# Hub-relative paths referenced by the text-to-image config. Pass a model name
+# to exclude that model (used by `remove` to spare files another model shares).
+panther_t2i_referenced_files() {
+  jq -r --arg ex "${1:-}" \
+    '.models[] | select(.name != $ex) | .components[] | .repository + "/" + .file' \
+    "$(panther_t2i_config_file)"
+}
+
+# Hub-relative paths referenced by the LLM config (model, optional mmproj/draft).
+# Pass a model name to exclude that model.
+panther_llm_referenced_files() {
+  jq -r --arg ex "${1:-}" \
+    '.models[]
+       | select(.name != $ex)
+       | .repository as $r
+       | ($r + "/" + .file),
+         (if .mmproj then $r + "/" + .mmproj else empty end),
+         (if .draft then $r + "/" + .draft else empty end)' \
+    "$(panther_llm_config_file)"
+}
+
+# Every hub-relative path referenced by any model in either config.
+panther_referenced_files() {
+  {
+    panther_t2i_referenced_files
+    panther_llm_referenced_files
+  } | sort -u
+}
+
+# Hub-relative paths of weight files actually present in the cache, ignoring the
+# `.cache` metadata that `hf download --local-dir` writes.
+panther_cache_files() {
+  local cache_dir file
+  cache_dir="$(panther_hf_cache_dir)"
+  [[ -d "$cache_dir" ]] || return 0
+
+  while IFS= read -r file; do
+    printf '%s\n' "${file#"$cache_dir/"}"
+  done < <(find "$cache_dir" -type f -not -path '*/.cache/*')
+}
+
+# Drop repository directories that hold nothing but Hugging Face metadata, then
+# sweep any now-empty directories bottom-up.
+panther_prune_empty_dirs() {
+  local cache_dir="$1" dir
+  while IFS= read -r dir; do
+    if [[ -z "$(find "$dir" -type f -not -path '*/.cache/*' | head -1)" ]]; then
+      rm -rf "$dir"
+    fi
+  done < <(find "$cache_dir" -type d -name '.cache' -exec dirname {} \;)
+  find "$cache_dir" -mindepth 1 -depth -type d -empty -delete 2>/dev/null || true
+}
+
+# Delete cached files no config references anymore, then tidy empty directories.
+# Called after download/remove and directly by `models prune`.
+panther_prune_orphans() {
+  local cache_dir
+  cache_dir="$(panther_hf_cache_dir)"
+
+  if [[ ! -d "$cache_dir" ]]; then
+    panther_log_info 'No Hugging Face cache directory; nothing to prune.'
+    return 0
+  fi
+
+  local -a orphans=()
+  local line
+  while IFS= read -r line; do
+    [[ -n "$line" ]] && orphans+=("$line")
+  done < <(comm -23 <(panther_cache_files | sort -u) <(panther_referenced_files))
+
+  if [[ ${#orphans[@]} -gt 0 ]]; then
+    panther_log_warn "Found ${#orphans[@]} orphaned cached file(s) not referenced by any config:"
+    printf '  - %s\n' "${orphans[@]}"
+    panther_confirm "Delete these ${#orphans[@]} file(s) from the cache?"
+
+    local file
+    for file in "${orphans[@]}"; do
+      rm -f "$cache_dir/$file"
+    done
+    panther_log_success "Pruned ${#orphans[@]} orphaned file(s) from the cache."
+  else
+    panther_log_success 'Hugging Face cache already clean; no orphaned files.'
+  fi
+
+  panther_prune_empty_dirs "$cache_dir"
 }
 
 # src/lib/send_completions.sh
@@ -1677,11 +1821,15 @@ send_completions() {
   echo $''
   echo $'  case "$compline" in'
   echo $'    \'models t2i download\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --force --help -f -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models llm download\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm/config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm/config.json)") --force --help -f -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models t2i remove\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models llm unload\'*)'
@@ -1690,10 +1838,6 @@ send_completions() {
   echo $''
   echo $'    \'models llm remove\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm/config.json)") --help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'models t2i remove\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models t2i unload\'*)'
@@ -1712,15 +1856,7 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm/config.json)") --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster restart\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --remove-orphans --volumes -h -r -v")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
   echo $'    \'models llm list\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
-  echo $'      ;;'
-  echo $''
-  echo $'    \'cluster cleanup\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1736,8 +1872,12 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup packages\'*)'
+  echo $'    \'cluster cleanup\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'cluster restart\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --remove-orphans --volumes -h -r -v")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup fail2ban\'*)'
@@ -1745,6 +1885,10 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'cluster status\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'setup packages\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
@@ -1760,16 +1904,20 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --no-cache -h -n")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'cluster stop\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --volumes -h -v")" -- "$cur")'
+  echo $'    \'setup amdgpu\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
+  echo $'    \'models prune\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup docker\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--allowed-user --help -h -u")" -- "$cur")'
   echo $'      ;;'
   echo $''
-  echo $'    \'setup amdgpu\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
+  echo $'    \'cluster stop\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq \'.services | keys[]\')") --help --volumes -h -v")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'completions\'*)'
@@ -1825,7 +1973,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h llm t2i")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h llm prune t2i")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'update\'*)'
@@ -2008,13 +2156,15 @@ panther_t2i_config() {
   local model="$1"
   jq -r --arg model "$model" '.models[] | select(.name == $model)' "$(panther_t2i_config_file)"
 }
-panther_t2i_component_target() {
+# Hub-relative path (<repository>/<file>) of a model's component by role.
+panther_t2i_component_path() {
   local model="$1" role="$2"
-  panther_t2i_config "$model" | jq -r --arg role "$role" 'first(.components[] | select(.role == $role) | .target) // ""'
+  panther_t2i_config "$model" | jq -r --arg role "$role" 'first(.components[] | select(.role == $role) | .repository + "/" + .file) // ""'
 }
-panther_t2i_dir() {
+# Hub-relative paths of every component file the given model needs.
+panther_t2i_model_files() {
   local model="$1"
-  printf '%s\n' "$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
+  panther_t2i_config "$model" | jq -r '.components[] | .repository + "/" + .file'
 }
 panther_t2i_args() {
   local model="$1"
@@ -2601,11 +2751,11 @@ cli_models_llm_download_command() {
   # src/models_llm_download_command.sh
   panther_llm_download() {
     local model="${args[model]}"
+    local force="${args[--force]:-}"
     panther_assert_supported_llm "$model"
-    mkdir -p "$PANTHER_MODELS_DIR/llm/.huggingface"
     panther_load_dotenv "$PANTHER_ENV_FILE"
 
-    local model_config hf_repository hf_file model_name target_dir
+    local model_config hf_repository hf_file draft mmproj model_name cache_dir local_dir
     model_config="$(panther_llm_config "$model")"
     [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_llm_config_file)"
 
@@ -2614,30 +2764,39 @@ cli_models_llm_download_command() {
     draft="$(jq -r '.draft // empty' <<<"$model_config")"
     mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
     model_name="$(jq -r '.name' <<<"$model_config")"
-    target_dir="$PANTHER_MODELS_DIR/llm/.huggingface/$model_name"
 
-    if [[ -d "$target_dir/$hf_file" ]]; then
-      read -r -p "Model '$model_name' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
-      echo ''
-      if [[ ! "$reply" =~ ^[Yy]$ ]]; then
-        panther_log_warn 'Download aborted.'
-        exit 0
-      else
-        rm -rf "$target_dir"
+    cache_dir="$(panther_hf_cache_dir)"
+    # All of a model's files come from one repository, so they share one local dir.
+    local_dir="$cache_dir/$hf_repository"
+
+    local -a files=("$hf_repository/$hf_file")
+    [[ -n "$mmproj" ]] && files+=("$hf_repository/$mmproj")
+    [[ -n "$draft" ]] && files+=("$hf_repository/$draft")
+
+    local all_present=1 f
+    for f in "${files[@]}"; do
+      [[ -f "$cache_dir/$f" ]] || all_present=0
+    done
+
+    if [[ "$all_present" == "1" && -z "$force" ]]; then
+      panther_log_info "Model '$model_name' already present; skipping (use --force to re-download)."
+    else
+      if [[ -n "$force" ]]; then
+        for f in "${files[@]}"; do
+          rm -f "$cache_dir/$f"
+        done
       fi
+
+      local -a hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$local_dir")
+      [[ -n "$draft" ]] && hf_download_args+=(--include "$draft")
+      [[ -n "$mmproj" ]] && hf_download_args+=(--include "$mmproj")
+
+      panther_log_info "Downloading '$model_name' from '$hf_repository'..."
+      hf download "${hf_download_args[@]}"
     fi
 
-    hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$target_dir")
-
-    if [[ -n "$draft" ]]; then
-      hf_download_args+=(--include "$draft")
-    fi
-
-    if [[ -n "$mmproj" ]]; then
-      hf_download_args+=(--include "$mmproj")
-    fi
-
-    hf download "${hf_download_args[@]}"
+    # Reclaim files this or another model no longer references (e.g. after a config edit).
+    panther_prune_orphans
     panther_log_success "Model '$model_name' ready for use."
   }
 
@@ -2668,26 +2827,42 @@ cli_models_llm_remove_command() {
     local model="${args[model]}"
     panther_assert_supported_llm "$model"
 
-    local model_config model_name target_dir
+    local model_config model_name cache_dir kept file
     model_config="$(panther_llm_config "$model")"
-
     [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_llm_config_file)"
-
     model_name="$(jq -r '.name' <<<"$model_config")"
-    target_dir="$PANTHER_MODELS_DIR/llm/.huggingface/$model_name"
+    cache_dir="$(panther_hf_cache_dir)"
 
-    if [[ ! -d "$target_dir" ]]; then
-      panther_log_error "Model '$model' not found in local directory"
-    fi
+    # Files still needed by any other model (llm or t2i) must survive this removal.
+    kept="$(
+      {
+        panther_llm_referenced_files "$model"
+        panther_t2i_referenced_files
+      } | sort -u
+    )"
 
-    read -r -p "Remove model '$model'? (y/n) " -n 1 reply
-    echo ''
-    if [[ ! "$reply" =~ ^[Yy]$ ]]; then
-      panther_log_warn 'Removal aborted.'
+    local -a to_delete=()
+    while IFS= read -r file; do
+      [[ -n "$file" ]] || continue
+      [[ -f "$cache_dir/$file" ]] || continue
+      grep -qxF "$file" <<<"$kept" || to_delete+=("$file")
+    done < <(panther_llm_model_files "$model")
+
+    if [[ ${#to_delete[@]} -eq 0 ]]; then
+      panther_log_warn "Model '$model' has no unshared files to remove."
+      panther_prune_orphans
       exit 0
     fi
 
-    rm -rf "$target_dir"
+    panther_log_warn "Removing ${#to_delete[@]} file(s) unique to '$model':"
+    printf '  - %s\n' "${to_delete[@]}"
+    panther_confirm "Remove model '$model'?"
+
+    for file in "${to_delete[@]}"; do
+      rm -f "$cache_dir/$file"
+    done
+
+    panther_prune_orphans
     panther_log_success "Model '$model' removed."
   }
 
@@ -2763,44 +2938,39 @@ cli_models_t2i_download_command() {
   # src/models_t2i_download_command.sh
   panther_t2i_download() {
     local model="${args[model]}"
+    local force="${args[--force]:-}"
     panther_assert_supported_t2i "$model"
     panther_load_dotenv "$PANTHER_ENV_FILE"
 
-    local model_config target_dir staging_dir
+    local model_config cache_dir
     model_config="$(panther_t2i_config "$model")"
     [[ -n "$model_config" ]] || panther_log_error "Text-to-image model '$model' not found in $(panther_t2i_config_file)"
 
-    target_dir="$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
-
-    if [[ -d "$target_dir" ]]; then
-      read -r -p "Model '$model' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
-      echo ''
-      if [[ ! "$reply" =~ ^[Yy]$ ]]; then
-        panther_log_warn 'Download aborted.'
-        exit 0
-      else
-        rm -rf "$target_dir"
-      fi
-    fi
-
-    staging_dir="$target_dir/.staging"
-    mkdir -p "$staging_dir"
+    cache_dir="$(panther_hf_cache_dir)"
 
     local components
     components="$(jq -c '.components[]' <<<"$model_config")"
 
     while IFS= read -r component; do
-      local repository file target
+      local repository file path local_dir
       repository="$(jq -r '.repository' <<<"$component")"
       file="$(jq -r '.file' <<<"$component")"
-      target="$(jq -r '.target' <<<"$component")"
+      path="$repository/$file"
+      local_dir="$cache_dir/$repository"
 
-      panther_log_info "Downloading '$target' from '$repository'..."
-      hf download "$repository" --include "$file" --local-dir "$staging_dir"
-      mv "$staging_dir/$file" "$target_dir/$target"
+      if [[ -f "$cache_dir/$path" && -z "$force" ]]; then
+        panther_log_info "'$path' already present; skipping (use --force to re-download)."
+        continue
+      fi
+
+      [[ -n "$force" ]] && rm -f "$cache_dir/$path"
+
+      panther_log_info "Downloading '$path'..."
+      hf download "$repository" --include "$file" --local-dir "$local_dir"
     done <<<"$components"
 
-    rm -rf "$staging_dir"
+    # Reclaim files this or another model no longer references (e.g. after a config edit).
+    panther_prune_orphans
     panther_log_success "Text-to-image model '$model' ready for use."
   }
 
@@ -2831,21 +3001,39 @@ cli_models_t2i_remove_command() {
     local model="${args[model]}"
     panther_assert_supported_t2i "$model"
 
-    local target_dir
-    target_dir="$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
+    local cache_dir kept file
+    cache_dir="$(panther_hf_cache_dir)"
 
-    if [[ ! -d "$target_dir" ]]; then
-      panther_log_error "Text-to-image model '$model' not found in local directory"
-    fi
+    # Files still needed by any other model (t2i or llm) must survive this removal.
+    kept="$(
+      {
+        panther_t2i_referenced_files "$model"
+        panther_llm_referenced_files
+      } | sort -u
+    )"
 
-    read -r -p "Remove text-to-image model '$model'? (y/n) " -n 1 reply
-    echo ''
-    if [[ ! "$reply" =~ ^[Yy]$ ]]; then
-      panther_log_warn 'Removal aborted.'
+    local -a to_delete=()
+    while IFS= read -r file; do
+      [[ -n "$file" ]] || continue
+      [[ -f "$cache_dir/$file" ]] || continue
+      grep -qxF "$file" <<<"$kept" || to_delete+=("$file")
+    done < <(panther_t2i_model_files "$model")
+
+    if [[ ${#to_delete[@]} -eq 0 ]]; then
+      panther_log_warn "Text-to-image model '$model' has no unshared files to remove."
+      panther_prune_orphans
       exit 0
     fi
 
-    rm -rf "$target_dir"
+    panther_log_warn "Removing ${#to_delete[@]} file(s) unique to '$model':"
+    printf '  - %s\n' "${to_delete[@]}"
+    panther_confirm "Remove text-to-image model '$model'?"
+
+    for file in "${to_delete[@]}"; do
+      rm -f "$cache_dir/$file"
+    done
+
+    panther_prune_orphans
     panther_log_success "Text-to-image model '$model' removed."
   }
 
@@ -2861,17 +3049,17 @@ cli_models_t2i_load_command() {
     local model="${args[model]}"
     panther_assert_supported_t2i "$model"
 
-    local diffusion uncond llm vae model_args model_dir
-    diffusion="$(panther_t2i_component_target "$model" diffusion)"
-    uncond="$(panther_t2i_component_target "$model" uncond)"
-    llm="$(panther_t2i_component_target "$model" llm)"
-    vae="$(panther_t2i_component_target "$model" vae)"
+    local diffusion uncond llm vae model_args cache_dir
+    diffusion="$(panther_t2i_component_path "$model" diffusion)"
+    uncond="$(panther_t2i_component_path "$model" uncond)"
+    llm="$(panther_t2i_component_path "$model" llm)"
+    vae="$(panther_t2i_component_path "$model" vae)"
     model_args="$(panther_t2i_args "$model")"
 
     [[ -n "$diffusion" ]] || panther_log_error "Text-to-image model '$model' has no diffusion component in $(panther_t2i_config_file)"
 
-    model_dir="$(panther_t2i_dir "$model")"
-    if [[ ! -f "$model_dir/$diffusion" ]]; then
+    cache_dir="$(panther_hf_cache_dir)"
+    if [[ ! -f "$cache_dir/$diffusion" ]]; then
       panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/cli models t2i download $model' first."
     fi
 
@@ -2911,6 +3099,18 @@ cli_models_t2i_unload_command() {
   }
 
   panther_t2i_unload
+
+}
+
+# :command.function
+cli_models_prune_command() {
+
+  # src/models_prune_command.sh
+  panther_models_prune() {
+    panther_prune_orphans
+  }
+
+  panther_models_prune
 
 }
 
@@ -4656,6 +4856,13 @@ cli_models_parse_requirements() {
       shift $#
       ;;
 
+    prune)
+      action="prune"
+      shift
+      cli_models_prune_parse_requirements "$@"
+      shift $#
+      ;;
+
     # :command.command_fallback
     "")
       cli_models_usage >&2
@@ -4822,6 +5029,13 @@ cli_models_llm_download_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --force | -f)
+
+        # :flag.case_no_arg
+        args['--force']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
@@ -4847,7 +5061,7 @@ cli_models_llm_download_parse_requirements() {
 
   # :command.required_args_filter
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm download MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: cli models llm download MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -5251,6 +5465,13 @@ cli_models_t2i_download_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --force | -f)
+
+        # :flag.case_no_arg
+        args['--force']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
@@ -5276,7 +5497,7 @@ cli_models_t2i_download_parse_requirements() {
 
   # :command.required_args_filter
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models t2i download MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: cli models t2i download MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -5503,6 +5724,53 @@ cli_models_t2i_unload_parse_requirements() {
 
   # :command.command_filter
   action="models t2i unload"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
+# :command.parse_requirements
+cli_models_prune_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_models_prune_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="models prune"
 
   # :command.parse_requirements_while
   while [[ $# -gt 0 ]]; do
@@ -6642,6 +6910,7 @@ run() {
     "models t2i remove") cli_models_t2i_remove_command ;;
     "models t2i load") cli_models_t2i_load_command ;;
     "models t2i unload") cli_models_t2i_unload_command ;;
+    "models prune") cli_models_prune_command ;;
     "proxy") cli_proxy_command ;;
     "proxy certbot") cli_proxy_certbot_command ;;
     "proxy renew-ssl") cli_proxy_renew_ssl_command ;;

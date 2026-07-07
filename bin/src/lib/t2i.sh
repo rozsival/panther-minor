@@ -18,13 +18,15 @@ panther_t2i_config() {
   local model="$1"
   jq -r --arg model "$model" '.models[] | select(.name == $model)' "$(panther_t2i_config_file)"
 }
-panther_t2i_component_target() {
+# Hub-relative path (<repository>/<file>) of a model's component by role.
+panther_t2i_component_path() {
   local model="$1" role="$2"
-  panther_t2i_config "$model" | jq -r --arg role "$role" 'first(.components[] | select(.role == $role) | .target) // ""'
+  panther_t2i_config "$model" | jq -r --arg role "$role" 'first(.components[] | select(.role == $role) | .repository + "/" + .file) // ""'
 }
-panther_t2i_dir() {
+# Hub-relative paths of every component file the given model needs.
+panther_t2i_model_files() {
   local model="$1"
-  printf '%s\n' "$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
+  panther_t2i_config "$model" | jq -r '.components[] | .repository + "/" + .file'
 }
 panther_t2i_args() {
   local model="$1"

@@ -18,3 +18,12 @@ panther_llm_config() {
   local model="$1"
   jq -r --arg model "$model" '.models[] | select(.name == $model)' "$(panther_llm_config_file)"
 }
+# Hub-relative paths (<repository>/<file>) of every file the given model needs.
+panther_llm_model_files() {
+  local model="$1"
+  panther_llm_config "$model" | jq -r \
+    '.repository as $r
+       | ($r + "/" + .file),
+         (if .mmproj then $r + "/" + .mmproj else empty end),
+         (if .draft then $r + "/" + .draft else empty end)'
+}

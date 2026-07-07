@@ -5,7 +5,13 @@ This directory documents the models supported by Panther Minor, split by modalit
 - **`llm/`** — large language models served by `llama.cpp` (`config.json`, `config.schema.json`, `preset.ini`, coding-agent presets)
 - **`t2i/`** — text-to-image models served by `stable-diffusion.cpp` (`config.json`, `config.schema.json`)
 
-Downloaded weights live in a per-modality Hugging Face cache: `models/llm/.huggingface` and `models/t2i/.huggingface`.
+Downloaded weights live in a single shared Hugging Face cache, `models/.huggingface`, mounted into both the
+`llama-cpp` and `stable-diffusion-cpp` containers. Each file is stored at its repository-relative path
+(`<repository>/<file>`), so a file used by more than one model — for example the Qwen3-VL-8B encoder shared by both
+text-to-image models — is downloaded and kept only once, while same-named files from different repositories (such as
+each LLM's `mmproj-F16.gguf`) never collide. `download` fetches only missing files (pass `--force` to re-fetch),
+`remove` deletes only the files a model does not share with another, and `./bin/cli models prune` reclaims any file no
+config references anymore (it also runs automatically after every `download`/`remove`).
 
 ---
 
@@ -40,14 +46,16 @@ through `llm/preset.ini`
 
 ### Management
 
-Use the Panther Minor CLI to manage LLMs in the `models/llm/.huggingface` cache:
+Use the Panther Minor CLI to manage LLMs in the shared `models/.huggingface` cache:
 
 ```bash
-./bin/cli models llm list             # List supported LLMs
-./bin/cli models llm download <model> # Download an LLM into the cache
-./bin/cli models llm remove <model>   # Remove an LLM from the cache
-./bin/cli models llm load <model>     # Manually load an LLM into the llama.cpp cluster
-./bin/cli models llm unload <model>   # Manually unload an LLM from the llama.cpp cluster
+./bin/cli models llm list                   # List supported LLMs
+./bin/cli models llm download <model>       # Download an LLM into the cache (only missing files)
+./bin/cli models llm download <model> -f    # Force re-download of the model's files
+./bin/cli models llm remove <model>         # Remove an LLM's unshared files from the cache
+./bin/cli models llm load <model>           # Manually load an LLM into the llama.cpp cluster
+./bin/cli models llm unload <model>         # Manually unload an LLM from the llama.cpp cluster
+./bin/cli models prune                      # Delete cached files no config references anymore
 ```
 
 ### Coding agent presets
@@ -93,27 +101,28 @@ OpenAI-compatible image API on port `8001`.
 ### Configuration
 
 Supported models are defined in `t2i/config.json` (see `t2i/config.schema.json` for the schema). Each model lists the
-weight `components` it needs (diffusion, optional unconditional diffusion, LLM text encoder, VAE), which may come from
-different Hugging Face repositories and are downloaded into a single per-model directory in the `models/t2i/.huggingface`
-cache. Models only list the components they use — Ideogram 4 has a separate unconditional diffusion model, Qwen-Image
-does not.
+weight `components` it needs (diffusion, optional unconditional diffusion, LLM text encoder, VAE), each identified by its
+Hugging Face `repository` and `file`. Components are stored in the shared `models/.huggingface` cache at
+`<repository>/<file>`, so a component shared with another model (such as the Qwen3-VL-8B encoder used by both
+text-to-image models) is kept only once. Models only list the components they use — Ideogram 4 has a separate
+unconditional diffusion model, Qwen-Image does not.
 
 A model may also define an optional `args` array of extra `sd-server` flags applied when it is loaded. This is where
-per-model sampling defaults live — for example, Qwen-Image ships
-`["--flow-shift", "13", "--sampling-method", "euler", "--cfg-scale", "2.5"]`, since its flow schedule needs a high
-`--flow-shift` at 1024²+ to avoid soft, blurry output. `load` writes these to `SD_CPP_MODEL_ARGS` in `.env`, so the
+per-model sampling defaults live, `load` writes these to `SD_CPP_MODEL_ARGS` in `.env`, so the
 tuning switches automatically with the model.
 
 ### Management
 
-Use the Panther Minor CLI to manage text-to-image models in the `models/t2i/.huggingface` cache:
+Use the Panther Minor CLI to manage text-to-image models in the shared `models/.huggingface` cache:
 
 ```bash
-./bin/cli models t2i list             # List supported text-to-image models
-./bin/cli models t2i download <model> # Download a text-to-image model into the cache
-./bin/cli models t2i remove <model>   # Remove a text-to-image model from the cache
-./bin/cli models t2i load <model>     # Serve <model> from sd-server (replaces the loaded model)
-./bin/cli models t2i unload           # Stop sd-server to free its GPU VRAM
+./bin/cli models t2i list                   # List supported text-to-image models
+./bin/cli models t2i download <model>       # Download a model's components (only missing files)
+./bin/cli models t2i download <model> -f    # Force re-download of the model's components
+./bin/cli models t2i remove <model>         # Remove a model's unshared components from the cache
+./bin/cli models t2i load <model>           # Serve <model> from sd-server (replaces the loaded model)
+./bin/cli models t2i unload                 # Stop sd-server to free its GPU VRAM
+./bin/cli models prune                      # Delete cached files no config references anymore
 ```
 
 > [!IMPORTANT]

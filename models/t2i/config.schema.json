@@ -8,11 +8,11 @@
         "additionalProperties": false,
         "properties": {
           "name": {
-            "description": "Name of the model (also the local cache directory and the API model id)",
+            "description": "Name of the model (the API model id and the SD_CPP_MODEL label; not a cache directory)",
             "type": "string"
           },
           "components": {
-            "description": "Weight files that make up the model, downloaded into the model directory",
+            "description": "Weight files that make up the model, stored in the shared cache at <repository>/<file>",
             "items": {
               "additionalProperties": false,
               "properties": {
@@ -28,13 +28,9 @@
                 "file": {
                   "description": "Path of the file inside the repository",
                   "type": "string"
-                },
-                "target": {
-                  "description": "Flat file name to store the component as inside the model directory",
-                  "type": "string"
                 }
               },
-              "required": ["role", "repository", "file", "target"],
+              "required": ["role", "repository", "file"],
               "type": "object"
             },
             "type": "array"
