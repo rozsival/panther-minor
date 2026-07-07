@@ -117,29 +117,14 @@ Use the Panther Minor CLI to manage text-to-image models in the `models/t2i/.hug
 
 ### Switching the model Open WebUI uses
 
-`models t2i load` already recreates `sd-server`, so the API on port `8001` serves the new model immediately — you do
-**not** need to restart `stable-diffusion-cpp` yourself. Open WebUI, however, reads its default image model from
-`IMAGE_GENERATION_MODEL` (`${SD_CPP_MODEL}` in `.env`), which only re-reads on a recreate. Pick whichever flow suits
-you:
+`models t2i load` already recreates `sd-server`, so the API on port `8001` serves the new model immediately. Open WebUI
+keeps its image settings in persistent config storage — `IMAGE_GENERATION_MODEL` (`${SD_CPP_MODEL}` in `.env`) only
+seeds the value the first time that config is created — so the model **cannot** be switched from `.env` or by
+restarting the container. Change it in the UI:
 
-**A. No chat downtime (set it in the UI):**
-
-```bash
-./bin/cli models t2i load <model>
-```
-
-Then in Open WebUI go to **Admin → Settings → Images → Default Model** and set it to `<model>`.
-
-**B. Fully CLI-driven:**
-
-```bash
-./bin/cli models t2i load <model>
-./bin/cli cluster restart open-webui   # down + up re-reads .env, syncing the default image model
-```
-
-This briefly restarts the chat UI while it picks up the new `IMAGE_GENERATION_MODEL`.
+**Admin → Settings → Images → Default Model** → set it to `<model>`.
 
 > [!NOTE]
 > The image itself is produced by whatever model `sd-server` currently has loaded, regardless of Open WebUI's setting —
 > keeping them in sync is about the UI referencing the correct model id. Because `sd-server` reports only the loaded
-> model at `/v1/models`, the Images panel will list just that one model.
+> model at `/v1/models`, the Images panel lists just that one model.
