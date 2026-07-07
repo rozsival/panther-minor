@@ -38,6 +38,13 @@
               "type": "object"
             },
             "type": "array"
+          },
+          "args": {
+            "description": "Extra sd-server flags applied when this model is loaded (e.g. sampling tuning such as --flow-shift)",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           }
         },
         "required": ["name", "components"],

@@ -166,6 +166,7 @@ services:
       SD_CPP_UNCOND_DIFFUSION_MODEL: ${SD_CPP_UNCOND_DIFFUSION_MODEL}
       SD_CPP_LLM: ${SD_CPP_LLM}
       SD_CPP_VAE: ${SD_CPP_VAE}
+      SD_CPP_MODEL_ARGS: ${SD_CPP_MODEL_ARGS}
     volumes:
       - 'sd-cpp-comgr:/home/stable-diffusion-cpp/.cache/comgr'
       - './models/t2i/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'

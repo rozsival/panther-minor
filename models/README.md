@@ -98,6 +98,12 @@ different Hugging Face repositories and are downloaded into a single per-model d
 cache. Models only list the components they use — Ideogram 4 has a separate unconditional diffusion model, Qwen-Image
 does not.
 
+A model may also define an optional `args` array of extra `sd-server` flags applied when it is loaded. This is where
+per-model sampling defaults live — for example, Qwen-Image ships
+`["--flow-shift", "13", "--sampling-method", "euler", "--cfg-scale", "2.5"]`, since its flow schedule needs a high
+`--flow-shift` at 1024²+ to avoid soft, blurry output. `load` writes these to `SD_CPP_MODEL_ARGS` in `.env`, so the
+tuning switches automatically with the model.
+
 ### Management
 
 Use the Panther Minor CLI to manage text-to-image models in the `models/t2i/.huggingface` cache:

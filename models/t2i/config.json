@@ -51,6 +51,14 @@
           "file": "split_files/vae/qwen_image_vae.safetensors",
           "target": "qwen_image_vae.safetensors"
         }
+      ],
+      "args": [
+        "--flow-shift",
+        "13",
+        "--sampling-method",
+        "euler",
+        "--cfg-scale",
+        "2.5"
       ]
     }
   ],
