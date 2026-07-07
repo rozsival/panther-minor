@@ -272,9 +272,10 @@ text-to-image model is ever resident.
 ```
 
 `load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
-replacing whatever was loaded before — so switching never leaves two models in VRAM. Open WebUI keeps its image model in
-persistent config, so point it at the new model in **Admin → Settings → Images → Default Model**. See
-[Models](./models/README.md#switching-the-model-open-webui-uses) for details and the full command list.
+replacing whatever was loaded before — so switching never leaves two models in VRAM. Switching is entirely a CLI
+operation: Open WebUI's image model field can stay at `default`, because `sd-server` serves whatever it has loaded
+regardless of the requested model id. See
+[Models](./models/README.md#switching-the-loaded-model) for details and the full command list.
 
 ### Generate an image
 

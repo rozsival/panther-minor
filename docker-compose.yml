@@ -268,7 +268,7 @@ services:
       ENABLE_PERSISTENT_CONFIG: true
       ENABLE_WEB_SEARCH: true
       IMAGE_GENERATION_ENGINE: 'openai'
-      IMAGE_GENERATION_MODEL: ${SD_CPP_MODEL}
+      IMAGE_GENERATION_MODEL: 'default'
       IMAGE_SIZE: '1024x1024'
       IMAGES_OPENAI_API_BASE_URL: 'http://sd-manager:8000/v1'
       IMAGES_OPENAI_API_KEY: 'stable-diffusion-cpp'
