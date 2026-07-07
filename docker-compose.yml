@@ -22,32 +22,32 @@ services:
     build:
       context: ./llama-cpp
       args:
-        HOST_UID: ${HOST_UID}
-        HOST_GID: ${HOST_GID}
-        LLAMA_CPP_REPO: ${LLAMA_CPP_REPO}
-        LLAMA_CPP_REF: ${LLAMA_CPP_REF}
+        HOST_UID: '${HOST_UID}'
+        HOST_GID: '${HOST_GID}'
+        LLAMA_CPP_REPO: '${LLAMA_CPP_REPO}'
+        LLAMA_CPP_REF: '${LLAMA_CPP_REF}'
         LLAMA_CPP_USER: 'llama-cpp'
-        ROCM_ARCH: ${ROCM_ARCH}
+        ROCM_ARCH: '${ROCM_ARCH}'
     privileged: true
     restart: unless-stopped
     devices:
       - '/dev/kfd:/dev/kfd'
       - '/dev/dri:/dev/dri'
     group_add:
-      - ${VIDEO_GID}
-      - ${RENDER_GID}
+      - '${VIDEO_GID}'
+      - '${RENDER_GID}'
     environment:
-      HF_TOKEN: ${HF_TOKEN}
-      HIP_VISIBLE_DEVICES: ${ROCM_VISIBLE_DEVICES}
-      LLAMA_CPP_BATCH_SIZE: ${LLAMA_CPP_BATCH_SIZE}
-      LLAMA_CPP_MODELS_MAX: ${LLAMA_CPP_MODELS_MAX}
-      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
-      LLAMA_CPP_UBATCH_SIZE: ${LLAMA_CPP_UBATCH_SIZE}
+      HF_TOKEN: '${HF_TOKEN}'
+      HIP_VISIBLE_DEVICES: '${ROCM_VISIBLE_DEVICES}'
+      LLAMA_CPP_BATCH_SIZE: '${LLAMA_CPP_BATCH_SIZE}'
+      LLAMA_CPP_MODELS_MAX: '${LLAMA_CPP_MODELS_MAX}'
+      LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
+      LLAMA_CPP_UBATCH_SIZE: '${LLAMA_CPP_UBATCH_SIZE}'
     tmpfs:
       - '/home/llama-cpp/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
       - 'llama-cpp-comgr:/home/llama-cpp/.cache/comgr'
-      - './models/llm/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
+      - './models/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
       - './models/llm/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
     ulimits:
       memlock: -1
@@ -72,7 +72,7 @@ services:
     command: ['node', '/app/main.js']
     environment:
       IDLE_UNLOAD_RETRY_SECONDS: 15
-      LLAMA_CPP_SLEEP_IDLE_SECONDS: ${LLAMA_CPP_SLEEP_IDLE_SECONDS}
+      LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 8000
@@ -140,36 +140,36 @@ services:
     build:
       context: ./stable-diffusion-cpp
       args:
-        HOST_UID: ${HOST_UID}
-        HOST_GID: ${HOST_GID}
-        SD_CPP_REPO: ${SD_CPP_REPO}
-        SD_CPP_REF: ${SD_CPP_REF}
+        HOST_UID: '${HOST_UID}'
+        HOST_GID: '${HOST_GID}'
+        SD_CPP_REPO: '${SD_CPP_REPO}'
+        SD_CPP_REF: '${SD_CPP_REF}'
         SD_CPP_USER: 'stable-diffusion-cpp'
-        ROCM_ARCH: ${ROCM_ARCH}
+        ROCM_ARCH: '${ROCM_ARCH}'
     privileged: true
     restart: unless-stopped
     devices:
       - '/dev/kfd:/dev/kfd'
       - '/dev/dri:/dev/dri'
     group_add:
-      - ${VIDEO_GID}
-      - ${RENDER_GID}
+      - '${VIDEO_GID}'
+      - '${RENDER_GID}'
     environment:
-      HIP_VISIBLE_DEVICES: ${SD_VISIBLE_DEVICES}
+      HIP_VISIBLE_DEVICES: '${SD_VISIBLE_DEVICES}'
       # Active text-to-image model, managed by `./bin/cli models t2i load`.
       # sd-server loads exactly one model, so only one is ever resident. These
       # come straight from .env with no fallback, so .env is the single source
       # of truth: a missing value surfaces as a compose warning instead of a
       # silently wrong default (e.g. a stale unconditional diffusion model).
-      SD_CPP_MODEL: ${SD_CPP_MODEL}
-      SD_CPP_DIFFUSION_MODEL: ${SD_CPP_DIFFUSION_MODEL}
-      SD_CPP_UNCOND_DIFFUSION_MODEL: ${SD_CPP_UNCOND_DIFFUSION_MODEL}
-      SD_CPP_LLM: ${SD_CPP_LLM}
-      SD_CPP_VAE: ${SD_CPP_VAE}
-      SD_CPP_MODEL_ARGS: ${SD_CPP_MODEL_ARGS}
+      SD_CPP_MODEL: '${SD_CPP_MODEL}'
+      SD_CPP_DIFFUSION_MODEL: '${SD_CPP_DIFFUSION_MODEL}'
+      SD_CPP_UNCOND_DIFFUSION_MODEL: '${SD_CPP_UNCOND_DIFFUSION_MODEL}'
+      SD_CPP_LLM: '${SD_CPP_LLM}'
+      SD_CPP_VAE: '${SD_CPP_VAE}'
+      SD_CPP_MODEL_ARGS: '${SD_CPP_MODEL_ARGS}'
     volumes:
       - 'sd-cpp-comgr:/home/stable-diffusion-cpp/.cache/comgr'
-      - './models/t2i/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
+      - './models/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
     ulimits:
       memlock: -1
     expose:
@@ -308,8 +308,8 @@ services:
       - '/dev/kfd:/dev/kfd'
       - '/dev/dri:/dev/dri'
     group_add:
-      - ${VIDEO_GID}
-      - ${RENDER_GID}
+      - '${VIDEO_GID}'
+      - '${RENDER_GID}'
     expose:
       - 5000
     networks:

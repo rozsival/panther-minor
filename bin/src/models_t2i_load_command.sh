@@ -2,17 +2,17 @@ panther_t2i_load() {
   local model="${args[model]}"
   panther_assert_supported_t2i "$model"
 
-  local diffusion uncond llm vae model_args model_dir
-  diffusion="$(panther_t2i_component_target "$model" diffusion)"
-  uncond="$(panther_t2i_component_target "$model" uncond)"
-  llm="$(panther_t2i_component_target "$model" llm)"
-  vae="$(panther_t2i_component_target "$model" vae)"
+  local diffusion uncond llm vae model_args cache_dir
+  diffusion="$(panther_t2i_component_path "$model" diffusion)"
+  uncond="$(panther_t2i_component_path "$model" uncond)"
+  llm="$(panther_t2i_component_path "$model" llm)"
+  vae="$(panther_t2i_component_path "$model" vae)"
   model_args="$(panther_t2i_args "$model")"
 
   [[ -n "$diffusion" ]] || panther_log_error "Text-to-image model '$model' has no diffusion component in $(panther_t2i_config_file)"
 
-  model_dir="$(panther_t2i_dir "$model")"
-  if [[ ! -f "$model_dir/$diffusion" ]]; then
+  cache_dir="$(panther_hf_cache_dir)"
+  if [[ ! -f "$cache_dir/$diffusion" ]]; then
     panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/cli models t2i download $model' first."
   fi
 

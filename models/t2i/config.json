@@ -7,26 +7,22 @@
         {
           "role": "diffusion",
           "repository": "leejet/ideogram-4-GGUF",
-          "file": "ideogram4-Q4_0.gguf",
-          "target": "ideogram4-Q4_0.gguf"
+          "file": "ideogram4-Q4_0.gguf"
         },
         {
           "role": "uncond",
           "repository": "leejet/ideogram-4-GGUF",
-          "file": "ideogram4_uncond-Q4_0.gguf",
-          "target": "ideogram4_uncond-Q4_0.gguf"
+          "file": "ideogram4_uncond-Q4_0.gguf"
         },
         {
           "role": "llm",
-          "repository": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
-          "file": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
-          "target": "Qwen3VL-8B-Instruct-Q4_K_M.gguf"
+          "repository": "unsloth/Qwen3-VL-8B-Instruct-GGUF",
+          "file": "Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
           "repository": "Comfy-Org/flux2-dev",
-          "file": "split_files/vae/flux2-vae.safetensors",
-          "target": "flux2-vae.safetensors"
+          "file": "split_files/vae/flux2-vae.safetensors"
         }
       ]
     },
@@ -36,20 +32,17 @@
         {
           "role": "diffusion",
           "repository": "unsloth/Qwen-Image-2512-GGUF",
-          "file": "qwen-image-2512-Q4_K_M.gguf",
-          "target": "qwen-image-2512-Q4_K_M.gguf"
+          "file": "qwen-image-2512-Q4_K_M.gguf"
         },
         {
           "role": "llm",
-          "repository": "unsloth/Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf",
-          "file": "Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf",
-          "target": "Qwen3-VL-8B-Instruct-UD-Q3_K_XL.gguf"
+          "repository": "unsloth/Qwen3-VL-8B-Instruct-GGUF",
+          "file": "Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
           "repository": "Comfy-Org/Qwen-Image_ComfyUI",
-          "file": "split_files/vae/qwen_image_vae.safetensors",
-          "target": "qwen_image_vae.safetensors"
+          "file": "split_files/vae/qwen_image_vae.safetensors"
         }
       ],
       "args": [

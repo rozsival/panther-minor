@@ -191,6 +191,10 @@ commands:
                 required: true
                 help: Model name from models/llm/config.json
                 validate: supported_llm
+            flags:
+              - long: --force
+                short: -f
+                help: Re-download even if the model's files already exist
             environment_variables:
               - name: hf_token
                 help: Hugging Face token used by hf download
@@ -247,6 +251,10 @@ commands:
                 required: true
                 help: Model name from models/t2i/config.json
                 validate: supported_t2i
+            flags:
+              - long: --force
+                short: -f
+                help: Re-download even if the component files already exist
             environment_variables:
               - name: hf_token
                 help: Hugging Face token used by hf download
@@ -283,6 +291,9 @@ commands:
 
           - name: unload
             help: Unload the text-to-image model by stopping sd-server to free GPU VRAM
+
+      - name: prune
+        help: Delete cached model files no config references anymore
 
   - name: proxy
     help: Manage proxy SSL and certificate automation

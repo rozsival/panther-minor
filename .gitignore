@@ -13,8 +13,7 @@ node_modules
 /proxy/ssl
 
 # Hugging Face cache
-/models/llm/.huggingface
-/models/t2i/.huggingface
+/models/.huggingface
 
 # Docker
 docker-compose.override.yml

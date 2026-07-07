@@ -17,7 +17,10 @@
 set -euo pipefail
 
 model="${SD_CPP_MODEL}"
-model_dir="$HOME/.cache/huggingface/hub/$model"
+# Weights live in one shared cache, each at its repo-relative path. The SD_CPP_*
+# variables already carry those <repository>/<file> paths, so components only
+# need the hub root prefixed.
+hub_dir="$HOME/.cache/huggingface/hub"
 
 args=(
   --listen-ip 0.0.0.0
@@ -32,7 +35,7 @@ add_component() {
 
   [[ -n "$filename" ]] || return 0
 
-  local path="$model_dir/$filename"
+  local path="$hub_dir/$filename"
   if [[ ! -f "$path" ]]; then
     echo "[stable-diffusion-cpp] missing model file: $path" >&2
     echo "[stable-diffusion-cpp] run './bin/cli models t2i download $model' on the host first" >&2
