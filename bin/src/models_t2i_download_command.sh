@@ -9,7 +9,7 @@ panther_t2i_download() {
 
   target_dir="$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
 
-  if [[ -f "$target_dir" ]]; then
+  if [[ -d "$target_dir" ]]; then
     read -r -p "Model '$model' already exists. Do you want to overwrite it? (y/n) " -n 1 reply
     echo ''
     if [[ ! "$reply" =~ ^[Yy]$ ]]; then
