@@ -19,8 +19,8 @@
         {
           "role": "llm",
           "repository": "Qwen/Qwen3-VL-8B-Instruct-GGUF",
-          "file": "Qwen3VL-8B-Instruct-Q4_K_M.gguf",
-          "target": "Qwen3VL-8B-Instruct-Q4_K_M.gguf"
+          "file": "Qwen3VL-8B-Instruct-Q4_K_XL.gguf",
+          "target": "Qwen3VL-8B-Instruct-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
@@ -36,14 +36,14 @@
         {
           "role": "diffusion",
           "repository": "unsloth/Qwen-Image-2512-GGUF",
-          "file": "qwen-image-2512-Q4_0.gguf",
-          "target": "qwen-image-2512-Q4_0.gguf"
+          "file": "qwen-image-2512-Q4_K_M.gguf",
+          "target": "qwen-image-2512-Q4_K_M.gguf"
         },
         {
           "role": "llm",
           "repository": "mradermacher/Qwen2.5-VL-7B-Instruct-GGUF",
-          "file": "Qwen2.5-VL-7B-Instruct.Q4_K_M.gguf",
-          "target": "Qwen2.5-VL-7B-Instruct-Q4_K_M.gguf"
+          "file": "Qwen2.5-VL-7B-Instruct.Q4_K_XL.gguf",
+          "target": "Qwen2.5-VL-7B-Instruct-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
@@ -54,11 +54,13 @@
       ],
       "args": [
         "--flow-shift",
-        "13",
+        "3",
         "--sampling-method",
         "euler",
         "--cfg-scale",
-        "2.5"
+        "2.5",
+        "--steps",
+        "40"
       ]
     }
   ],

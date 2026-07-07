@@ -58,5 +58,4 @@ add_component --vae "${SD_CPP_VAE}"
 exec /opt/stable-diffusion-cpp/build/bin/sd-server \
   "${args[@]}" \
   --diffusion-fa \
-  --offload-to-cpu \
   ${SD_CPP_MODEL_ARGS:-}
