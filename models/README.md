@@ -85,15 +85,18 @@ OpenAI-compatible image API on port `8001`.
 
 ### Supported models
 
-| Model        | Base                     | Notes                                                                              |
-| ------------ | ------------------------ | ---------------------------------------------------------------------------------- |
-| `ideogram-4` | `leejet/ideogram-4-GGUF` | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE |
+| Model             | Base                           | Notes                                                                                              |
+| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
+| `ideogram-4`      | `leejet/ideogram-4-GGUF`       | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE                 |
+| `qwen-image-2512` | `unsloth/Qwen-Image-2512-GGUF` | Photorealistic generation and strong text rendering (Q4_0); Qwen2.5-VL-7B encoder + Qwen-Image VAE |
 
 ### Configuration
 
 Supported models are defined in `t2i/config.json` (see `t2i/config.schema.json` for the schema). Each model lists the
-weight `components` it needs (diffusion, unconditional diffusion, LLM text encoder, VAE), which may come from different
-Hugging Face repositories and are downloaded into a single per-model directory in the `models/t2i/.huggingface` cache.
+weight `components` it needs (diffusion, optional unconditional diffusion, LLM text encoder, VAE), which may come from
+different Hugging Face repositories and are downloaded into a single per-model directory in the `models/t2i/.huggingface`
+cache. Models only list the components they use — Ideogram 4 has a separate unconditional diffusion model, Qwen-Image
+does not.
 
 ### Management
 
@@ -103,4 +106,12 @@ Use the Panther Minor CLI to manage text-to-image models in the `models/t2i/.hug
 ./bin/cli models t2i list             # List supported text-to-image models
 ./bin/cli models t2i download <model> # Download a text-to-image model into the cache
 ./bin/cli models t2i remove <model>   # Remove a text-to-image model from the cache
+./bin/cli models t2i load <model>     # Serve <model> from sd-server (replaces the loaded model)
+./bin/cli models t2i unload           # Stop sd-server to free its GPU VRAM
 ```
+
+> [!IMPORTANT]
+> `sd-server` loads exactly **one** text-to-image model per process, so only one is ever resident in VRAM. `load`
+> rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container, replacing the
+> previously loaded model. After switching, set Open WebUI's image model (admin image settings) to match so chat image
+> generation targets the loaded model.

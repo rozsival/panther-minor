@@ -156,6 +156,15 @@ services:
       - ${RENDER_GID}
     environment:
       HIP_VISIBLE_DEVICES: ${SD_VISIBLE_DEVICES}
+      # Active text-to-image model, managed by `./bin/cli models t2i load`.
+      # sd-server loads exactly one model, so only one is ever resident.
+      SD_CPP_MODEL: '${SD_CPP_MODEL:-ideogram-4}'
+      SD_CPP_DIFFUSION_MODEL: '${SD_CPP_DIFFUSION_MODEL:-ideogram4-Q4_0.gguf}'
+      SD_CPP_UNCOND_DIFFUSION_MODEL: '${SD_CPP_UNCOND_DIFFUSION_MODEL-ideogram4_uncond-Q4_0.gguf}'
+      SD_CPP_LLM: '${SD_CPP_LLM:-Qwen3VL-8B-Instruct-Q4_K_M.gguf}'
+      SD_CPP_VAE: '${SD_CPP_VAE:-flux2-vae.safetensors}'
+      SD_CPP_CLIP_L: '${SD_CPP_CLIP_L-}'
+      SD_CPP_T5XXL: '${SD_CPP_T5XXL-}'
     volumes:
       - 'sd-cpp-comgr:/home/stable-diffusion-cpp/.cache/comgr'
       - './models/t2i/.huggingface:/home/stable-diffusion-cpp/.cache/huggingface/hub'
@@ -258,7 +267,7 @@ services:
       ENABLE_PERSISTENT_CONFIG: true
       ENABLE_WEB_SEARCH: true
       IMAGE_GENERATION_ENGINE: 'openai'
-      IMAGE_GENERATION_MODEL: 'ideogram-4'
+      IMAGE_GENERATION_MODEL: '${SD_CPP_MODEL:-ideogram-4}'
       IMAGE_SIZE: '1024x1024'
       IMAGES_OPENAI_API_BASE_URL: 'http://sd-manager:8000/v1'
       IMAGES_OPENAI_API_KEY: 'stable-diffusion-cpp'

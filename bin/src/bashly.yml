@@ -269,6 +269,21 @@ commands:
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
 
+          - name: load
+            help: Load a text-to-image model into sd-server (replaces the currently loaded one)
+            args:
+              - name: model
+                required: true
+                help: Model name from models/t2i/config.json
+                validate: supported_t2i
+            examples:
+              - cli models t2i load qwen-image-2512
+            completions:
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
+
+          - name: unload
+            help: Unload the text-to-image model by stopping sd-server to free GPU VRAM
+
   - name: proxy
     help: Manage proxy SSL and certificate automation
     commands:
