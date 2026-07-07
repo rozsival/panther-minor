@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-model="${SD_CPP_MODEL:-ideogram-4}"
+model="${SD_CPP_MODEL:-Ideogram-4}"
 model_dir="$HOME/.cache/huggingface/hub/$model"
 
 args=(

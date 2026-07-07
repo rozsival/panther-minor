@@ -158,7 +158,7 @@ services:
       HIP_VISIBLE_DEVICES: ${SD_VISIBLE_DEVICES}
       # Active text-to-image model, managed by `./bin/cli models t2i load`.
       # sd-server loads exactly one model, so only one is ever resident.
-      SD_CPP_MODEL: '${SD_CPP_MODEL:-ideogram-4}'
+      SD_CPP_MODEL: '${SD_CPP_MODEL:-Ideogram-4}'
       SD_CPP_DIFFUSION_MODEL: '${SD_CPP_DIFFUSION_MODEL:-ideogram4-Q4_0.gguf}'
       SD_CPP_UNCOND_DIFFUSION_MODEL: '${SD_CPP_UNCOND_DIFFUSION_MODEL-ideogram4_uncond-Q4_0.gguf}'
       SD_CPP_LLM: '${SD_CPP_LLM:-Qwen3VL-8B-Instruct-Q4_K_M.gguf}'
@@ -267,7 +267,7 @@ services:
       ENABLE_PERSISTENT_CONFIG: true
       ENABLE_WEB_SEARCH: true
       IMAGE_GENERATION_ENGINE: 'openai'
-      IMAGE_GENERATION_MODEL: '${SD_CPP_MODEL:-ideogram-4}'
+      IMAGE_GENERATION_MODEL: '${SD_CPP_MODEL:-Ideogram-4}'
       IMAGE_SIZE: '1024x1024'
       IMAGES_OPENAI_API_BASE_URL: 'http://sd-manager:8000/v1'
       IMAGES_OPENAI_API_KEY: 'stable-diffusion-cpp'

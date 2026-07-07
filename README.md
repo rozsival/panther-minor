@@ -267,8 +267,8 @@ text-to-image model is ever resident.
 ### Download and select a model
 
 ```bash
-./bin/cli models t2i download ideogram-4      # or qwen-image-2512
-./bin/cli models t2i load qwen-image-2512      # switch the loaded model (recreates sd-server)
+./bin/cli models t2i download Ideogram-4      # or Qwen-Image-2512
+./bin/cli models t2i load Qwen-Image-2512      # switch the loaded model (recreates sd-server)
 ```
 
 `load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
@@ -282,7 +282,7 @@ The API is exposed on port `8001` (see [PORTS.md](PORTS.md)):
 ```bash
 curl -k https://<domain>:8001/v1/images/generations \
   -H 'content-type: application/json' \
-  -d '{"model":"ideogram-4","prompt":"a red panther, studio photo","size":"1024x1024","n":1,"response_format":"b64_json"}'
+  -d '{"model":"Ideogram-4","prompt":"a red panther, studio photo","size":"1024x1024","n":1,"response_format":"b64_json"}'
 ```
 
 Open WebUI is wired to the same endpoint, so the image icon on a chat message generates images through `sd-manager`.
