@@ -51,8 +51,6 @@ add_component --diffusion-model "${SD_CPP_DIFFUSION_MODEL:-}"
 add_component --uncond-diffusion-model "${SD_CPP_UNCOND_DIFFUSION_MODEL:-}"
 add_component --llm "${SD_CPP_LLM:-}"
 add_component --vae "${SD_CPP_VAE:-}"
-add_component --clip_l "${SD_CPP_CLIP_L:-}"
-add_component --t5xxl "${SD_CPP_T5XXL:-}"
 
 # shellcheck disable=SC2086
 exec /opt/stable-diffusion-cpp/build/bin/sd-server \
