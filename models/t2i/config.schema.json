@@ -11,10 +11,6 @@
             "description": "Name of the model (also the local cache directory and the API model id)",
             "type": "string"
           },
-          "description": {
-            "description": "Human-readable description of the model",
-            "type": "string"
-          },
           "components": {
             "description": "Weight files that make up the model, downloaded into the model directory",
             "items": {

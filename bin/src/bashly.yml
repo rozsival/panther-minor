@@ -251,8 +251,8 @@ commands:
               - name: hf_token
                 help: Hugging Face token used by hf download
             examples:
-              - cli models t2i download ideogram-4
-              - HF_TOKEN=token cli models t2i download ideogram-4
+              - cli models t2i download Ideogram-4
+              - HF_TOKEN=token cli models t2i download Ideogram-4
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
 
@@ -277,7 +277,7 @@ commands:
                 help: Model name from models/t2i/config.json
                 validate: supported_t2i
             examples:
-              - cli models t2i load qwen-image-2512
+              - cli models t2i load Qwen-Image-2512
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
 

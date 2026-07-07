@@ -2,7 +2,7 @@ panther_t2i_config_file() {
   printf '%s\n' "$PANTHER_MODELS_DIR/t2i/config.json"
 }
 panther_supported_t2i() {
-  jq -r '.models[] | .name + (if .description then "  —  " + .description else "" end)' "$(panther_t2i_config_file)"
+  jq -r '.models[] | .name' "$(panther_t2i_config_file)"
 }
 panther_assert_supported_t2i() {
   local model="$1"

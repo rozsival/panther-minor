@@ -898,8 +898,8 @@ cli_models_t2i_download_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models t2i download ideogram-4\n"
-    printf "  HF_TOKEN=token cli models t2i download ideogram-4\n"
+    printf "  cli models t2i download Ideogram-4\n"
+    printf "  HF_TOKEN=token cli models t2i download Ideogram-4\n"
     echo
 
   fi
@@ -986,7 +986,7 @@ cli_models_t2i_load_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models t2i load qwen-image-2512\n"
+    printf "  cli models t2i load Qwen-Image-2512\n"
     echo
 
   fi
@@ -1983,7 +1983,7 @@ panther_t2i_config_file() {
   printf '%s\n' "$PANTHER_MODELS_DIR/t2i/config.json"
 }
 panther_supported_t2i() {
-  jq -r '.models[] | .name + (if .description then "  —  " + .description else "" end)' "$(panther_t2i_config_file)"
+  jq -r '.models[] | .name' "$(panther_t2i_config_file)"
 }
 panther_assert_supported_t2i() {
   local model="$1"
