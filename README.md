@@ -256,19 +256,24 @@ Put any extra files, scripts, configurations, or assets in the `./extra` directo
 
 Panther Minor also serves local **text-to-image** generation through
 [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
-**OpenAI-compatible image API** (`POST /v1/images/generations`). The default model is
-[Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF).
+**OpenAI-compatible image API** (`POST /v1/images/generations`). Two models are available:
+[Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF) (default) and
+[Qwen-Image 2512](https://huggingface.co/unsloth/Qwen-Image-2512-GGUF).
 
 The image service is **pinned to a dedicated GPU** (`SD_VISIBLE_DEVICES` in `.env`, default `1`) so image
-generation does not contend with the LLMs for VRAM.
+generation does not contend with the LLMs for VRAM. `sd-server` loads exactly **one** model per process, so only one
+text-to-image model is ever resident.
 
-### Download the model
+### Download and select a model
 
 ```bash
-./bin/cli models t2i download ideogram-4
+./bin/cli models t2i download ideogram-4      # or qwen-image-2512
+./bin/cli models t2i load qwen-image-2512      # switch the loaded model (recreates sd-server)
 ```
 
-See [Models](./models/README.md) for the full list of image models and management commands.
+`load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
+replacing whatever was loaded before — so switching never leaves two models in VRAM. When switching, update Open
+WebUI's image model (admin image settings) to match. See [Models](./models/README.md) for the full list and commands.
 
 ### Generate an image
 
