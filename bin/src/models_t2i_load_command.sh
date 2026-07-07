@@ -2,11 +2,12 @@ panther_t2i_load() {
   local model="${args[model]}"
   panther_assert_supported_t2i "$model"
 
-  local diffusion uncond llm vae model_dir
+  local diffusion uncond llm vae model_args model_dir
   diffusion="$(panther_t2i_component_target "$model" diffusion)"
   uncond="$(panther_t2i_component_target "$model" uncond)"
   llm="$(panther_t2i_component_target "$model" llm)"
   vae="$(panther_t2i_component_target "$model" vae)"
+  model_args="$(panther_t2i_args "$model")"
 
   [[ -n "$diffusion" ]] || panther_log_error "Text-to-image model '$model' has no diffusion component in $(panther_t2i_config_file)"
 
@@ -23,6 +24,8 @@ panther_t2i_load() {
   panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_UNCOND_DIFFUSION_MODEL "$uncond"
   panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_LLM "$llm"
   panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_VAE "$vae"
+  # Per-model sd-server flags (sampling tuning such as --flow-shift), applied on launch.
+  panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_MODEL_ARGS "$model_args"
 
   panther_log_info "Loading text-to-image model '$model' into sd-server..."
   panther_compose up --detach --force-recreate --no-deps stable-diffusion-cpp

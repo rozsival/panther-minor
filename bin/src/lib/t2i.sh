@@ -26,3 +26,7 @@ panther_t2i_dir() {
   local model="$1"
   printf '%s\n' "$PANTHER_MODELS_DIR/t2i/.huggingface/$model"
 }
+panther_t2i_args() {
+  local model="$1"
+  panther_t2i_config "$model" | jq -r '(.args // []) | join(" ")'
+}

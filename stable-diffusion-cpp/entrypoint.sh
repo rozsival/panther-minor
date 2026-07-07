@@ -52,9 +52,11 @@ add_component --uncond-diffusion-model "${SD_CPP_UNCOND_DIFFUSION_MODEL}"
 add_component --llm "${SD_CPP_LLM}"
 add_component --vae "${SD_CPP_VAE}"
 
+# SD_CPP_MODEL_ARGS holds this model's extra sd-server flags (sampling tuning
+# such as --flow-shift) and is intentionally word-split into separate arguments.
 # shellcheck disable=SC2086
 exec /opt/stable-diffusion-cpp/build/bin/sd-server \
   "${args[@]}" \
   --diffusion-fa \
   --offload-to-cpu \
-  ${SD_CPP_EXTRA_ARGS:-}
+  ${SD_CPP_MODEL_ARGS:-}
