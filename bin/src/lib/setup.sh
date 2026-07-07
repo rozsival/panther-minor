@@ -42,16 +42,25 @@ panther_upsert_env_key() {
   local key="$2"
   local value="$3"
 
-  if command -v augtool >/dev/null 2>&1; then
-    augtool -A -L <<AUGEOF
-set /files${env_file}/${key} "${value}"
-save
-AUGEOF
-    return 0
-  fi
+  [[ -f "$env_file" ]] || touch "$env_file"
 
+  # Replace the existing KEY= line in place, or append it. Rewriting through a
+  # temp file and truncating back into the original keeps the file's inode,
+  # owner, and permissions intact (this runs as root during setup and as the
+  # user during `models t2i load`). value is written literally, so it is safe
+  # for paths and characters that would trip up sed.
   if grep -qE "^${key}=" "$env_file"; then
-    sed -i "s|^${key}=.*|${key}=${value}|" "$env_file"
+    local tmp
+    tmp="$(mktemp)"
+    while IFS= read -r line || [[ -n "$line" ]]; do
+      if [[ "$line" == "${key}="* ]]; then
+        printf '%s=%s\n' "$key" "$value"
+      else
+        printf '%s\n' "$line"
+      fi
+    done <"$env_file" >"$tmp"
+    cat "$tmp" >"$env_file"
+    rm -f "$tmp"
   else
     printf '%s=%s\n' "$key" "$value" >>"$env_file"
   fi
