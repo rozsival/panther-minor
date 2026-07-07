@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-model="${SD_CPP_MODEL:-Ideogram-4}"
+model="${SD_CPP_MODEL}"
 model_dir="$HOME/.cache/huggingface/hub/$model"
 
 args=(
@@ -42,15 +42,15 @@ add_component() {
   args+=("$flag" "$path")
 }
 
-if [[ -z "${SD_CPP_DIFFUSION_MODEL:-}" ]]; then
+if [[ -z "${SD_CPP_DIFFUSION_MODEL}" ]]; then
   echo "[stable-diffusion-cpp] SD_CPP_DIFFUSION_MODEL is not set for model '$model'" >&2
   exit 1
 fi
 
-add_component --diffusion-model "${SD_CPP_DIFFUSION_MODEL:-}"
-add_component --uncond-diffusion-model "${SD_CPP_UNCOND_DIFFUSION_MODEL:-}"
-add_component --llm "${SD_CPP_LLM:-}"
-add_component --vae "${SD_CPP_VAE:-}"
+add_component --diffusion-model "${SD_CPP_DIFFUSION_MODEL}"
+add_component --uncond-diffusion-model "${SD_CPP_UNCOND_DIFFUSION_MODEL}"
+add_component --llm "${SD_CPP_LLM}"
+add_component --vae "${SD_CPP_VAE}"
 
 # shellcheck disable=SC2086
 exec /opt/stable-diffusion-cpp/build/bin/sd-server \
