@@ -36,8 +36,8 @@
         },
         {
           "role": "llm",
-          "repository": "unsloth/Qwen3-VL-8B-Instruct-GGUF",
-          "file": "Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf"
+          "repository": "unsloth/Qwen2.5-VL-7B-Instruct-GGUF",
+          "file": "Qwen2.5-VL-7B-Instruct-UD-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
