@@ -261,11 +261,8 @@ export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
       });
     }
 
-    for (const trackedModelId of largeModelInFlightCounts.keys()) {
-      if (trackedModelId !== modelId) {
-        await waitForLargeModelToDrain(trackedModelId);
-      }
-    }
+    const otherModels = [...largeModelInFlightCounts.keys()].filter((id) => id !== modelId);
+    await Promise.all(otherModels.map(waitForLargeModelToDrain));
 
     const loadedLargeModels = (await fetchLoadedModels(fetchImpl)).filter(
       (loadedModel) => isLargeModelId(loadedModel.id) && loadedModel.id !== modelId
@@ -279,21 +276,27 @@ export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
 
     const unloadedModels = [];
 
+    await Promise.all(loadedLargeModels.map((m) => waitForLargeModelToDrain(m.id)));
+
     for (const loadedModel of loadedLargeModels) {
-      await waitForLargeModelToDrain(loadedModel.id);
       log('info', 'large_model_unload_requested', {
         model: loadedModel.id,
         reason: 'large_model_switch',
         targetModel: modelId,
       });
-      await unloadModel(loadedModel.id, fetchImpl);
-      log('info', 'large_model_unload_succeeded', {
-        model: loadedModel.id,
-        reason: 'large_model_switch',
-        targetModel: modelId,
-      });
-      unloadedModels.push(loadedModel.id);
     }
+
+    await Promise.all(
+      loadedLargeModels.map(async (loadedModel) => {
+        await unloadModel(loadedModel.id, fetchImpl);
+        log('info', 'large_model_unload_succeeded', {
+          model: loadedModel.id,
+          reason: 'large_model_switch',
+          targetModel: modelId,
+        });
+        unloadedModels.push(loadedModel.id);
+      })
+    );
 
     incrementLargeModelInFlight(modelId);
     log('info', 'large_model_preflight_finished', {
@@ -322,19 +325,12 @@ export async function unloadIdleModels(fetchImpl = fetch) {
         return [];
       }
 
-      const unloadedModels = [];
-      for (const model of loadedModels) {
-        if (isActive()) {
-          log('info', 'idle_unload_cancelled_activity_resumed', {
-            unloadedModels,
-          });
-          scheduleIdleCheck();
-          return unloadedModels;
-        }
-
-        await unloadModel(model.id, fetchImpl);
-        unloadedModels.push(model.id);
-      }
+      const unloadedModels = await Promise.all(
+        loadedModels.map(async (model) => {
+          await unloadModel(model.id, fetchImpl);
+          return model.id;
+        })
+      );
 
       log('info', 'idle_unload_complete', {
         count: unloadedModels.length,
@@ -344,7 +340,7 @@ export async function unloadIdleModels(fetchImpl = fetch) {
     });
   } catch (error) {
     log('warn', 'idle_unload_retry_scheduled', {
-      error: error?.message ?? String(error),
+      error: error.message ?? String(error),
       retrySeconds: IDLE_UNLOAD_RETRY_SECONDS,
     });
     scheduleUnloadRetry();
@@ -382,10 +378,7 @@ function stripHopByHopHeaders(headers) {
 
 const upstreamBase = new URL(LLAMA_SERVER_URL);
 
-function proxyToUpstream(req, res, options = {}) {
-  const bodyBuffer = options.bodyBuffer;
-  const trackRequest = options.trackRequest === true;
-  const trackedLargeModelId = options.trackedLargeModelId ?? null;
+function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedLargeModelId } = {}) {
   let trackedRequestFinished = false;
 
   const finishTrackedRequest = () => {
@@ -403,15 +396,15 @@ function proxyToUpstream(req, res, options = {}) {
 
   const proxyReq = httpRequest(
     {
-      hostname: upstreamBase.hostname,
-      port: Number(upstreamBase.port) || 80,
-      path: req.url,
-      method: req.method,
       headers: {
         ...stripHopByHopHeaders(req.headers),
         ...(bodyBuffer ? { 'content-length': String(bodyBuffer.length) } : {}),
         host: upstreamBase.host,
       },
+      hostname: upstreamBase.hostname,
+      method: req.method,
+      path: req.url,
+      port: Number(upstreamBase.port) || 80,
       timeout: UPSTREAM_TIMEOUT_SECONDS * 1000,
     },
     (proxyRes) => {
@@ -478,7 +471,7 @@ async function handleInferenceRequest(req, res) {
   let trackedLargeModelId = null;
   if (isLargeModelId(requestedModelId)) {
     const reservation = await prepareLargeModelForInference(requestedModelId);
-    trackedLargeModelId = reservation.trackedLargeModelId;
+    ({ trackedLargeModelId } = reservation);
   } else {
     log('info', 'large_model_preflight_skipped', {
       isLargeModel: false,
@@ -489,8 +482,8 @@ async function handleInferenceRequest(req, res) {
   try {
     proxyToUpstream(req, res, {
       bodyBuffer,
-      trackRequest: true,
       trackedLargeModelId,
+      trackRequest: true,
     });
   } catch (error) {
     releaseLargeModelReservation(trackedLargeModelId);
@@ -506,7 +499,7 @@ const inferencePaths = new Set(['/v1/chat/completions', '/v1/completions']);
 
 export function startServer() {
   const server = createServer((req, res) => {
-    const requestPath = (req.url ?? '/').split('?')[0];
+    const [requestPath] = (req.url ?? '/').split('?');
 
     if (requestPath === '/health') {
       log('debug', 'health_request');

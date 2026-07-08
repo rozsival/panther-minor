@@ -13,6 +13,12 @@ each LLM's `mmproj-F16.gguf`) never collide. `download` fetches only missing fil
 `remove` deletes only the files a model does not share with another, and `./bin/cli models prune` reclaims any file no
 config references anymore (it also runs automatically after every `download`/`remove`).
 
+> [!WARNING]
+> Running both LLMs and T2I models at the same time will most likely result in heavy VRAM consumption and potential OOM errors.
+> Panther Minor does its best in off-loading models to CPU/RAM and freeing the VRAM when a model is not used.
+> If you experience issues such as OOM errors, or slow token output on LLM while T2I model is loaded, use the CLI to free VRAM and re-load models manually.
+> It is also highly recommended not to use LLMs when T2I model is generating output.
+
 ---
 
 ## 📚 Large language models (`llm/`)

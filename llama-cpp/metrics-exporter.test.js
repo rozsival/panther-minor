@@ -173,7 +173,7 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
   resetLastSuccessfulScrape();
 
   const fetchImpl = (url, _options) => {
-    const pathname = new URL(url).pathname;
+    const { pathname } = new URL(url);
     if (pathname === '/models') {
       return new Response(
         JSON.stringify({
@@ -227,7 +227,7 @@ test('buildMetricsPayload scrapes metrics only for loaded models', async () => {
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
 
-    const pathname = new URL(url).pathname;
+    const { pathname } = new URL(url);
     if (pathname === '/models') {
       return new Response(
         JSON.stringify({
@@ -271,7 +271,7 @@ test('buildMetricsPayload skips model scrapes when none are loaded', async () =>
   const calls = [];
   const fetchImpl = (url, _options) => {
     calls.push(url.toString());
-    const pathname = new URL(url).pathname;
+    const { pathname } = new URL(url);
     if (pathname === '/models') {
       return new Response(
         JSON.stringify({

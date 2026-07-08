@@ -41,8 +41,9 @@ function log(level, message, fields) {
 const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
 const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
 
+/** @type {{ payload: string | null, timestampMs: number }} */
 const cache = {
-  payload: '',
+  payload: null,
   timestampMs: 0,
 };
 let refreshInFlight = null;
@@ -62,7 +63,7 @@ export async function queryManagerStatus(fetchImpl = fetch) {
       lastActivityAt: Number.isFinite(data.lastActivityAt) ? data.lastActivityAt : 0,
     };
   } catch (error) {
-    log('warn', 'manager_status_unavailable', { error: error?.message ?? String(error) });
+    log('warn', 'manager_status_unavailable', { error: error.message ?? String(error) });
     return { active: true, lastActivityAt: 0 };
   }
 }
@@ -247,7 +248,7 @@ export async function fetchMetricsText(model, fetchImpl = fetch) {
       continue;
     }
 
-    const metricName = line.split('{', 1)[0].split(' ', 1)[0];
+    const [metricName] = line.split('{')[0].split(' ');
     if (!metricName || seen.has(metricName)) {
       continue;
     }
@@ -271,12 +272,17 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
   const modelToMetrics = {};
   const scrapedModelIds = new Set();
 
-  for (const model of loadedModels) {
-    try {
-      modelToMetrics[model.id] = await fetchMetricsText(model.id, fetchImpl);
-      scrapedModelIds.add(model.id);
-    } catch {
-      // scrape failed for this model, continue with others
+  const results = await Promise.allSettled(
+    loadedModels.map(async (model) => ({
+      id: model.id,
+      metrics: await fetchMetricsText(model.id, fetchImpl),
+    }))
+  );
+
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      modelToMetrics[result.value.id] = result.value.metrics;
+      scrapedModelIds.add(result.value.id);
     }
   }
 
@@ -412,7 +418,7 @@ export function startServer() {
     });
 
     const nowMs = Date.now();
-    if (cache.payload && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
+    if (typeof cache.payload === 'string' && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
       log('info', 'scrape_cache_hit', {
         ageMs: nowMs - cache.timestampMs,
       });
@@ -455,10 +461,10 @@ export function startServer() {
   server.listen(PORT, '0.0.0.0', () => {
     log('info', 'server_started', {
       cacheTtlSeconds: CACHE_TTL_SECONDS,
-      refreshIntervalSeconds: Math.max(1, CACHE_TTL_SECONDS),
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
       managerUrl: MANAGER_URL,
+      refreshIntervalSeconds: Math.max(1, CACHE_TTL_SECONDS),
       timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
       upstream: LLAMA_SERVER_URL,
     });

@@ -145,14 +145,14 @@ function proxyToUpstream(req, res, options = {}) {
 
   const proxyReq = httpRequest(
     {
-      hostname: upstreamBase.hostname,
-      port: Number(upstreamBase.port) || 80,
-      path: req.url,
-      method: req.method,
       headers: {
         ...stripHopByHopHeaders(req.headers),
         host: upstreamBase.host,
       },
+      hostname: upstreamBase.hostname,
+      method: req.method,
+      path: req.url,
+      port: Number(upstreamBase.port) || 80,
       timeout: PROXY_TIMEOUT_SECONDS * 1000,
     },
     (proxyRes) => {
@@ -192,7 +192,7 @@ function proxyToUpstream(req, res, options = {}) {
 
 export function startServer() {
   const server = createServer((req, res) => {
-    const requestPath = (req.url ?? '/').split('?')[0];
+    const [requestPath] = (req.url ?? '/').split('?');
 
     if (requestPath === '/health') {
       log('debug', 'health_request');

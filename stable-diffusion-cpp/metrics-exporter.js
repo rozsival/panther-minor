@@ -57,7 +57,7 @@ export async function queryManagerStatus(fetchImpl = fetch) {
       reachable: true,
     };
   } catch (error) {
-    log('warn', 'manager_status_unavailable', { error: error?.message ?? String(error) });
+    log('warn', 'manager_status_unavailable', { error: error.message ?? String(error) });
     return { active: true, activeProxyRequests: 0, lastActivityAt: 0, reachable: false };
   }
 }
@@ -74,7 +74,7 @@ export async function fetchModelsList(fetchImpl = fetch) {
     const models = normalizeModelsPayload(await response.json());
     return { models, reachable: true };
   } catch (error) {
-    log('warn', 'models_unavailable', { error: error?.message ?? String(error) });
+    log('warn', 'models_unavailable', { error: error.message ?? String(error) });
     return { models: [], reachable: false };
   }
 }
@@ -126,8 +126,9 @@ export async function buildMetricsPayload(fetchImpl = fetch) {
   return [...buildMetricsLines(managerStatus, modelsResult), ''].join('\n');
 }
 
+/** @type {{ payload: string | null, timestampMs: number }} */
 const cache = {
-  payload: '',
+  payload: null,
   timestampMs: 0,
 };
 let refreshInFlight = null;
@@ -181,7 +182,7 @@ export function startServer() {
     }
 
     const nowMs = Date.now();
-    if (cache.payload && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
+    if (typeof cache.payload === 'string' && nowMs - cache.timestampMs < CACHE_TTL_SECONDS * 1000) {
       res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4; charset=utf-8' });
       res.end(cache.payload);
       return;
