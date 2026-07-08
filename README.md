@@ -267,8 +267,8 @@ text-to-image model is ever resident.
 ### Download and select a model
 
 ```bash
-./bin/cli models t2i download Ideogram-4      # or Qwen-Image-2512
-./bin/cli models t2i load Qwen-Image-2512      # switch the loaded model (recreates sd-server)
+./bin/cli models t2i download Ideogram-4  # or Qwen-Image-2512
+./bin/cli models t2i load Qwen-Image-2512 # switch the loaded model (recreates sd-server)
 ```
 
 `load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
@@ -292,7 +292,7 @@ Open WebUI is wired to the same endpoint, so the image icon on a chat message ge
 > [!TIP]
 > Ideogram 4 favors richly structured prompts. You can pass native `stable-diffusion.cpp` options (seed, steps, cfg)
 > by embedding `<sd_cpp_extra_args>{"seed":357925}</sd_cpp_extra_args>` inside the prompt. Per-model sampling defaults
-> (e.g. Qwen-Image's `--flow-shift 13`) live in each model's `args` in
+> live in each model's `args` in
 > [`t2i/config.json`](./models/README.md#configuration) and apply automatically on `load`.
 
 ---
