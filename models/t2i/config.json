@@ -46,14 +46,15 @@
         }
       ],
       "args": [
+        "--cfg-scale",
+        "2.5",
         "--flow-shift",
         "3",
         "--sampling-method",
         "euler",
-        "--cfg-scale",
-        "2.5",
         "--steps",
-        "40"
+        "40",
+        "-v"
       ]
     }
   ],
