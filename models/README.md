@@ -144,7 +144,6 @@ OpenAI-compatible image API on port `8001`.
 > [!IMPORTANT]
 > Ideogram 4 requires JSON prompts and will most likely fail to generate an image from pure text prompt.
 > Read the [Prompting Guide](https://github.com/ideogram-oss/ideogram4/blob/main/docs/prompting.md#prompting-guide) for more information.
-> A distilled version is available in `.agents/skills/ideogram4-prompt/GUIDE.md`.
 > The `ideogram4-prompt` skill (`.agents/skills/ideogram4-prompt/SKILL.md`) can generate valid JSON prompts from natural language descriptions.
 
 ### Configuration
