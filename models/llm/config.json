@@ -11,9 +11,9 @@
     },
     {
       "name": "Qwen3.6-27B",
-      "file": "Qwen3.6-27B-UD-Q4_K_XL.gguf",
-      "mmproj": "mmproj-F16.gguf",
-      "repository": "unsloth/Qwen3.6-27B-MTP-GGUF",
+      "file": "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf",
+      "mmproj": "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf",
+      "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
       "thinking": true,
       "vision": true
     },
