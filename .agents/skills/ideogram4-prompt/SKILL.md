@@ -11,160 +11,180 @@ description: >
   when the output needs to be a valid Ideogram 4 JSON caption.
 ---
 
-You are an Ideogram 4 prompt engineer. Your job is to convert natural language
-image descriptions into valid, high-quality JSON captions that Ideogram 4 can
-process. The model was trained exclusively on structured JSON — plain text
-prompts will fail or trigger safety filters.
+Convert natural language image descriptions into valid Ideogram 4 JSON captions.
+The model was trained exclusively on structured JSON — plain text prompts fail or
+trigger safety filters.
 
-Read `GUIDE.md` (in this skill directory) for the complete distilled reference
-before generating any prompt.
-
-## Workflow
-
-1. **Parse the user's description** — extract subject, setting, style, mood, colors, and any text that should appear in the image.
-
-2. **Determine caption type** — photographic (`photo` field) or artistic (`art_style` field). Default to photograph when unclear. Use the Medium Reference table to map user terms to the correct `medium` value.
-
-3. **Decompose spatially** — identify distinct elements that could benefit from bounding boxes. Prioritize bounding boxes for:
-   - Multiple subjects that need specific placement
-   - Text that must appear at a specific location
-   - Foreground/background separation
-
-4. **Build color palette** — convert any named colors to uppercase hex using the Color Name to Hex Reference. Include background colors and contrast pairs (highlight + shadow).
-
-5. **Construct the JSON** — follow the schema rules exactly (see Rules below). Maintain strict key ordering at every level.
-
-6. **Self-validate** — before outputting, verify against the checklist in the Self-Validation section below. Fix any issues.
-
-7. **Output only the JSON** — format as markdown code block, or pure JSON if asked to save to file
-
-## Schema Rules
-
-### Top-level structure
+## Schema
 
 ```
 {
-  "high_level_description": "...",
+  "high_level_description": "1-2 sentence summary (optional but recommended)",
   "style_description": { ... },
-  "compositional_deconstruction": { ... }
+  "compositional_deconstruction": { "background": "...", "elements": [ ... ] }
 }
 ```
 
-- `high_level_description` — always include. 1–2 sentences summarizing the entire image.
-- `style_description` — include unless the user's request is so minimal that style is irrelevant.
-- `compositional_deconstruction` — **always required**. Must have `background` then `elements`.
+`compositional_deconstruction` is **required**. `background` must precede `elements`.
 
-### style_description key order
+### `style_description` — strict key order
 
 - **Photo:** `aesthetics` → `lighting` → `photo` → `medium` → `color_palette`
 - **Non-photo:** `aesthetics` → `lighting` → `medium` → `art_style` → `color_palette`
 
-`color_palette` is optional; if present it must be last.
+Use exactly one of `photo` (photographic) or `art_style` (illustration, 3D, painting, etc.).
+`color_palette` is optional but must be last if present.
 
-### compositional_deconstruction element key order
+| Field           | Type   | Example                                                 |
+| --------------- | ------ | ------------------------------------------------------- |
+| `aesthetics`    | string | `"moody, cinematic, desaturated"`                       |
+| `lighting`      | string | `"golden hour, rim light, dramatic shadows"`            |
+| `photo`         | string | `"35mm, f/1.4, bokeh"` (photo only)                     |
+| `medium`        | string | `"photograph"`, `"illustration"`, `"3d_render"`, etc.   |
+| `art_style`     | string | `"flat vector illustration, bold outlines"` (non-photo) |
+| `color_palette` | list   | Up to 16 uppercase `#RRGGBB` hex colors                 |
+
+### Element key order
 
 - **obj:** `type` → `bbox` → `desc` → `color_palette`
 - **text:** `type` → `bbox` → `text` → `desc` → `color_palette`
 
-`bbox` and `color_palette` are optional within elements.
+`bbox` and `color_palette` are optional per element (max 5 hex colors).
 
-### Bounding box format
+### Bounding boxes
 
-`[y_min, x_min, y_max, x_max]` in normalized 0–1000 coordinates. Origin is top-left.
+`[y_min, x_min, y_max, x_max]` in 0–1000 normalized coords, origin top-left.
 
-Guidelines for bboxes:
+| Position | Bbox                    |
+| -------- | ----------------------- |
+| Center   | `[100, 100, 900, 900]`  |
+| Upper    | `[50, 50, 400, 950]`    |
+| Lower    | `[600, 50, 950, 950]`   |
+| Left     | `[100, 0, 900, 450]`    |
+| Right    | `[100, 550, 900, 1000]` |
 
-- Center subject: `[100, 100, 900, 900]`
-- Upper portion: `[50, 50, 400, 950]`
-- Lower portion: `[600, 50, 950, 950]`
-- Left side: `[100, 0, 900, 450]`
-- Right side: `[100, 550, 900, 1000]`
-- Avoid overlapping bboxes unless elements genuinely overlap
+Avoid overlapping bboxes unless elements genuinely overlap.
 
-### Color palette
+### Medium Reference
 
-- Uppercase hex only: `#RRGGBB` (never `#fff` or `#1b1b2f`).
-- Up to 16 colors globally, up to 5 per element.
-- Include background colors and contrast pairs (highlight + shadow).
-- When the user mentions specific colors, convert them to hex and include them.
+| User says                                           | `medium`           |
+| --------------------------------------------------- | ------------------ |
+| photo, photograph, realistic, cinematic, film       | `"photograph"`     |
+| illustration, drawing, sketch, digital/concept art  | `"illustration"`   |
+| retro, vintage, poster art, anime, manga, pixel art | `"illustration"`   |
+| comic, graphic novel                                | `"illustration"`   |
+| 3d, blender, cinema4d, octane, low-poly, voxel      | `"3d_render"`      |
+| painting, oil, acrylic, watercolor, gouache, pastel | `"painting"`       |
+| graphic design, logo, vector, flat design, ui       | `"graphic_design"` |
 
-### JSON encoding
+### Color Name → Hex
+
+| Color  | Hex       | Variants                                  |
+| ------ | --------- | ----------------------------------------- |
+| red    | `#D32F2F` | deep `#C41E3A`, bright `#FF1744`          |
+| blue   | `#1565C0` | navy `#0D47A1`, sky `#42A5F5`             |
+| green  | `#2E7D32` | forest `#1B5E20`, lime `#66BB6A`          |
+| yellow | `#F9A825` | bright `#FDD835`, amber `#FF8F00`         |
+| pink   | `#E91E63` | pastel `#F48FB1`, neon `#FF1744`          |
+| cyan   | `#00BCD4` | neon `#00E5FF`, teal `#26C6DA`            |
+| purple | `#7B1FA2` | deep `#4A148C`, lavender `#CE93D8`        |
+| orange | `#EF6C00` | vibrant `#FF6D00`, soft `#FFA726`         |
+| black  | `#1A1A1A` | true `#0D0D0D`, charcoal `#2C2C2C`        |
+| white  | `#FFFFFF` | off-white `#F5F5F5`, light grey `#E0E0E0` |
+| grey   | `#616161` | dark `#424242`, light `#9E9E9E`           |
+| gold   | `#FFB300` | light `#FFD54F`, amber `#FF8F00`          |
+| brown  | `#5D4037` | dark `#3E2723`, tan `#8D6E63`             |
+| teal   | `#00796B` | deep `#004D40`, mint `#4DB6AC`            |
+| coral  | `#FF7043` | soft `#FF8A65`, burnt `#F4511E`           |
+
+Include background colors and contrast pairs (highlight + shadow).
+
+### JSON Encoding
 
 - Compact separators: `(",", ":")` — no spaces after `:` or `,`
-- No `\uXXXX` escapes — use literal Unicode characters
-- No trailing commas
+- No `\uXXXX` escapes — literal Unicode only
+- No trailing commas, uppercase hex only (`#RRGGBB`, never `#fff`)
 - Valid JSON that parses without errors
 
-## Medium Reference
+## Workflow
 
-When the user doesn't specify a medium explicitly, infer from context:
+1. **Parse** — extract subject, setting, style, mood, colors, text-to-render.
+2. **Determine caption type** — photo (`photo` field) or artistic (`art_style`). Default to photograph.
+3. **Decompose spatially** — assign bboxes for multiple subjects, text placement, foreground/background separation.
+4. **Build color palette** — convert named colors to uppercase hex.
+5. **Construct JSON** — follow schema key ordering exactly.
+6. **Self-validate** — valid JSON, correct key order, uppercase hex, compact separators, `background` before `elements`, no markdown fences.
+7. **Output raw JSON only** — no fences, no preamble, no explanation.
 
-- "cinematic", "movie still", "film", "realistic", "photo-realistic" → photograph
-- "digital art", "concept art", "matte painting" → illustration
-- "retro", "vintage", "poster art", "vintage illustration" → illustration
-- "watercolor", "acrylic", "oil painting", "gouache", "pastel" → painting
-- "vector", "flat design", "minimalist", "logo", "icon" → graphic_design
-- "low-poly", "voxel", "isometric", "octane", "blender", "cinema4d", "maya", "zbrush" → 3d_render
+## Handling Input
 
-| User says                                       | `medium` value     |
-| ----------------------------------------------- | ------------------ |
-| photo, photograph, realistic, real-life         | `"photograph"`     |
-| cinematic, movie still, film                    | `"photograph"`     |
-| illustration, drawing, sketch, doodle           | `"illustration"`   |
-| digital art, concept art                        | `"illustration"`   |
-| retro, vintage, poster art                      | `"illustration"`   |
-| anime, manga                                    | `"illustration"`   |
-| pixel art                                       | `"illustration"`   |
-| comic, graphic novel                            | `"illustration"`   |
-| 3d, 3d render, blender, cinema4d, octane        | `"3d_render"`      |
-| low-poly, voxel, isometric                      | `"3d_render"`      |
-| painting, oil, acrylic, watercolor              | `"painting"`       |
-| gouache, pastel, ink wash                       | `"painting"`       |
-| graphic design, poster, business card, logo, ui | `"graphic_design"` |
-| vector, flat design, minimalist                 | `"graphic_design"` |
+- **Vague requests** — make reasonable creative choices; don't ask for clarification unless the subject is entirely unclear.
+- **Text in image** — use `type: "text"` elements with exact `text` field + bbox.
+- **Color mentions** — always convert to hex in `color_palette`.
+- **Multiple subjects** — separate elements with bboxes.
+- **No style specified** — pick a fitting default.
 
-## Color Name to Hex Reference
+## Examples
 
-When the user mentions colors by name, convert to uppercase hex. Use these as starting points and adjust for the scene's mood:
+### Minimal valid prompt
 
-| Color name | Hex       | Notes                                                 |
-| ---------- | --------- | ----------------------------------------------------- |
-| red        | `#D32F2F` | Use `#C41E3A` for deep red, `#FF1744` for bright      |
-| blue       | `#1565C0` | Use `#0D47A1` for navy, `#42A5F5` for sky             |
-| green      | `#2E7D32` | Use `#1B5E20` for forest, `#66BB6A` for lime          |
-| yellow     | `#F9A825` | Use `#FDD835` for bright, `#FF8F00` for amber         |
-| pink       | `#E91E63` | Use `#F48FB1` for pastel, `#FF1744` for neon          |
-| cyan       | `#00BCD4` | Use `#00E5FF` for neon, `#26C6DA` for teal            |
-| purple     | `#7B1FA2` | Use `#4A148C` for deep, `#CE93D8` for lavender        |
-| orange     | `#EF6C00` | Use `#FF6D00` for vibrant, `#FFA726` for soft         |
-| black      | `#1A1A1A` | Use `#0D0D0D` for true black, `#2C2C2C` for charcoal  |
-| white      | `#FFFFFF` | Use `#F5F5F5` for off-white, `#E0E0E0` for light grey |
-| grey       | `#616161` | Use `#424242` for dark, `#9E9E9E` for light           |
-| gold       | `#FFB300` | Use `#FFD54F` for light, `#FF8F00` for amber          |
-| brown      | `#5D4037` | Use `#3E2723` for dark, `#8D6E63` for tan             |
-| teal       | `#00796B` | Use `#004D40` for deep, `#4DB6AC` for mint            |
-| coral      | `#FF7043` | Use `#FF8A65` for soft, `#F4511E` for burnt           |
+```json
+{
+  "compositional_deconstruction": {
+    "background": "A plain white background.",
+    "elements": [{ "type": "obj", "desc": "A red apple on a wooden table." }]
+  }
+}
+```
 
-## Self-Validation
+### Photograph
 
-Before outputting, verify:
+```json
+{
+  "high_level_description": "A golden retriever riding a skateboard down a sunny sidewalk.",
+  "style_description": {
+    "aesthetics": "warm, playful, vibrant",
+    "lighting": "bright afternoon sunlight, long soft shadows",
+    "photo": "shallow depth of field, eye-level, 85mm lens",
+    "medium": "photograph",
+    "color_palette": ["#F5C542", "#87CEEB", "#4A4A4A", "#FFFFFF", "#2E8B57"]
+  },
+  "compositional_deconstruction": {
+    "background": "A sun-drenched suburban sidewalk lined with green hedges and a white picket fence. Dappled light filters through overhead trees.",
+    "elements": [
+      {
+        "type": "obj",
+        "bbox": [200, 300, 800, 900],
+        "desc": "A golden retriever with a fluffy coat, standing on a red skateboard with all four paws. Tongue out, ears flapping."
+      },
+      {
+        "type": "obj",
+        "bbox": [250, 750, 750, 950],
+        "desc": "A worn red skateboard with black wheels rolling along the concrete sidewalk."
+      }
+    ]
+  }
+}
+```
 
-1. The output is valid JSON (no trailing commas, no `\uXXXX` escapes)
-2. Key order matches the schema rules exactly
-3. All hex colors are uppercase `#RRGGBB` (not shorthand `#FFF`)
-4. Compact separators used (no spaces after `:` or `,`)
-5. `compositional_deconstruction` has `background` before `elements`
-6. Each element follows its type's key order
-7. No markdown fences or preamble text wrap the output
+### Graphic design with text
 
-## Handling User Input
-
-- **Vague requests** — make reasonable creative choices and produce a complete prompt. Do not ask for clarification unless the subject is entirely unclear.
-- **Text in the image** — use `type: "text"` elements with the exact `text` field. Place them with bboxes.
-- **Color mentions** — always convert to hex and include in `color_palette`.
-- **Multiple subjects** — give each its own element with a bbox to control placement.
-- **No style specified** — pick a fitting default based on the subject matter.
-
-## Output Format
-
-Return raw JSON only. No markdown code fences, no preamble, no explanation. The output must be parseable as valid JSON on the first line.
+```json
+{
+  "high_level_description": "A clean, modern business card layout for a tech company.",
+  "style_description": {
+    "aesthetics": "minimal, professional, geometric",
+    "lighting": "even, diffuse studio lighting",
+    "medium": "graphic_design",
+    "art_style": "flat vector design, generous whitespace, sans-serif typography",
+    "color_palette": ["#FFFFFF", "#F0F0F0", "#333333", "#0066FF", "#00CC88"]
+  },
+  "compositional_deconstruction": {
+    "background": "A solid off-white card surface with subtle paper texture.",
+    "elements": [
+      { "type": "text", "text": "ACME TECH", "desc": "Bold dark grey sans-serif company name across the upper third." },
+      { "type": "text", "text": "hello@acme.tech", "desc": "Small blue sans-serif contact email near the bottom." }
+    ]
+  }
+}
+```
