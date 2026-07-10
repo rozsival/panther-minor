@@ -93,7 +93,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models t2i load\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --exclusive --help -e -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy renew-ssl\'*)'

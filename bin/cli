@@ -852,7 +852,7 @@ cli_models_t2i_usage() {
   printf "  %s   List supported text-to-image models\n" "list    "
   printf "  %s   Remove a downloaded text-to-image model from the local Hugging Face cache\n" "remove  "
   printf "  %s   Load a text-to-image model into sd-server (replaces the currently loaded one)\n" "load    "
-  printf "  %s   Unload the text-to-image model by stopping sd-server to free GPU VRAM\n" "unload  "
+  printf "  %s   Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)\n" "unload  "
   echo
 
   # :command.long_usage
@@ -975,7 +975,7 @@ cli_models_t2i_load_usage() {
   printf "cli models t2i load - Load a text-to-image model into sd-server (replaces the currently loaded one)\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i load MODEL\n"
+  printf "  cli models t2i load MODEL [OPTIONS]\n"
   printf "  cli models t2i load --help | -h\n"
   echo
 
@@ -983,6 +983,12 @@ cli_models_t2i_load_usage() {
   if [[ -n "$long_usage" ]]; then
     # :command.usage_options
     printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--exclusive, -e"
+    printf "    Dedicate the image GPU(s) to sd-server by moving the LLMs off them (restarts\n    llama.cpp; undo with unload)\n"
+    echo
 
     # :command.usage_fixed_flags
     printf "  %s\n" "--help, -h"
@@ -1000,6 +1006,7 @@ cli_models_t2i_load_usage() {
     # :command.usage_examples
     printf "%s\n" "Examples:"
     printf "  cli models t2i load Qwen-Image-2512\n"
+    printf "  cli models t2i load --exclusive Qwen-Image-2512\n"
     echo
 
   fi
@@ -1007,7 +1014,7 @@ cli_models_t2i_load_usage() {
 
 # :command.usage
 cli_models_t2i_unload_usage() {
-  printf "cli models t2i unload - Unload the text-to-image model by stopping sd-server to free GPU VRAM\n\n"
+  printf "cli models t2i unload - Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)\n\n"
 
   printf "%s\n" "Usage:"
   printf "  cli models t2i unload\n"
@@ -1861,7 +1868,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models t2i load\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/t2i/config.json)") --exclusive --help -e -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy renew-ssl\'*)'
@@ -3047,7 +3054,13 @@ cli_models_t2i_load_command() {
   # src/models_t2i_load_command.sh
   panther_t2i_load() {
     local model="${args[model]}"
+    local exclusive="${args[--exclusive]:-}"
     panther_assert_supported_t2i "$model"
+
+    if [[ -n "$exclusive" ]]; then
+      panther_load_dotenv "$PANTHER_ENV_FILE"
+      [[ -n "${LLAMA_CPP_GPUS_SHARED:-}" ]] || panther_log_error "LLAMA_CPP_GPUS_SHARED is not set in $PANTHER_ENV_FILE. Add the GPU sets from .env.example."
+    fi
 
     local diffusion uncond llm vae model_args cache_dir
     diffusion="$(panther_t2i_component_path "$model" diffusion)"
@@ -3074,8 +3087,22 @@ cli_models_t2i_load_command() {
     # Per-model sd-server flags (sampling tuning such as --flow-shift), applied on launch.
     panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_MODEL_ARGS "$model_args"
 
+    if [[ -n "$exclusive" ]]; then
+      # Exclusive mode: hand image generation its dedicated SD_VISIBLE_DEVICES GPU by
+      # shrinking the LLMs to LLAMA_CPP_GPUS_SHARED, so the two never contend for the
+      # same VRAM during heavy image sessions. `models t2i unload` restores the LLMs
+      # to all GPUs.
+      panther_upsert_env_key "$PANTHER_ENV_FILE" ROCM_VISIBLE_DEVICES "$LLAMA_CPP_GPUS_SHARED"
+
+      panther_log_info "Loading text-to-image model '$model' and dedicating GPU(s) to image generation..."
+      panther_compose up --detach --force-recreate --no-deps llama-cpp stable-diffusion-cpp
+
+      panther_log_success "Text-to-image model '$model' loaded on its dedicated GPU(s). The LLMs were moved off; run './bin/cli models t2i unload' to give the GPU(s) back."
+      return 0
+    fi
+
     panther_log_info "Loading text-to-image model '$model' into sd-server..."
-    panther_compose up --detach --force-recreate llama-cpp --no-deps stable-diffusion-cpp
+    panther_compose up --detach --force-recreate --no-deps stable-diffusion-cpp
 
     panther_log_success "Text-to-image model '$model' loaded. sd-server now serves only this model."
   }
@@ -3089,13 +3116,23 @@ cli_models_t2i_unload_command() {
 
   # src/models_t2i_unload_command.sh
   panther_t2i_unload() {
-    # sd-server has no unload endpoint (it loads a single model for its lifetime),
-    # so freeing GPU VRAM means stopping the container. The next
-    # './bin/cli models t2i load <model>' or 'cluster start' brings it back.
-    panther_log_info 'Stopping sd-server to free image-generation VRAM...'
+    panther_load_dotenv "$PANTHER_ENV_FILE"
+    [[ -n "${LLAMA_CPP_GPUS_STANDALONE:-}" ]] || panther_log_error "LLAMA_CPP_GPUS_STANDALONE is not set in $PANTHER_ENV_FILE. Add the GPU sets from .env.example."
+
+    panther_log_info 'Stopping sd-server...'
     panther_compose stop stable-diffusion-cpp
 
-    panther_log_success 'Text-to-image model unloaded. sd-server stopped and its GPU VRAM freed.'
+    # If a previous `load --exclusive` shrank the LLMs off the image GPU, restore
+    # ROCM_VISIBLE_DEVICES to all GPUs and recreate llama-cpp so it reclaims them.
+    # After a plain (shared) `load` the GPU assignment was never touched, so
+    # stopping sd-server is all there is to do.
+    if [[ "${ROCM_VISIBLE_DEVICES:-}" != "$LLAMA_CPP_GPUS_STANDALONE" ]]; then
+      panther_log_info 'Returning the dedicated image GPU(s) to the LLMs...'
+      panther_upsert_env_key "$PANTHER_ENV_FILE" ROCM_VISIBLE_DEVICES "$LLAMA_CPP_GPUS_STANDALONE"
+      panther_compose up --detach --force-recreate --no-deps llama-cpp
+    fi
+
+    panther_log_success 'Text-to-image model unloaded. sd-server stopped and all GPUs belong to the LLMs.'
   }
 
   panther_t2i_unload
@@ -5659,6 +5696,13 @@ cli_models_t2i_load_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+      # :flag.case
+      --exclusive | -e)
+
+        # :flag.case_no_arg
+        args['--exclusive']=1
+        shift
+        ;;
 
       -?*)
         printf "invalid option: %s\n" "$key" >&2
@@ -5684,7 +5728,7 @@ cli_models_t2i_load_parse_requirements() {
 
   # :command.required_args_filter
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models t2i load MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: cli models t2i load MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi

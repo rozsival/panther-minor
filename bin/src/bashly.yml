@@ -284,13 +284,18 @@ commands:
                 required: true
                 help: Model name from models/t2i/config.json
                 validate: supported_t2i
+            flags:
+              - long: --exclusive
+                short: -e
+                help: Dedicate the image GPU(s) to sd-server by moving the LLMs off them (restarts llama.cpp; undo with unload)
             examples:
               - cli models t2i load Qwen-Image-2512
+              - cli models t2i load --exclusive Qwen-Image-2512
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
 
           - name: unload
-            help: Unload the text-to-image model by stopping sd-server to free GPU VRAM
+            help: Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)
 
       - name: prune
         help: Delete cached model files no config references anymore

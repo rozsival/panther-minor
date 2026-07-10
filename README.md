@@ -260,40 +260,18 @@ Panther Minor also serves local **text-to-image** generation through
 [Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF) (default) and
 [Qwen-Image 2512](https://huggingface.co/unsloth/Qwen-Image-2512-GGUF).
 
-The image service is **pinned to a dedicated GPU** (`SD_VISIBLE_DEVICES` in `.env`, default `1`) so image
-generation does not contend with the LLMs for VRAM. `sd-server` loads exactly **one** model per process, so only one
-text-to-image model is ever resident.
-
-### Download and select a model
+`sd-server` loads exactly **one** model per process, so only one text-to-image model is ever resident. Downloading,
+switching, per-model sampling defaults, and GPU assignment are all handled by the CLI:
 
 ```bash
 ./bin/cli models t2i download Ideogram-4  # or Qwen-Image-2512
-./bin/cli models t2i load Qwen-Image-2512 # switch the loaded model (recreates sd-server)
+./bin/cli models t2i load Qwen-Image-2512 # switch the served model (recreates sd-server)
 ```
 
-`load` rewrites the active-model variables in `.env` and recreates the single `stable-diffusion-cpp` container,
-replacing whatever was loaded before — so switching never leaves two models in VRAM. Switching is entirely a CLI
-operation: Open WebUI's image model field can stay at `default`, because `sd-server` serves whatever it has loaded
-regardless of the requested model id. See
-[Models](./models/README.md#switching-the-loaded-model) for details and the full command list.
-
-### Generate an image
-
-The API is exposed on port `8001` (see [PORTS.md](PORTS.md)):
-
-```bash
-curl -k https://<domain>:8001/v1/images/generations \
-  -H 'content-type: application/json' \
-  -d '{"model":"Ideogram-4","prompt":"a red panther, studio photo","size":"1024x1024","n":1,"response_format":"b64_json"}'
-```
-
-Open WebUI is wired to the same endpoint, so the image icon on a chat message generates images through `sd-manager`.
-
-> [!TIP]
-> Ideogram 4 favors richly structured prompts. You can pass native `stable-diffusion.cpp` options (seed, steps, cfg)
-> by embedding `<sd_cpp_extra_args>{"seed":357925}</sd_cpp_extra_args>` inside the prompt. Per-model sampling defaults
-> live in each model's `args` in
-> [`t2i/config.json`](./models/README.md#configuration) and apply automatically on `load`.
+Open WebUI needs no changes when switching — leave its image model field at `default`. See
+[Text-to-image models](./models/README.md#-text-to-image-models-t2i) for the full command reference, and
+[Recommended workflows](./models/README.md#-recommended-workflows) for how to combine image generation with LLM chats
+without VRAM contention.
 
 ---
 
@@ -333,9 +311,12 @@ This keeps the small helper model untouched while making large-model handovers d
 
 ### Image generation VRAM
 
-`sd-server` loads a single model and exposes no unload endpoint, so image-generation VRAM is not idle-unloaded. Instead,
-the image service is pinned to its own GPU via `SD_VISIBLE_DEVICES` so it stays isolated from the LLMs. `sd-manager`
-still records image activity and exposes a `sd_metrics_exporter_idle` gauge for visibility in Grafana.
+`sd-server` offloads its weights to RAM between generations (`--offload-to-cpu`), so it only holds VRAM while actually
+producing an image — idle image-generation VRAM frees itself. For heavy image sessions, `models t2i load --exclusive`
+dedicates a GPU to image generation and `models t2i unload` gives it back to the LLMs — see
+[Recommended workflows](./models/README.md#-recommended-workflows) and
+[GPU assignment](./models/README.md#gpu-assignment). `sd-manager` records image activity and exposes a
+`sd_metrics_exporter_idle` gauge for visibility in Grafana.
 
 ---
 
