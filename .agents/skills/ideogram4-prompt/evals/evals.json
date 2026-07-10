@@ -1,0 +1,108 @@
+{
+  "skill_name": "ideogram4-prompt",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Create an Ideogram 4 prompt for a photorealistic portrait of an elderly Japanese woman wearing a red kimono, sitting in a zen garden with cherry blossoms falling around her. Warm golden hour lighting.",
+      "expected_output": "Valid JSON with photograph medium, golden hour lighting, red/green/pink color palette, elements for the woman and cherry blossoms",
+      "files": [],
+      "expectations": [
+        "Output is valid, parseable JSON",
+        "Uses compact JSON separators (no spaces after : or ,)",
+        "Has compositional_deconstruction with background and elements",
+        "Has high_level_description field",
+        "Has style_description with photo field (not art_style)",
+        "medium is set to photograph",
+        "Key order in style_description follows: aesthetics, lighting, photo, medium, color_palette",
+        "Key order in elements follows: type, bbox, desc (for obj elements)",
+        "All hex colors are uppercase #RRGGBB format",
+        "Color palette includes warm/golden tones and red",
+        "Background describes the zen garden setting",
+        "Elements include the elderly woman as a distinct object",
+        "No markdown code fences wrapping the output",
+        "No preamble or explanation text before the JSON"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I need a flat vector illustration for a tech startup logo. It should show a stylized rocket ship taking off with the text 'LAUNCHPAD' underneath. Use blue and green colors on a white background.",
+      "expected_output": "Valid JSON with graphic_design medium, art_style field, text element for LAUNCHPAD, blue/green/white palette",
+      "files": [],
+      "expectations": [
+        "Output is valid, parseable JSON",
+        "Uses compact JSON separators (no spaces after : or ,)",
+        "Has compositional_deconstruction with background and elements",
+        "Has style_description with art_style field (not photo)",
+        "medium is set to graphic_design or illustration",
+        "Key order in style_description follows: aesthetics, lighting, medium, art_style, color_palette",
+        "Contains a text element with text field set to LAUNCHPAD",
+        "Text element key order follows: type, bbox, text, desc",
+        "All hex colors are uppercase #RRGGBB format",
+        "Color palette includes blue and green tones",
+        "Elements include the rocket ship as a distinct object",
+        "No markdown code fences wrapping the output",
+        "No preamble or explanation text before the JSON"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "make me a picture of a cyberpunk city street at night with neon signs in pink and cyan, rain-slicked streets reflecting the lights, a lone figure in a trench coat walking away from camera",
+      "expected_output": "Valid JSON with cinematic/photograph style, neon pink and cyan colors, dark moody palette, multiple elements for signs/street/figure",
+      "files": [],
+      "expectations": [
+        "Output is valid, parseable JSON",
+        "Uses compact JSON separators (no spaces after : or ,)",
+        "Has compositional_deconstruction with background and elements",
+        "Has style_description with photo or art_style field",
+        "All hex colors are uppercase #RRGGBB format",
+        "Color palette includes pink and cyan neon tones",
+        "Background describes the cyberpunk city street at night",
+        "Elements include the lone figure as a distinct object",
+        "Elements include neon signs or reflections as distinct objects",
+        "Lighting description mentions neon/rain/reflections or similar cyberpunk atmosphere",
+        "No markdown code fences wrapping the output",
+        "No preamble or explanation text before the JSON"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Ideogram 4 prompt: a 3D rendered isometric room of a cozy bookshelf nook with warm fairy lights, a small reading chair, and a sleeping cat on a rug. Octane render style with soft shadows.",
+      "expected_output": "Valid JSON with 3d_render medium, isometric composition, warm colors, elements for bookshelf/chair/cat",
+      "files": [],
+      "expectations": [
+        "Output is valid, parseable JSON",
+        "Uses compact JSON separators (no spaces after : or ,)",
+        "Has compositional_deconstruction with background and elements",
+        "medium is set to 3d_render",
+        "Has style_description with art_style field (not photo)",
+        "All hex colors are uppercase #RRGGBB format",
+        "Elements include the bookshelf as a distinct object",
+        "Elements include the reading chair as a distinct object",
+        "Elements include the sleeping cat as a distinct object",
+        "Each element has a bbox for spatial placement",
+        "No markdown code fences wrapping the output",
+        "No preamble or explanation text before the JSON"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Create a prompt for an oil painting of a stormy sea with a lighthouse on a rocky cliff. Dramatic, moody atmosphere with dark blues, greys, and a warm yellow light from the lighthouse.",
+      "expected_output": "Valid JSON with painting medium, dramatic lighting, dark blue/grey/yellow palette, elements for lighthouse/sea/cliff",
+      "files": [],
+      "expectations": [
+        "Output is valid, parseable JSON",
+        "Uses compact JSON separators (no spaces after : or ,)",
+        "Has compositional_deconstruction with background and elements",
+        "medium is set to painting",
+        "Has style_description with art_style field (not photo)",
+        "All hex colors are uppercase #RRGGBB format",
+        "Color palette includes dark blues, greys, and warm yellow",
+        "Elements include the lighthouse as a distinct object",
+        "Elements include the stormy sea or waves",
+        "Lighting description captures dramatic/moody atmosphere",
+        "No markdown code fences wrapping the output",
+        "No preamble or explanation text before the JSON"
+      ]
+    }
+  ]
+}

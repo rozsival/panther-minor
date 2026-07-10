@@ -33,3 +33,4 @@ tmp
 
 # Agents
 .agents/plans
+.pi-subagents
