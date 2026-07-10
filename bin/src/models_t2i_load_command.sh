@@ -28,7 +28,7 @@ panther_t2i_load() {
   panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_MODEL_ARGS "$model_args"
 
   panther_log_info "Loading text-to-image model '$model' into sd-server..."
-  panther_compose up --detach llama-cpp --no-deps stable-diffusion-cpp
+  panther_compose up --detach --force-recreate llama-cpp --no-deps stable-diffusion-cpp
 
   panther_log_success "Text-to-image model '$model' loaded. sd-server now serves only this model."
 }
