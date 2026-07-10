@@ -28,7 +28,7 @@
     "@biomejs/biome": "2.5.2",
     "@commitlint/cli": "21.2.0",
     "@commitlint/config-conventional": "21.2.0",
-    "@types/node": "24.13.2",
+    "@types/node": "24.13.3",
     "eslint": "10.6.0",
     "is-ci": "4.1.0",
     "lefthook": "2.1.9",
