@@ -36,7 +36,7 @@ before generating any prompt.
 
 6. **Self-validate** — before outputting, verify against the checklist in the Self-Validation section below. Fix any issues.
 
-7. **Output only the JSON** — no markdown fences, no commentary, unless the user asks for explanation.
+7. **Output only the JSON** — format as markdown code block, pure JSON if asked to save to file
 
 ## Schema Rules
 
