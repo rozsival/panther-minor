@@ -3,6 +3,8 @@
 # -- llama.cpp server entrypoint ----------------------------------------------
 exec /opt/llama-cpp/build/bin/llama-server \
   --batch-size "$LLAMA_CPP_BATCH_SIZE" \
+  --cache-prompt \
+  --cache-ram "$LLAMA_CPP_CACHE_RAM" \
   --host 0.0.0.0 \
   --metrics \
   --models-max "$LLAMA_CPP_MODELS_MAX" \
