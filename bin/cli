@@ -6858,7 +6858,7 @@ after_hook() {
 
 # :command.initialize
 initialize() {
-  declare -g version="4.1.0"
+  declare -g version="4.2.0"
   set -e
 
   # src/initialize.sh
