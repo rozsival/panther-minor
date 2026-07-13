@@ -2,7 +2,7 @@ panther_llm_config_file() {
   printf '%s\n' "$PANTHER_MODELS_DIR/llm/config.json"
 }
 panther_supported_llms() {
-  jq -r '.models[] | .name + (if .thinking == true then " (thinking)" else "" end)' "$(panther_llm_config_file)"
+  jq -r '.models[].name' "$(panther_llm_config_file)"
 }
 panther_assert_supported_llm() {
   local model="$1"
@@ -22,8 +22,5 @@ panther_llm_config() {
 panther_llm_model_files() {
   local model="$1"
   panther_llm_config "$model" | jq -r \
-    '.repository as $r
-       | ($r + "/" + .file),
-         (if .mmproj then $r + "/" + .mmproj else empty end),
-         (if .draft then $r + "/" + .draft else empty end)'
+    '.repository as $r | .files[] | $r + "/" + .'
 }

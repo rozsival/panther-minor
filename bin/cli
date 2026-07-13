@@ -1632,7 +1632,7 @@ panther_llm_config_file() {
   printf '%s\n' "$PANTHER_MODELS_DIR/llm/config.json"
 }
 panther_supported_llms() {
-  jq -r '.models[] | .name + (if .thinking == true then " (thinking)" else "" end)' "$(panther_llm_config_file)"
+  jq -r '.models[].name' "$(panther_llm_config_file)"
 }
 panther_assert_supported_llm() {
   local model="$1"
@@ -1652,10 +1652,7 @@ panther_llm_config() {
 panther_llm_model_files() {
   local model="$1"
   panther_llm_config "$model" | jq -r \
-    '.repository as $r
-       | ($r + "/" + .file),
-         (if .mmproj then $r + "/" + .mmproj else empty end),
-         (if .draft then $r + "/" + .draft else empty end)'
+    '.repository as $r | .files[] | $r + "/" + .'
 }
 
 # src/lib/logging.sh
@@ -1694,16 +1691,14 @@ panther_t2i_referenced_files() {
     "$(panther_t2i_config_file)"
 }
 
-# Hub-relative paths referenced by the LLM config (model, optional mmproj/draft).
+# Hub-relative paths referenced by the LLM config.
 # Pass a model name to exclude that model.
 panther_llm_referenced_files() {
   jq -r --arg ex "${1:-}" \
     '.models[]
        | select(.name != $ex)
        | .repository as $r
-       | ($r + "/" + .file),
-         (if .mmproj then $r + "/" + .mmproj else empty end),
-         (if .draft then $r + "/" + .draft else empty end)' \
+       | .files[] | $r + "/" + .' \
     "$(panther_llm_config_file)"
 }
 
@@ -2762,26 +2757,21 @@ cli_models_llm_download_command() {
     panther_assert_supported_llm "$model"
     panther_load_dotenv "$PANTHER_ENV_FILE"
 
-    local model_config hf_repository hf_file draft mmproj model_name cache_dir local_dir
+    local model_config hf_repository model_name cache_dir local_dir
     model_config="$(panther_llm_config "$model")"
     [[ -n "$model_config" ]] || panther_log_error "Model '$model' not found in $(panther_llm_config_file)"
 
     hf_repository="$(jq -r '.repository' <<<"$model_config")"
-    hf_file="$(jq -r '.file' <<<"$model_config")"
-    draft="$(jq -r '.draft // empty' <<<"$model_config")"
-    mmproj="$(jq -r '.mmproj // empty' <<<"$model_config")"
     model_name="$(jq -r '.name' <<<"$model_config")"
 
     cache_dir="$(panther_hf_cache_dir)"
-    # All of a model's files come from one repository, so they share one local dir.
     local_dir="$cache_dir/$hf_repository"
 
-    local -a files=("$hf_repository/$hf_file")
-    [[ -n "$mmproj" ]] && files+=("$hf_repository/$mmproj")
-    [[ -n "$draft" ]] && files+=("$hf_repository/$draft")
+    local -a hub_files
+    mapfile -t hub_files < <(jq -r --arg repo "$hf_repository" '.files[] | $repo + "/" + .' <<<"$model_config")
 
     local all_present=1 f
-    for f in "${files[@]}"; do
+    for f in "${hub_files[@]}"; do
       [[ -f "$cache_dir/$f" ]] || all_present=0
     done
 
@@ -2789,14 +2779,15 @@ cli_models_llm_download_command() {
       panther_log_info "Model '$model_name' already present; skipping (use --force to re-download)."
     else
       if [[ -n "$force" ]]; then
-        for f in "${files[@]}"; do
+        for f in "${hub_files[@]}"; do
           rm -f "$cache_dir/$f"
         done
       fi
 
-      local -a hf_download_args=("$hf_repository" --include "$hf_file" --local-dir "$local_dir")
-      [[ -n "$draft" ]] && hf_download_args+=(--include "$draft")
-      [[ -n "$mmproj" ]] && hf_download_args+=(--include "$mmproj")
+      local -a hf_download_args=("$hf_repository" --local-dir "$local_dir")
+      while IFS= read -r filename; do
+        hf_download_args+=(--include "$filename")
+      done < <(jq -r '.files[]' <<<"$model_config")
 
       panther_log_info "Downloading '$model_name' from '$hf_repository'..."
       hf download "${hf_download_args[@]}"

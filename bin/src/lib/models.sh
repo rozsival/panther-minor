@@ -18,16 +18,14 @@ panther_t2i_referenced_files() {
     "$(panther_t2i_config_file)"
 }
 
-# Hub-relative paths referenced by the LLM config (model, optional mmproj/draft).
+# Hub-relative paths referenced by the LLM config.
 # Pass a model name to exclude that model.
 panther_llm_referenced_files() {
   jq -r --arg ex "${1:-}" \
     '.models[]
        | select(.name != $ex)
        | .repository as $r
-       | ($r + "/" + .file),
-         (if .mmproj then $r + "/" + .mmproj else empty end),
-         (if .draft then $r + "/" + .draft else empty end)' \
+       | .files[] | $r + "/" + .' \
     "$(panther_llm_config_file)"
 }
 

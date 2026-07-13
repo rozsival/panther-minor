@@ -3,43 +3,35 @@
   "models": [
     {
       "name": "Qwen3.6-35B-A3B",
-      "file": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf",
-      "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
-      "thinking": true,
-      "vision": true
+      "files": ["Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf", "mmproj-F16.gguf"]
     },
     {
       "name": "Qwen3.6-27B",
-      "file": "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf",
-      "mmproj": "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf",
       "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
-      "thinking": true,
-      "vision": true
+      "files": [
+        "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf",
+        "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf"
+      ]
     },
     {
       "name": "Gemma-4-31B",
-      "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf",
-      "draft": "mtp-gemma-4-31B-it.gguf",
-      "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/gemma-4-31B-it-GGUF",
-      "thinking": true,
-      "vision": true
+      "files": [
+        "gemma-4-31B-it-UD-Q4_K_XL.gguf",
+        "mtp-gemma-4-31B-it.gguf",
+        "mmproj-F16.gguf"
+      ]
     },
     {
       "name": "Qwen3.5-2B",
-      "file": "Qwen3.5-2B-Q8_0.gguf",
-      "mmproj": "mmproj-F16.gguf",
       "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
-      "thinking": true,
-      "vision": true
+      "files": ["Qwen3.5-2B-Q8_0.gguf", "mmproj-F16.gguf"]
     },
     {
       "name": "Qwen3-Embedding-0.6B",
-      "file": "Qwen3-Embedding-0.6B-f16.gguf",
       "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
-      "thinking": false,
-      "vision": false
+      "files": ["Qwen3-Embedding-0.6B-f16.gguf"]
     }
   ],
   "version": "4.2.1"
