@@ -1,8 +1,8 @@
 export const largeModelIds = new Set([
-  'Qwen3.6-35B-A3B',
-  'Qwen3.6-35B-A3B-thinking',
-  'Qwen3.6-27B',
   'Qwen3.6-27B-thinking',
+  'Qwen3.6-27B',
+  'Qwen3.6-35B-A3B-thinking',
+  'Qwen3.6-35B-A3B',
   'Gemma-4-31B',
   'Gemma-4-31B-thinking',
 ]);
