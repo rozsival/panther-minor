@@ -12,6 +12,7 @@ Configuration files for connecting external coding agents to Panther Minor's loc
 Copy the preset files into your Pi agent directory:
 
 ```bash
+mkdir -p ~/.pi/agent
 cp harnesses/pi/*.json ~/.pi/agent/
 ```
 
@@ -22,6 +23,7 @@ See [Pi settings docs](https://github.com/badlogic/pi-mono/tree/main/packages/co
 Copy the preset files into your OMP agent directory:
 
 ```bash
+mkdir -p ~/.omp/agent
 cp harnesses/omp/*.yml ~/.omp/agent/
 ```
 
@@ -32,6 +34,7 @@ See [OMP docs](https://omp.sh/docs/custom-models) for details.
 Copy the preset as your OpenCode configuration:
 
 ```bash
+mkdir -p ~/.config/opencode
 cp harnesses/opencode.json ~/.config/opencode/opencode.json
 ```
 
