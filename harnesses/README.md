@@ -19,10 +19,10 @@ See [Pi settings docs](https://github.com/badlogic/pi-mono/tree/main/packages/co
 
 ### OMP (Oh My Pi)
 
-Copy the preset into your OMP agent directory:
+Copy the preset files into your OMP agent directory:
 
 ```bash
-cp harnesses/omp/models.yml ~/.omp/agent/models.yml
+cp harnesses/omp/*.yml ~/.omp/agent/
 ```
 
 See [OMP docs](https://omp.sh/docs/custom-models) for details.
