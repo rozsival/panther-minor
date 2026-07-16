@@ -14,14 +14,14 @@ clarification before proceeding.
 
 ## Files affected
 
-| File                          | What changes                                 |
-| ----------------------------- | -------------------------------------------- |
-| `models/llm/config.json`      | New model entry with repository + files list |
-| `models/llm/preset.ini`       | New INI section(s) with runtime settings     |
-| `models/llm/opencode.json`    | New model definition(s) under provider       |
-| `llama-cpp/models.js`         | Added to `largeModelIds` if ≥ 27B params     |
-| `models/llm/pi/models.json`   | New model entry in provider's models array   |
-| `models/llm/pi/settings.json` | Added to `enabledModels` if coding-suitable  |
+| File                         | What changes                                 |
+| ---------------------------- | -------------------------------------------- |
+| `models/llm/config.json`     | New model entry with repository + files list |
+| `models/llm/preset.ini`      | New INI section(s) with runtime settings     |
+| `harnesses/opencode.json`    | New model definition(s) under provider       |
+| `llama-cpp/models.js`        | Added to `largeModelIds` if ≥ 27B params     |
+| `harnesses/pi/models.json`   | New model entry in provider's models array   |
+| `harnesses/pi/settings.json` | Added to `enabledModels` if coding-suitable  |
 
 ## Wizard questions
 
@@ -103,7 +103,7 @@ path pattern. If a draft model file was provided, add a `model-draft` line.
 If the model is ≥ 27B parameters (judge from the name — e.g. "35B", "31B"), add its ID(s) to
 `largeModelIds`.
 
-### `models/llm/opencode.json`
+### `harnesses/opencode.json`
 
 If coding-suitable, add under `provider.panther-minor.models`:
 
@@ -121,7 +121,7 @@ If coding-suitable, add under `provider.panther-minor.models`:
 
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
 
-### `models/llm/pi/models.json`
+### `harnesses/pi/models.json`
 
 If coding-suitable, add a new object to `providers.panther-minor.models`:
 
@@ -139,7 +139,7 @@ If coding-suitable, add a new object to `providers.panther-minor.models`:
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
 For multimodal models, set `"input": ["text", "image"]`.
 
-### `models/llm/pi/settings.json`
+### `harnesses/pi/settings.json`
 
 If coding-suitable, append the model ID and its thinking variant ID (if applicable) to
 `enabledModels`.

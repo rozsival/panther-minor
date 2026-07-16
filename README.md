@@ -334,4 +334,5 @@ See [Panther Minor Controller](https://github.com/rozsival/panther-minor-control
 
 - [Panther Minor CLI](./bin/README.md) — full command reference for managing the cluster
 - [Models](./models/README.md) — model presets and usage
+- [Coding Harness Presets](./harnesses/README.md) — recommended config files for coding agents (Pi, OpenCode, etc.)
 - [Port Configuration](./PORTS.md) — ports, routing, and service access details

@@ -112,32 +112,6 @@ through `llm/preset.ini`
 ./bin/cli models llm unload <model>         # Manually unload an LLM from the llama.cpp cluster
 ```
 
-### Coding agent presets
-
-Presets that connect external coding agents to the local LLM API live in `llm/`.
-
-#### OpenCode
-
-Use `llm/opencode.json` as the recommended [configuration](https://opencode.ai/docs/config/) for OpenCode:
-
-```bash
-cp llm/opencode.json ~/.config/opencode/opencode.json
-```
-
-> [!IMPORTANT]
-> Replace `<domain>` in `opencode.json` with your actual domain so OpenCode can connect to the API correctly.
-
-#### Pi
-
-Use `llm/pi/models.json` and `llm/pi/settings.json` as the recommended [settings](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#settings) for Pi:
-
-```bash
-cp llm/pi/*.json ~/.pi/agent/
-```
-
-> [!IMPORTANT]
-> Replace `<domain>` in `models.json` with your actual domain so Pi can connect to the API correctly.
-
 ---
 
 ## 🎨 Text-to-image models (`t2i/`)
