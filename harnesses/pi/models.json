@@ -6,16 +6,8 @@
       "api": "openai-completions",
       "models": [
         {
-          "id": "Qwen3.6-35B-A3B",
-          "name": "Qwen3.6-35B-A3B",
-          "reasoning": false,
-          "input": ["text", "image"],
-          "contextWindow": 262144,
-          "maxTokens": 65536
-        },
-        {
-          "id": "Qwen3.6-35B-A3B-thinking",
-          "name": "Qwen3.6-35B-A3B (thinking)",
+          "id": "Qwen3.6-27B-thinking",
+          "name": "Qwen3.6-27B (thinking)",
           "reasoning": true,
           "input": ["text", "image"],
           "contextWindow": 262144,
@@ -30,9 +22,17 @@
           "maxTokens": 65536
         },
         {
-          "id": "Qwen3.6-27B-thinking",
-          "name": "Qwen3.6-27B (thinking)",
+          "id": "Qwen3.6-35B-A3B-thinking",
+          "name": "Qwen3.6-35B-A3B (thinking)",
           "reasoning": true,
+          "input": ["text", "image"],
+          "contextWindow": 262144,
+          "maxTokens": 65536
+        },
+        {
+          "id": "Qwen3.6-35B-A3B",
+          "name": "Qwen3.6-35B-A3B",
+          "reasoning": false,
           "input": ["text", "image"],
           "contextWindow": 262144,
           "maxTokens": 65536

@@ -2,17 +2,17 @@
   "$schema": "./config.schema.json",
   "models": [
     {
-      "name": "Qwen3.6-35B-A3B",
-      "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
-      "files": ["Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf", "mmproj-F16.gguf"]
-    },
-    {
       "name": "Qwen3.6-27B",
       "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
       "files": [
         "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf",
         "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf"
       ]
+    },
+    {
+      "name": "Qwen3.6-35B-A3B",
+      "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
+      "files": ["Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf", "mmproj-F16.gguf"]
     },
     {
       "name": "Gemma-4-31B",

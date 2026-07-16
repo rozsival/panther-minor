@@ -1,6 +1,6 @@
 {
   "defaultProvider": "panther-minor",
-  "defaultModel": "Qwen3.6-35B-A3B",
+  "defaultModel": "Qwen3.6-27B-thinking",
   "compaction": {
     "enabled": true
   },
@@ -10,9 +10,9 @@
     "maxDelayMs": 600000
   },
   "enabledModels": [
-    "Qwen3.6-35B-A3B",
-    "Qwen3.6-35B-A3B-thinking",
+    "Qwen3.6-27B-thinking",
     "Qwen3.6-27B",
-    "Qwen3.6-27B-thinking"
+    "Qwen3.6-35B-A3B-thinking",
+    "Qwen3.6-35B-A3B"
   ]
 }
