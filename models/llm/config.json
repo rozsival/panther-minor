@@ -34,5 +34,5 @@
       "files": ["Qwen3-Embedding-0.6B-f16.gguf"]
     }
   ],
-  "version": "4.2.1"
+  "version": "5.0.0"
 }
