@@ -1,4 +1,4 @@
-# 🛠️ Coding Harness Presets
+# 👨‍💻 Coding Harness Presets
 
 Configuration files for connecting external coding agents to Panther Minor's local LLM API.
 
@@ -16,6 +16,16 @@ cp harnesses/pi/*.json ~/.pi/agent/
 ```
 
 See [Pi settings docs](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#settings) for details.
+
+### OMP (Oh My Pi)
+
+Copy the preset into your OMP agent directory:
+
+```bash
+cp harnesses/omp/models.yml ~/.omp/agent/models.yml
+```
+
+See [OMP docs](https://omp.sh/docs/custom-models) for details.
 
 ### OpenCode
 
