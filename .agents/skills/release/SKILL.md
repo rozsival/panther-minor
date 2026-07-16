@@ -78,11 +78,13 @@ Update each match to the new version in-place. Do **not** hand-edit `bin/cli` â€
    ```bash
     git tag -s vX.Y.Z -m "Release vX.Y.Z"
    ```
-7. **Push to remote**:
+7. **Push to remote** â€” push **sequentially**, NOT in parallel:
    ```bash
-   git push origin main
    git push origin vX.Y.Z
+   git push origin main
    ```
+   Push the tag first, then the branch. Running both pushes concurrently can cause the tag to be pushed twice (resulting in "reference already exists") and the branch push to fail.
+   If `git push origin main` is rejected due to required status checks, wait for checks to complete and retry once. Do not retry more than once.
 
 ## Confirmation
 
