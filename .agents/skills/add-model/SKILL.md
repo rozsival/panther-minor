@@ -20,6 +20,7 @@ clarification before proceeding.
 | `models/llm/preset.ini`       | New INI section(s) with runtime settings     |
 | `models/llm/opencode.json`    | New model definition(s) under provider       |
 | `llama-cpp/models.js`         | Added to `largeModelIds` if ≥ 27B params     |
+| `models/llm/pi/models.json`   | New model entry in provider's models array   |
 | `models/llm/pi/settings.json` | Added to `enabledModels` if coding-suitable  |
 
 ## Wizard questions
@@ -39,23 +40,28 @@ Ask these **one at a time**. Wait for the answer before moving on.
 9. **Speculative decoding (MTP)?** — `yes` enables `spec-type = draft-mtp` and `spec-draft-n-max = 2`.
    If yes, follow up: **separate draft model file needed?** If yes, the user provides a draft
    filename (added to the files list and as `model-draft` in preset.ini).
-10. **Coding-suitable?** — `yes` means the model is added to `opencode.json` and
-    `pi/settings.json`.
+10. **Multimodal?** — `yes` means the model accepts image input (added to `pi/models.json` as
+    `"input": ["text", "image"]`). `no` means text only (`"input": ["text"]`).
+11. **Max tokens?** — maximum output tokens for Pi (defaults to `65536`).
+12. **Coding-suitable?** — `yes` means the model is added to `opencode.json`,
+    `pi/models.json`, and `pi/settings.json`.
 
 ## Defaults
 
 Apply these defaults unless the user specifies otherwise:
 
-| Setting            | Default |
-| ------------------ | ------- |
-| `flash-attn`       | `on`    |
-| `n-gpu-layers`     | `auto`  |
-| `min-p`            | `0.0`   |
-| `presence-penalty` | `0.0`   |
-| `repeat-penalty`   | `1.0`   |
-| `temp`             | `1.0`   |
-| `top-k`            | `20`    |
-| `top-p`            | `0.95`  |
+| Setting            | Default    |
+| ------------------ | ---------- |
+| `flash-attn`       | `on`       |
+| `n-gpu-layers`     | `auto`     |
+| `min-p`            | `0.0`      |
+| `presence-penalty` | `0.0`      |
+| `repeat-penalty`   | `1.0`      |
+| `temp`             | `1.0`      |
+| `top-k`            | `20`       |
+| `top-p`            | `0.95`     |
+| `maxTokens`        | `65536`    |
+| `input`            | `["text"]` |
 
 For reasoning (`-thinking`) variants: `temp = 0.6`.
 
@@ -114,6 +120,24 @@ If coding-suitable, add under `provider.panther-minor.models`:
 ```
 
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
+
+### `models/llm/pi/models.json`
+
+If coding-suitable, add a new object to `providers.panther-minor.models`:
+
+```json
+{
+  "id": "<name>",
+  "name": "<alias>",
+  "reasoning": false,
+  "input": ["text"],
+  "contextWindow": <ctx-size>,
+  "maxTokens": <max-tokens>
+}
+```
+
+For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
+For multimodal models, set `"input": ["text", "image"]`.
 
 ### `models/llm/pi/settings.json`
 
