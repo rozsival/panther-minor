@@ -1,5 +1,5 @@
 panther_llm_config_file() {
-  printf '%s\n' "$PANTHER_MODELS_DIR/llm/config.json"
+  printf '%s\n' "$PANTHER_MODELS_DIR/llm.config.json"
 }
 panther_supported_llms() {
   jq -r '.models[].name' "$(panther_llm_config_file)"

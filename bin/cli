@@ -1629,7 +1629,7 @@ panther_confirm() {
 
 # src/lib/llm.sh
 panther_llm_config_file() {
-  printf '%s\n' "$PANTHER_MODELS_DIR/llm/config.json"
+  printf '%s\n' "$PANTHER_MODELS_DIR/llm.config.json"
 }
 panther_supported_llms() {
   jq -r '.models[].name' "$(panther_llm_config_file)"
@@ -2139,7 +2139,7 @@ panther_print_setup_summary() {
 
 # src/lib/t2i.sh
 panther_t2i_config_file() {
-  printf '%s\n' "$PANTHER_MODELS_DIR/t2i/config.json"
+  printf '%s\n' "$PANTHER_MODELS_DIR/t2i.config.json"
 }
 panther_supported_t2i() {
   jq -r '.models[] | .name' "$(panther_t2i_config_file)"
@@ -2227,7 +2227,7 @@ validate_port() {
 
 # src/lib/validations/validate_supported_llm.sh
 validate_supported_llm() {
-  local config_file="$PANTHER_MODELS_DIR/llm/config.json"
+  local config_file="$PANTHER_MODELS_DIR/llm.config.json"
   if [[ ! -f "$config_file" ]]; then
     echo "llm models config file not found: $config_file"
     return
@@ -2244,7 +2244,7 @@ validate_supported_llm() {
 
 # src/lib/validations/validate_supported_t2i.sh
 validate_supported_t2i() {
-  local config_file="$PANTHER_MODELS_DIR/t2i/config.json"
+  local config_file="$PANTHER_MODELS_DIR/t2i.config.json"
   if [[ ! -f "$config_file" ]]; then
     echo "text-to-image models config file not found: $config_file"
     return

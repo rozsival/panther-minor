@@ -1,5 +1,5 @@
 panther_t2i_config_file() {
-  printf '%s\n' "$PANTHER_MODELS_DIR/t2i/config.json"
+  printf '%s\n' "$PANTHER_MODELS_DIR/t2i.config.json"
 }
 panther_supported_t2i() {
   jq -r '.models[] | .name' "$(panther_t2i_config_file)"

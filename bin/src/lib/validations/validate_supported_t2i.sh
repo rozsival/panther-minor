@@ -1,5 +1,5 @@
 validate_supported_t2i() {
-  local config_file="$PANTHER_MODELS_DIR/t2i/config.json"
+  local config_file="$PANTHER_MODELS_DIR/t2i.config.json"
   if [[ ! -f "$config_file" ]]; then
     echo "text-to-image models config file not found: $config_file"
     return

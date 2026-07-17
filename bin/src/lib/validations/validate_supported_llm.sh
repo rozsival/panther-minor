@@ -1,5 +1,5 @@
 validate_supported_llm() {
-  local config_file="$PANTHER_MODELS_DIR/llm/config.json"
+  local config_file="$PANTHER_MODELS_DIR/llm.config.json"
   if [[ ! -f "$config_file" ]]; then
     echo "llm models config file not found: $config_file"
     return
