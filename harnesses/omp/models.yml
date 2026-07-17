@@ -28,3 +28,15 @@ providers:
         input: [text, image]
         contextWindow: 262144
         maxTokens: 65536
+      - id: DeepSeek-V4-Flash-thinking
+        name: DeepSeek V4 Flash (thinking)
+        reasoning: true
+        input: [text]
+        contextWindow: 262144
+        maxTokens: 65536
+      - id: DeepSeek-V4-Flash
+        name: DeepSeek V4 Flash
+        reasoning: false
+        input: [text]
+        contextWindow: 262144
+        maxTokens: 65536

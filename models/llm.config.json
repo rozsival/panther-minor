@@ -32,6 +32,16 @@
         "mtp-gemma-4-31B-it.gguf",
         "mmproj-F16.gguf"
       ]
+    },
+    {
+      "name": "DeepSeek-V4-Flash",
+      "repository": "unsloth/DeepSeek-V4-Flash-GGUF",
+      "files": [
+        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00001-of-00004.gguf",
+        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00002-of-00004.gguf",
+        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00003-of-00004.gguf",
+        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00004-of-00004.gguf"
+      ]
     }
   ],
   "version": "5.0.0"

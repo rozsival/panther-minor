@@ -19,6 +19,7 @@ clarification before proceeding.
 | `models/llm.config.json`     | New model entry with repository + files list |
 | `llama-cpp/preset.ini`       | New INI section(s) with runtime settings     |
 | `harnesses/opencode.json`    | New model definition(s) under provider       |
+| `harnesses/omp/models.yml`   | New model entry in provider's models list    |
 | `llama-cpp/models.js`        | Added to `largeModelIds` if ≥ 27B params     |
 | `harnesses/pi/models.json`   | New model entry in provider's models array   |
 | `harnesses/pi/settings.json` | Added to `enabledModels` if coding-suitable  |
@@ -44,7 +45,7 @@ Ask these **one at a time**. Wait for the answer before moving on.
     `"input": ["text", "image"]`). `no` means text only (`"input": ["text"]`).
 11. **Max tokens?** — maximum output tokens for Pi (defaults to `65536`).
 12. **Coding-suitable?** — `yes` means the model is added to `opencode.json`,
-    `pi/models.json`, and `pi/settings.json`.
+    `omp/models.yml`, `pi/models.json`, and `pi/settings.json`.
 
 ## Defaults
 
@@ -120,6 +121,22 @@ If coding-suitable, add under `provider.panther-minor.models`:
 ```
 
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
+
+### `harnesses/omp/models.yml`
+
+If coding-suitable, add under `providers.panther-minor.models`:
+
+```yaml
+- id: '<name>'
+  name: '<alias>'
+  reasoning: false
+  input: [text]
+  contextWindow: <ctx-size>
+  maxTokens: <max-tokens>
+```
+
+For the thinking variant: `reasoning: true`, name appended with ` (thinking)`.
+For multimodal models, set `input: [text, image]`.
 
 ### `harnesses/pi/models.json`
 
