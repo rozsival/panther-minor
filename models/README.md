@@ -25,53 +25,6 @@ The cache is managed entirely by the CLI:
 ./bin/cli models prune                      # Reclaim files no config references anymore (also runs after download/remove)
 ```
 
-## 🧭 Recommended workflows
-
-LLMs and image generation share the same GPUs, so running heavyweight models of both kinds at once contends for VRAM
-and can OOM. Pick the workflow that matches your session:
-
-### Everyday: chat with occasional images (no GPU switching)
-
-The chat model plays a small role in the mechanics of image generation — it triggers the image tool call, hands a
-prompt to the image API, and comments on the result. What it must be able to do is **author the prompt**, and that is
-where the two text-to-image models differ, so pick the chat model to match the loaded image model:
-
-| Loaded image model | Prompting                                  | Recommended chat model  | Why                                                                                                                                                                |
-| ------------------ | ------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Qwen-Image-2512`  | Plain text                                 | `Qwen3.5-2B`            | Relaying a text prompt needs no capacity — and staying lightweight matters, because Qwen-Image is the VRAM-heavy stack and OOMs when paired with a heavyweight LLM |
-| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.6-27B` or larger | Small models lack the capacity to drive the JSON-prompt skill reliably — and Ideogram 4's stack is light on VRAM, so a heavyweight LLM coexists with it just fine  |
-
-1. Load a text-to-image model once: `./bin/cli models t2i load <model>`.
-2. When you want images, start the chat with the model from the table above.
-3. That's it — no GPU reassignment, no container restarts, and no cleanup afterwards.
-
-`stable-diffusion.cpp` offloads its weights to RAM between generations, so it only holds VRAM while actually producing
-an image — idle VRAM frees itself, no manual unload needed.
-
-> [!TIP]
-> The `ideogram4-prompt` skill (`.agents/skills/ideogram4-prompt/SKILL.md`) turns natural language into valid Ideogram 4
-> JSON prompts. For Open WebUI, register it as a custom skill/prompt in the admin settings so image chats can use it
-> directly — just drive it with a sufficiently capable chat model.
-
-### Heavy image sessions: dedicate a GPU
-
-When you generate lots of images, or need a pairing the shared GPUs cannot fit — most notably **Qwen-Image next to a
-heavyweight LLM** — give image generation a GPU of its own:
-
-```bash
-./bin/cli models t2i load --exclusive <model>   # LLMs shrink onto their own GPU(s), sd-server gets a dedicated one
-./bin/cli models t2i unload                     # Done: sd-server stops, all GPUs return to the LLMs
-```
-
-See [GPU assignment](#gpu-assignment) for how the split works and how to adapt it to your GPU topology.
-
-> [!WARNING]
-> OOM errors are most likely when the **Qwen-Image** stack runs alongside a larger LLM (27B+) on the shared GPUs.
-> Ideogram 4's stack is much lighter and tolerates a heavyweight neighbor. When in doubt — or when generating while an
-> LLM is under heavy load — use `--exclusive`.
-
----
-
 ## 📚 Large language models (`llm/`)
 
 Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
@@ -196,3 +149,50 @@ The GPU sets live in `.env` (see `.env.example`) — edit them to match your GPU
 > [!NOTE]
 > `load --exclusive` and the `unload` that follows it restart `llama-cpp`, so any resident LLMs reload lazily on the
 > next request. This is the price of a clean GPU handoff — switch modes per work session, not per image.
+
+---
+
+## 🧭 Recommended workflows
+
+LLMs and image generation share the same GPUs, so running heavyweight models of both kinds at once contends for VRAM
+and can OOM. Pick the workflow that matches your session:
+
+### Everyday: chat with occasional images (no GPU switching)
+
+The chat model plays a small role in the mechanics of image generation — it triggers the image tool call, hands a
+prompt to the image API, and comments on the result. What it must be able to do is **author the prompt**, and that is
+where the two text-to-image models differ, so pick the chat model to match the loaded image model:
+
+| Loaded image model | Prompting                                  | Recommended chat model  | Why                                                                                                                                                                |
+| ------------------ | ------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Qwen-Image-2512`  | Plain text                                 | `Qwen3.5-2B`            | Relaying a text prompt needs no capacity — and staying lightweight matters, because Qwen-Image is the VRAM-heavy stack and OOMs when paired with a heavyweight LLM |
+| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.6-27B` or larger | Small models lack the capacity to drive the JSON-prompt skill reliably — and Ideogram 4's stack is light on VRAM, so a heavyweight LLM coexists with it just fine  |
+
+1. Load a text-to-image model once: `./bin/cli models t2i load <model>`.
+2. When you want images, start the chat with the model from the table above.
+3. That's it — no GPU reassignment, no container restarts, and no cleanup afterwards.
+
+`stable-diffusion.cpp` offloads its weights to RAM between generations, so it only holds VRAM while actually producing
+an image — idle VRAM frees itself, no manual unload needed.
+
+> [!TIP]
+> The `ideogram4-prompt` skill (`.agents/skills/ideogram4-prompt/SKILL.md`) turns natural language into valid Ideogram 4
+> JSON prompts. For Open WebUI, register it as a custom skill/prompt in the admin settings so image chats can use it
+> directly — just drive it with a sufficiently capable chat model.
+
+### Heavy image sessions: dedicate a GPU
+
+When you generate lots of images, or need a pairing the shared GPUs cannot fit — most notably **Qwen-Image next to a
+heavyweight LLM** — give image generation a GPU of its own:
+
+```bash
+./bin/cli models t2i load --exclusive <model>   # LLMs shrink onto their own GPU(s), sd-server gets a dedicated one
+./bin/cli models t2i unload                     # Done: sd-server stops, all GPUs return to the LLMs
+```
+
+See [GPU assignment](#gpu-assignment) for how the split works and how to adapt it to your GPU topology.
+
+> [!WARNING]
+> OOM errors are most likely when the **Qwen-Image** stack runs alongside a larger LLM (27B+) on the shared GPUs.
+> Ideogram 4's stack is much lighter and tolerates a heavyweight neighbor. When in doubt — or when generating while an
+> LLM is under heavy load — use `--exclusive`.

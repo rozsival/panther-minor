@@ -200,7 +200,7 @@ limits when downloading models.
 
 ### Model management
 
-See [Models](./models/README.md) for available LLMs and their usage.
+See [Models](./models/README.md) for available models and their usage.
 
 ### Start the cluster
 
