@@ -11,11 +11,13 @@ import {
   getLargeModelInFlight,
   isActive,
   prepareLargeModelForInference,
+  prepareVariantSwap,
   recordActivity,
   releaseLargeModelReservation,
   resetActivityTracking,
   unloadIdleModels,
 } from './manager.js';
+import { isVariantOf } from './models.js';
 
 async function withEnv(name, value, callback) {
   const previous = process.env[name];
@@ -221,4 +223,72 @@ test('unloadIdleModels unloads every loaded model via /models/unload', async () 
       [{ model: 'qwen35-35b-a3b-q8_0' }, { model: 'panther-coder-large' }]
     );
   });
+});
+
+test('isVariantOf detects reasoning/non-reasoning model pairs', () => {
+  assert.ok(isVariantOf('Qwen3.5-2B-thinking', 'Qwen3.5-2B'));
+  assert.ok(isVariantOf('Qwen3.5-2B', 'Qwen3.5-2B-thinking'));
+  assert.ok(isVariantOf('Gemma-4-31B-thinking', 'Gemma-4-31B'));
+  assert.ok(isVariantOf('  Qwen3.5-2B-thinking  ', 'Qwen3.5-2B'));
+});
+
+test('isVariantOf rejects non-variants and identical ids', () => {
+  assert.equal(isVariantOf('Qwen3.5-2B', 'Qwen3.5-2B'), false);
+  assert.equal(isVariantOf('Qwen3.5-2B', 'Gemma-4-31B'), false);
+  assert.equal(isVariantOf('Qwen3.5-2B-thinking', 'Gemma-4-31B-thinking'), false);
+  assert.equal(isVariantOf(null, 'Qwen3.5-2B'), false);
+  assert.equal(isVariantOf('Qwen3.5-2B', undefined), false);
+});
+
+test('prepareVariantSwap unloads the variant model when it is loaded', async () => {
+  const calls = [];
+
+  const unloaded = await prepareVariantSwap('Qwen3.5-2B-thinking', (url, options = {}) => {
+    calls.push({ method: options.method ?? 'GET', url: url.toString() });
+
+    if (url.pathname === '/models') {
+      return new Response(
+        JSON.stringify({
+          data: [
+            { id: 'Qwen3.5-2B', status: { value: 'loaded' } },
+            { id: 'tiny-model', status: { value: 'loaded' } },
+          ],
+        }),
+        { status: 200 }
+      );
+    }
+
+    assert.equal(url.pathname, '/models/unload');
+    assert.equal(options.body, JSON.stringify({ model: 'Qwen3.5-2B' }));
+    return new Response(null, { status: 200 });
+  });
+
+  assert.deepEqual(unloaded, ['Qwen3.5-2B']);
+  assert.deepEqual(calls, [
+    { method: 'GET', url: 'http://llama-cpp:8000/models' },
+    { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+  ]);
+});
+
+test('prepareVariantSwap returns empty when no variant is loaded', async () => {
+  const unloaded = await prepareVariantSwap(
+    'Qwen3.5-2B-thinking',
+    () =>
+      new Response(
+        JSON.stringify({
+          data: [
+            { id: 'Gemma-4-31B', status: { value: 'loaded' } },
+            { id: 'tiny-model', status: { value: 'loaded' } },
+          ],
+        }),
+        { status: 200 }
+      )
+  );
+
+  assert.deepEqual(unloaded, []);
+});
+
+test('prepareVariantSwap returns empty when modelId is null', async () => {
+  const unloaded = await prepareVariantSwap(null);
+  assert.deepEqual(unloaded, []);
 });

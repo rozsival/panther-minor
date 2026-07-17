@@ -31,3 +31,15 @@ export function normalizeModelsPayload(payload) {
 
   return models;
 }
+
+export function isVariantOf(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') {
+    return false;
+  }
+  const trimA = a.trim();
+  const trimB = b.trim();
+  if (trimA === trimB) {
+    return false;
+  }
+  return trimA === `${trimB}-thinking` || trimB === `${trimA}-thinking`;
+}

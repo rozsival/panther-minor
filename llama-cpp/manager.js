@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest } from 'node:http';
-import { isLargeModelId, normalizeModelsPayload } from './models.js';
+import { isLargeModelId, isVariantOf, normalizeModelsPayload } from './models.js';
 
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
@@ -243,6 +243,33 @@ export async function unloadModel(modelId, fetchImpl = fetch) {
   await postJson('/models/unload', { model: modelId }, fetchImpl);
 }
 
+export async function prepareVariantSwap(modelId, fetchImpl = fetch) {
+  if (!modelId) {
+    return [];
+  }
+
+  const loadedModels = await fetchLoadedModels(fetchImpl);
+  const variantModel = loadedModels.find((loaded) => isVariantOf(modelId, loaded.id));
+
+  if (!variantModel) {
+    return [];
+  }
+
+  log('info', 'variant_swap_unload_requested', {
+    loadedModel: variantModel.id,
+    targetModel: modelId,
+  });
+
+  await unloadModel(variantModel.id, fetchImpl);
+
+  log('info', 'variant_swap_unload_succeeded', {
+    targetModel: modelId,
+    unloadedModel: variantModel.id,
+  });
+
+  return [variantModel.id];
+}
+
 export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
   if (!isLargeModelId(modelId)) {
     return { trackedLargeModelId: null, unloadedModels: [] };
@@ -467,6 +494,8 @@ async function handleInferenceRequest(req, res) {
 
   const bodyBuffer = await readRequestBody(req);
   const requestedModelId = extractRequestedModel(bodyBuffer);
+
+  const _swappedVariants = await prepareVariantSwap(requestedModelId);
 
   let trackedLargeModelId = null;
   if (isLargeModelId(requestedModelId)) {
