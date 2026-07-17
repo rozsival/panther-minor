@@ -35,7 +35,7 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 | -------------------------- | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------- |
 | `Qwen3.6-27B` 💭 👀 ⚡️️     | `bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF` | 256K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
 | `Qwen3.6-35B-A3B` 💭 👀 ⚡️ | `unsloth/Qwen3.6-35B-A3B-GGUF`             | 256K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
-| `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`                  | 8K   | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
+| `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`                  | 32K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
 | `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 8K   | Lightweight embedding model strictly for RAG pipelines                                                      |
 | `Gemma-4-31B` 💭 👀 ⚡️     | `unsloth/gemma-4-31B-it-GGUF`              | 128K | Midweight dense model providing maximum consistency for extensive analysis and text generation tasks        |
 | `DeepSeek-V4-Flash` ??     | `unsloth/DeepSeek-V4-Flash-GGUF`           | 256K | Heavyweight slow MoE model with deep reasoning capabitlies suitable for long-running agentic tasks          |
