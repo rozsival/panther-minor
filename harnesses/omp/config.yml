@@ -1,5 +1,6 @@
 modelRoles:
   default: panther-minor/Qwen3.6-27B-thinking
-  smol: panther-minor/Qwen3.6-35B-A3B-thinking
+  smol: panther-minor/Qwen3.5-2B-thinking
   slow: panther-minor/DeepSeek-V4-Flash-thinking
-  plan: panther-minor/DeepSeek-V4-Flash-thinking
+  plan: panther-minor/Qwen3.6-27B-thinking
+  commit: panther-minor/Qwen3.5-2B-thinking

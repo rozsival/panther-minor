@@ -14,6 +14,8 @@
     "Qwen3.6-27B",
     "Qwen3.6-35B-A3B-thinking",
     "Qwen3.6-35B-A3B",
+    "Qwen3.5-2B-thinking",
+    "Qwen3.5-2B",
     "DeepSeek-V4-Flash-thinking",
     "DeepSeek-V4-Flash"
   ]

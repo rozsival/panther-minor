@@ -52,6 +52,24 @@
             "output": 65536
           }
         },
+        "Qwen3.5-2B-thinking": {
+          "id": "Qwen3.5-2B-thinking",
+          "name": "Qwen3.5 2B (thinking)",
+          "reasoning": true,
+          "limit": {
+            "context": 8192,
+            "output": 2048
+          }
+        },
+        "Qwen3.5-2B": {
+          "id": "Qwen3.5-2B",
+          "name": "Qwen3.5 2B",
+          "reasoning": false,
+          "limit": {
+            "context": 8192,
+            "output": 2048
+          }
+        },
         "DeepSeek-V4-Flash-thinking": {
           "id": "DeepSeek-V4-Flash-thinking",
           "name": "DeepSeek V4 Flash (thinking)",
