@@ -32,14 +32,12 @@ Update the version in **every file that carries it**. As of this writing those a
 | ------------------------ | -------------------------------------------------- |
 | `bin/src/bashly.yml`     | `version: X.Y.Z`                                   |
 | `package.json`           | `"version": "X.Y.Z"`                               |
-| `models/llm/config.json` | `"version": "X.Y.Z"`                               |
-| `models/llm/preset.ini`  | `version = X.Y.Z`                                  |
-| `models/t2i/config.json` | `"version": "X.Y.Z"`                               |
+| `models/llm.config.json` | `"version": "X.Y.Z"`                               |
+| `llama-cpp/preset.ini`   | `version = X.Y.Z`                                  |
+| `models/t2i.config.json` | `"version": "X.Y.Z"`                               |
 | `README.md`              | `git checkout vX.Y.Z` in the "Quick Start" section |
 
-Do **not** trust that list blindly — file locations drift (the model files moved from `models/` into
-`models/llm/` and `models/t2i/`, and the next restructure may move them again). Before editing, discover
-every occurrence of the **current** version so you don't miss one:
+Do **not** trust that list blindly — file locations drift. Before editing, discover
 
 ```bash
 grep -rn "<CURRENT_VERSION>" --include=*.json --include=*.yml --include=*.ini --include=*.md . \

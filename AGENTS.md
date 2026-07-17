@@ -29,7 +29,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
 - `bin/README.md` — overview of the `./bin/cli` command tree (strictly follow rules there for CLI changes)
-- `models/README.md` — overview for LLMs (`./bin/cli models llm *`, `models/llm/config.json`, `models/llm/preset.ini`) and text-to-image models (`./bin/cli models t2i *`, `models/t2i/config.json`)
+- `models/README.md` — overview for LLMs (`./bin/cli models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`) and text-to-image models (`./bin/cli models t2i *`, `models/t2i.config.json`)
 - `docker-compose.yml` — service definitions with health checks
 - `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models and arbitrates large-model switches before proxying inference
 - `llama-cpp/models.js` — shared model helpers, including normalization and the static list of model IDs treated as large by the manager
@@ -37,7 +37,6 @@ Grafana, and exporters for monitoring GPU and node performance.
 - `stable-diffusion-cpp/Dockerfile` + `entrypoint.sh` — builds `sd-server` (ROCm/HIP, gfx1201) and serves Ideogram 4 with an OpenAI-compatible image API
 - `stable-diffusion-cpp/manager.js` — thin activity-tracking reverse proxy in front of `sd-server` (no model unload; `sd-server` has none), exposes `/status`
 - `stable-diffusion-cpp/metrics-exporter.js` — Prometheus exporter deriving `sd_*` gauges from `sd-manager /status` and `sd-server /v1/models`
-- `models/t2i/config.json` — text-to-image model catalog (multi-file components) consumed by `./bin/cli models t2i *`
 - `monitoring/prometheus.yml` — node, GPU, llama.cpp, and stable-diffusion.cpp exporter targets for Prometheus
 - `monitoring/grafana/dashboards/gpu.json` — Grafana dashboard for GPU metrics
 

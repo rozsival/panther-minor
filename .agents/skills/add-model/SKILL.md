@@ -16,8 +16,8 @@ clarification before proceeding.
 
 | File                         | What changes                                 |
 | ---------------------------- | -------------------------------------------- |
-| `models/llm/config.json`     | New model entry with repository + files list |
-| `models/llm/preset.ini`      | New INI section(s) with runtime settings     |
+| `models/llm.config.json`     | New model entry with repository + files list |
+| `llama-cpp/preset.ini`       | New INI section(s) with runtime settings     |
 | `harnesses/opencode.json`    | New model definition(s) under provider       |
 | `llama-cpp/models.js`        | Added to `largeModelIds` if ≥ 27B params     |
 | `harnesses/pi/models.json`   | New model entry in provider's models array   |
@@ -75,7 +75,7 @@ modified. Ask the user to confirm before making any changes.
 Read each file before editing. Make the edits, then run `pnpm run check` (and `pnpm run fix`
 if needed) to validate.
 
-### `models/llm/config.json`
+### `models/llm.config.json`
 
 Add a new object to the `models` array:
 
@@ -87,7 +87,7 @@ Add a new object to the `models` array:
 }
 ```
 
-### `models/llm/preset.ini`
+### `llama-cpp/preset.ini`
 
 Add one section (or two if reasoning variant). The `model` path is:
 

@@ -189,7 +189,7 @@ commands:
             args:
               - name: model
                 required: true
-                help: Model name from models/llm/config.json
+                help: Model name from models/llm.config.json
                 validate: supported_llm
             flags:
               - long: --force
@@ -202,7 +202,7 @@ commands:
               - cli models llm download Qwen3.5-35B-A3B
               - HF_TOKEN=token cli models llm download Qwen3.5-35B-A3B
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
 
           - name: list
             help: List supported LLMs
@@ -212,34 +212,34 @@ commands:
             args:
               - name: model
                 required: true
-                help: Model name from models/llm/config.json
+                help: Model name from models/llm.config.json
                 validate: supported_llm
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
 
           - name: load
             help: Load an LLM into the llama.cpp server
             args:
               - name: model
                 required: true
-                help: Model name from models/llm/config.json
+                help: Model name from models/llm.config.json
                 validate: supported_llm
             examples:
               - cli models llm load Qwen3.5-35B-A3B
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
 
           - name: unload
             help: Unload an LLM from the llama.cpp server
             args:
               - name: model
                 required: true
-                help: Model name from models/llm/config.json
+                help: Model name from models/llm.config.json
                 validate: supported_llm
             examples:
               - cli models llm unload Qwen3.5-35B-A3B
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
 
       - name: t2i
         help: Manage text-to-image models
@@ -249,7 +249,7 @@ commands:
             args:
               - name: model
                 required: true
-                help: Model name from models/t2i/config.json
+                help: Model name from models/t2i.config.json
                 validate: supported_t2i
             flags:
               - long: --force
@@ -262,7 +262,7 @@ commands:
               - cli models t2i download Ideogram-4
               - HF_TOKEN=token cli models t2i download Ideogram-4
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 
           - name: list
             help: List supported text-to-image models
@@ -272,17 +272,17 @@ commands:
             args:
               - name: model
                 required: true
-                help: Model name from models/t2i/config.json
+                help: Model name from models/t2i.config.json
                 validate: supported_t2i
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 
           - name: load
             help: Load a text-to-image model into sd-server (replaces the currently loaded one)
             args:
               - name: model
                 required: true
-                help: Model name from models/t2i/config.json
+                help: Model name from models/t2i.config.json
                 validate: supported_t2i
             flags:
               - long: --exclusive
@@ -292,7 +292,7 @@ commands:
               - cli models t2i load Qwen-Image-2512
               - cli models t2i load --exclusive Qwen-Image-2512
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i/config.json)")
+              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 
           - name: unload
             help: Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)

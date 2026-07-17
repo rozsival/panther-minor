@@ -2,10 +2,10 @@
 
 This directory documents the models supported by Panther Minor, split by modality:
 
-- **[`llm/`](#-large-language-models-llm)** — large language models served by `llama.cpp`
-- **[`t2i/`](#-text-to-image-models-t2i)** — text-to-image models served by `stable-diffusion.cpp`
+- **`llm.config.json`** — large language models served by `llama.cpp`
+- **`t2i.config.json`** — text-to-image models served by `stable-diffusion.cpp`
 
-Each modality has its own catalog (`config.json` + `config.schema.json`); how to run both side by side is covered in
+Each modality has its own catalog (`llm.config.json` + `llm.schema.json`, `t2i.config.json` + `t2i.schema.json`); how to run both side by side is covered in
 [Recommended workflows](#-recommended-workflows).
 
 ## 📦 Shared model cache
@@ -25,7 +25,7 @@ The cache is managed entirely by the CLI:
 ./bin/cli models prune                      # Reclaim files no config references anymore (also runs after download/remove)
 ```
 
-## 📚 Large language models (`llm/`)
+## 📚 Large language models (`llm.config.json`)
 
 Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
@@ -35,9 +35,9 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 | -------------------------- | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------- |
 | `Qwen3.6-27B` 💭 👀 ⚡️️     | `bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF` | 256K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
 | `Qwen3.6-35B-A3B` 💭 👀 ⚡️ | `unsloth/Qwen3.6-35B-A3B-GGUF`             | 256K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
-| `Gemma-4-31B` 💭 👀 ⚡️     | `unsloth/gemma-4-31B-it-GGUF`              | 128K | Heavyweight dense model providing maximum consistency for extensive analysis and text generation tasks      |
 | `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`                  | 8K   | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
 | `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 8K   | Lightweight embedding model strictly for RAG pipelines                                                      |
+| `Gemma-4-31B` 💭 👀 ⚡️     | `unsloth/gemma-4-31B-it-GGUF`              | 128K | Heavyweight dense model providing maximum consistency for extensive analysis and text generation tasks      |
 
 Legend:
 
@@ -48,10 +48,10 @@ Legend:
 
 ### Configuration
 
-Supported models are defined in `llm/config.json` (see `llm/config.schema.json` for the schema). At runtime, the
+Supported models are defined in `llm.config.json` (see `llm.schema.json` for the schema). At runtime, the
 `llama-cpp` service runs in
 [router mode](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#using-multiple-models) and serves models
-through `llm/preset.ini`
+through `llama-cpp/preset.ini`
 [presets](https://github.com/ggml-org/llama.cpp/tree/master/tools/server#model-presets).
 
 ### Management
@@ -67,7 +67,7 @@ through `llm/preset.ini`
 
 ---
 
-## 🎨 Text-to-image models (`t2i/`)
+## 🎨 Text-to-image models (`t2i.config.json`)
 
 Served by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
 OpenAI-compatible image API on port `8001`.
@@ -87,7 +87,7 @@ OpenAI-compatible image API on port `8001`.
 
 ### Configuration
 
-Supported models are defined in `t2i/config.json` (see `t2i/config.schema.json` for the schema):
+Supported models are defined in `t2i.config.json` (see `t2i.schema.json` for the schema):
 
 - **`components`** — the weight files a model needs (diffusion, optional unconditional diffusion, LLM text encoder,
   VAE), each identified by its Hugging Face `repository` and `file`. Models only list the components they use —

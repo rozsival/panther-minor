@@ -1,5 +1,5 @@
 {
-  "$schema": "./config.schema.json",
+  "$schema": "./llm.schema.json",
   "models": [
     {
       "name": "Qwen3.6-27B",
@@ -15,15 +15,6 @@
       "files": ["Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf", "mmproj-F16.gguf"]
     },
     {
-      "name": "Gemma-4-31B",
-      "repository": "unsloth/gemma-4-31B-it-GGUF",
-      "files": [
-        "gemma-4-31B-it-UD-Q4_K_XL.gguf",
-        "mtp-gemma-4-31B-it.gguf",
-        "mmproj-F16.gguf"
-      ]
-    },
-    {
       "name": "Qwen3.5-2B",
       "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
       "files": ["Qwen3.5-2B-Q8_0.gguf", "mmproj-F16.gguf"]
@@ -32,6 +23,15 @@
       "name": "Qwen3-Embedding-0.6B",
       "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
       "files": ["Qwen3-Embedding-0.6B-f16.gguf"]
+    },
+    {
+      "name": "Gemma-4-31B",
+      "repository": "unsloth/gemma-4-31B-it-GGUF",
+      "files": [
+        "gemma-4-31B-it-UD-Q4_K_XL.gguf",
+        "mtp-gemma-4-31B-it.gguf",
+        "mmproj-F16.gguf"
+      ]
     }
   ],
   "version": "5.0.0"

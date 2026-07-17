@@ -1,5 +1,5 @@
 {
-  "$schema": "./config.schema.json",
+  "$schema": "./t2i.schema.json",
   "models": [
     {
       "name": "Ideogram-4",

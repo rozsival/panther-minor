@@ -49,7 +49,7 @@ services:
     volumes:
       - 'llama-cpp-comgr:/home/llama-cpp/.cache/comgr'
       - './models/.huggingface:/home/llama-cpp/.cache/huggingface/hub'
-      - './models/llm/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
+      - './llama-cpp/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
     ulimits:
       memlock: -1
     expose:
