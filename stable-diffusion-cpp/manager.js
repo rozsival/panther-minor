@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest } from 'node:http';
-import { activityPaths, isImageInferencePath } from './models.js';
+import { isImageInferencePath } from './models.js';
 
 const SD_SERVER_URL = (process.env.SD_SERVER_URL ?? 'http://stable-diffusion-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
@@ -84,19 +84,6 @@ export function endTrackedRequest() {
 
 export function getActiveProxyRequests() {
   return activeProxyRequests;
-}
-
-export function extractRequestedModel(bodyBuffer) {
-  if (!bodyBuffer || bodyBuffer.length === 0) {
-    return null;
-  }
-
-  try {
-    const payload = JSON.parse(bodyBuffer.toString('utf8'));
-    return typeof payload?.model === 'string' ? payload.model.trim() : null;
-  } catch {
-    return null;
-  }
 }
 
 // -- Hop-by-hop headers -------------------------------------------------------
@@ -217,7 +204,7 @@ export function startServer() {
 
     const isImageRequest = req.method === 'POST' && isImageInferencePath(requestPath);
 
-    if (isImageRequest || activityPaths.has(requestPath)) {
+    if (isImageRequest) {
       recordActivity();
     }
 

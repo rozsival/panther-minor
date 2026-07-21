@@ -4,7 +4,6 @@ import test from 'node:test';
 import {
   beginTrackedRequest,
   endTrackedRequest,
-  extractRequestedModel,
   getActiveProxyRequests,
   isActive,
   recordActivity,
@@ -66,11 +65,4 @@ test('endTrackedRequest never drops the in-flight counter below zero', () => {
   resetActivityTracking();
   endTrackedRequest();
   assert.equal(getActiveProxyRequests(), 0);
-});
-
-test('extractRequestedModel returns model id from JSON request body', () => {
-  assert.equal(extractRequestedModel(Buffer.from(JSON.stringify({ model: 'ideogram-4' }))), 'ideogram-4');
-  assert.equal(extractRequestedModel(Buffer.from(JSON.stringify({ model: 123 }))), null);
-  assert.equal(extractRequestedModel(Buffer.from('{invalid json')), null);
-  assert.equal(extractRequestedModel(Buffer.from('')), null);
 });

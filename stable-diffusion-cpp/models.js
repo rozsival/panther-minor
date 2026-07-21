@@ -1,10 +1,6 @@
 // Paths that represent image-generation work and should reset the idle timer.
 export const imageInferencePaths = new Set(['/v1/images/generations', '/v1/images/edits']);
 
-// Paths that only enumerate models; treated as light activity (keeps the
-// upstream considered "reachable" without counting as generation work).
-export const activityPaths = new Set(['/models', '/v1/models']);
-
 export function isImageInferencePath(pathname) {
   return typeof pathname === 'string' && imageInferencePaths.has(pathname);
 }
