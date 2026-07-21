@@ -8,12 +8,11 @@ import {
   fetchLoadedModels,
   fetchModelsList,
   getActiveProxyRequests,
-  getLargeModelInFlight,
+  getModelInFlight,
   isActive,
-  prepareLargeModelForInference,
-  prepareVariantSwap,
+  prepareModelForInference,
   recordActivity,
-  releaseLargeModelReservation,
+  releaseModelReservation,
   resetActivityTracking,
   unloadIdleModels,
 } from './manager.js';
@@ -114,11 +113,12 @@ test('extractRequestedModel returns model id from JSON request body', () => {
   assert.equal(extractRequestedModel(Buffer.from('{invalid json')), null);
 });
 
-test('prepareLargeModelForInference unloads conflicting loaded large model before reserving target', async () => {
+test('prepareModelForInference unloads a conflicting large model before reserving target', async () => {
+  resetActivityTracking();
   const calls = [];
 
-  const reservation = await prepareLargeModelForInference('Qwen3.6-35B-A3B', (url, options = {}) => {
-    calls.push({ method: options.method ?? 'GET', url: url.toString() });
+  const reserved = await prepareModelForInference('Qwen3.6-35B-A3B', (url, options = {}) => {
+    calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
 
     if (url.pathname === '/models') {
       return new Response(
@@ -132,32 +132,29 @@ test('prepareLargeModelForInference unloads conflicting loaded large model befor
       );
     }
 
-    assert.equal(url.pathname, '/models/unload');
-    assert.equal(options.body, JSON.stringify({ model: 'Qwen3.6-27B' }));
     return new Response(null, { status: 200 });
   });
 
-  assert.deepEqual(reservation, {
-    trackedLargeModelId: 'Qwen3.6-35B-A3B',
-    unloadedModels: ['Qwen3.6-27B'],
-  });
+  assert.equal(reserved, 'Qwen3.6-35B-A3B');
   assert.deepEqual(calls, [
-    { method: 'GET', url: 'http://llama-cpp:8000/models' },
-    { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+    { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
+    { body: JSON.stringify({ model: 'Qwen3.6-27B' }), method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  assert.equal(getLargeModelInFlight('Qwen3.6-35B-A3B'), 1);
-  releaseLargeModelReservation('Qwen3.6-35B-A3B');
+  assert.equal(getModelInFlight('Qwen3.6-35B-A3B'), 1);
+  releaseModelReservation('Qwen3.6-35B-A3B');
 });
 
-test('prepareLargeModelForInference waits for conflicting large requests to drain', async () => {
+test('prepareModelForInference waits for conflicting large requests to drain', async () => {
+  resetActivityTracking();
   const calls = [];
 
-  const firstReservation = await prepareLargeModelForInference(
+  const first = await prepareModelForInference(
     'Qwen3.6-35B-A3B',
     () => new Response(JSON.stringify({ data: [] }), { status: 200 })
   );
+  assert.equal(first, 'Qwen3.6-35B-A3B');
 
-  const secondReservationPromise = prepareLargeModelForInference('Qwen3.6-27B', (url, options = {}) => {
+  const secondPromise = prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
       return new Response(
@@ -173,18 +170,15 @@ test('prepareLargeModelForInference waits for conflicting large requests to drai
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(calls.length, 0);
 
-  releaseLargeModelReservation(firstReservation.trackedLargeModelId);
-  const secondReservation = await secondReservationPromise;
+  releaseModelReservation('Qwen3.6-35B-A3B');
+  const second = await secondPromise;
 
-  assert.deepEqual(secondReservation, {
-    trackedLargeModelId: 'Qwen3.6-27B',
-    unloadedModels: ['Qwen3.6-35B-A3B'],
-  });
+  assert.equal(second, 'Qwen3.6-27B');
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  releaseLargeModelReservation(secondReservation.trackedLargeModelId);
+  releaseModelReservation('Qwen3.6-27B');
 });
 
 test('unloadIdleModels unloads every loaded model via /models/unload', async () => {
@@ -240,11 +234,12 @@ test('isVariantOf rejects non-variants and identical ids', () => {
   assert.equal(isVariantOf('Qwen3.5-2B', undefined), false);
 });
 
-test('prepareVariantSwap unloads the variant model when it is loaded', async () => {
+test('prepareModelForInference unloads only the sibling variant, not unrelated models', async () => {
+  resetActivityTracking();
   const calls = [];
 
-  const unloaded = await prepareVariantSwap('Qwen3.5-2B-thinking', (url, options = {}) => {
-    calls.push({ method: options.method ?? 'GET', url: url.toString() });
+  const reserved = await prepareModelForInference('Qwen3.5-2B-thinking', (url, options = {}) => {
+    calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
 
     if (url.pathname === '/models') {
       return new Response(
@@ -258,37 +253,80 @@ test('prepareVariantSwap unloads the variant model when it is loaded', async () 
       );
     }
 
-    assert.equal(url.pathname, '/models/unload');
-    assert.equal(options.body, JSON.stringify({ model: 'Qwen3.5-2B' }));
     return new Response(null, { status: 200 });
   });
 
-  assert.deepEqual(unloaded, ['Qwen3.5-2B']);
+  assert.equal(reserved, 'Qwen3.5-2B-thinking');
+  assert.deepEqual(calls, [
+    { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
+    { body: JSON.stringify({ model: 'Qwen3.5-2B' }), method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+  ]);
+  assert.equal(getModelInFlight('Qwen3.5-2B-thinking'), 1);
+  releaseModelReservation('Qwen3.5-2B-thinking');
+});
+
+test('prepareModelForInference waits for a loaded variant to drain before switching', async () => {
+  resetActivityTracking();
+
+  const first = await prepareModelForInference(
+    'Qwen3.5-2B',
+    () => new Response(JSON.stringify({ data: [] }), { status: 200 })
+  );
+  assert.equal(first, 'Qwen3.5-2B');
+  assert.equal(getModelInFlight('Qwen3.5-2B'), 1);
+
+  const calls = [];
+  const secondPromise = prepareModelForInference('Qwen3.5-2B-thinking', (url, options = {}) => {
+    calls.push({ method: options.method ?? 'GET', url: url.toString() });
+    if (url.pathname === '/models') {
+      return new Response(JSON.stringify({ data: [{ id: 'Qwen3.5-2B', status: { value: 'loaded' } }] }), {
+        status: 200,
+      });
+    }
+    return new Response(null, { status: 200 });
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 20));
+  assert.equal(calls.length, 0);
+
+  releaseModelReservation('Qwen3.5-2B');
+  const second = await secondPromise;
+
+  assert.equal(second, 'Qwen3.5-2B-thinking');
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
+  releaseModelReservation('Qwen3.5-2B-thinking');
 });
 
-test('prepareVariantSwap returns empty when no variant is loaded', async () => {
-  const unloaded = await prepareVariantSwap(
-    'Qwen3.5-2B-thinking',
-    () =>
-      new Response(
-        JSON.stringify({
-          data: [
-            { id: 'Gemma-4-31B', status: { value: 'loaded' } },
-            { id: 'tiny-model', status: { value: 'loaded' } },
-          ],
-        }),
-        { status: 200 }
-      )
-  );
+test('prepareModelForInference reserves the target without unloading when nothing conflicts', async () => {
+  resetActivityTracking();
+  const calls = [];
 
-  assert.deepEqual(unloaded, []);
+  const reserved = await prepareModelForInference('Qwen3.5-2B', (url, options = {}) => {
+    calls.push({ method: options.method ?? 'GET', url: url.toString() });
+    if (url.pathname === '/models') {
+      return new Response(JSON.stringify({ data: [{ id: 'tiny-model', status: { value: 'loaded' } }] }), {
+        status: 200,
+      });
+    }
+    return new Response(null, { status: 200 });
+  });
+
+  assert.equal(reserved, 'Qwen3.5-2B');
+  assert.deepEqual(calls, [{ method: 'GET', url: 'http://llama-cpp:8000/models' }]);
+  assert.equal(getModelInFlight('Qwen3.5-2B'), 1);
+  releaseModelReservation('Qwen3.5-2B');
 });
 
-test('prepareVariantSwap returns empty when modelId is null', async () => {
-  const unloaded = await prepareVariantSwap(null);
-  assert.deepEqual(unloaded, []);
+test('prepareModelForInference returns null and makes no upstream calls for a missing model id', async () => {
+  resetActivityTracking();
+  let called = false;
+  const reserved = await prepareModelForInference(null, () => {
+    called = true;
+    return new Response(null, { status: 200 });
+  });
+  assert.equal(reserved, null);
+  assert.equal(called, false);
 });

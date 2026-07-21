@@ -49,7 +49,7 @@ Know these files well. Changes to them deserve careful review:
 | File                            | Role                                                                                                                                                           |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llama-cpp/manager.js`          | Activity-aware reverse proxy. Tracks inference activity, idle unloading, large-model arbitration. Exposes `/status` for Prometheus. **Concurrency-sensitive.** |
-| `llama-cpp/models.js`           | Shared model helpers. `isLargeModelId()` (static `LARGE_MODEL_IDS` set), `normalizeModelsPayload()`.                                                           |
+| `llama-cpp/models.js`           | Shared model helpers. `isLargeModelId()` (static `largeModelIds` set), `isVariantOf()` (reasoning/non-reasoning pairs), `normalizeModelsPayload()`.            |
 | `llama-cpp/metrics-exporter.js` | Prometheus exporter. Queries `/status` to decide idle vs. active scrape cycle.                                                                                 |
 | `docker-compose.yml`            | Service definitions with health checks.                                                                                                                        |
 | `.env` / `.env.example`         | Runtime configuration.                                                                                                                                         |
@@ -60,9 +60,9 @@ Know these files well. Changes to them deserve careful review:
 
 The manager uses several concurrency primitives. Any change to these needs scrutiny:
 
-- `largeModelSwitchLock` — serializes large-model preflight/unload operations.
-- `largeModelInFlightCounts` — tracks active request counts per large model.
-- `largeModelDrainWaiters` — promise-based waiter queue for draining models.
+- `switchLock` — serializes model preflight/unload operations (variant switches and large-model arbitration).
+- `modelInFlightCounts` — tracks active request counts per model, so a model is never unloaded mid-inference.
+- `modelDrainWaiters` — promise-based waiter queue for draining models before an unload/switch.
 - `activeProxyRequests` — counter for in-flight proxy requests.
 - `lastActivityAt` — timestamp for idle detection.
 - `unloadInProgress` — flag to prevent concurrent unloads.

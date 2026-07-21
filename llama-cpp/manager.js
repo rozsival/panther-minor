@@ -42,9 +42,9 @@ let lastActivityAt = Date.now();
 let activeProxyRequests = 0;
 let unloadInProgress = false;
 let idleTimer = null;
-let largeModelSwitchLock = Promise.resolve();
-const largeModelInFlightCounts = new Map();
-const largeModelDrainWaiters = new Map();
+let switchLock = Promise.resolve();
+const modelInFlightCounts = new Map();
+const modelDrainWaiters = new Map();
 
 function getIdleTimeoutSeconds() {
   return Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
@@ -77,9 +77,9 @@ export function resetActivityTracking() {
   lastActivityAt = 0;
   activeProxyRequests = 0;
   unloadInProgress = false;
-  largeModelSwitchLock = Promise.resolve();
-  largeModelInFlightCounts.clear();
-  largeModelDrainWaiters.clear();
+  switchLock = Promise.resolve();
+  modelInFlightCounts.clear();
+  modelDrainWaiters.clear();
   if (idleTimer) {
     clearTimeout(idleTimer);
     idleTimer = null;
@@ -103,10 +103,10 @@ export function getActiveProxyRequests() {
   return activeProxyRequests;
 }
 
-async function withLargeModelSwitchLock(task) {
-  const previousLock = largeModelSwitchLock;
+async function withSwitchLock(task) {
+  const previousLock = switchLock;
   let releaseLock = () => undefined;
-  largeModelSwitchLock = new Promise((resolve) => {
+  switchLock = new Promise((resolve) => {
     releaseLock = resolve;
   });
 
@@ -118,47 +118,60 @@ async function withLargeModelSwitchLock(task) {
   }
 }
 
-function incrementLargeModelInFlight(modelId) {
-  if (!isLargeModelId(modelId)) {
-    return;
+// A loaded model conflicts with the requested one when the two cannot sensibly
+// stay resident together: two large models never share the GPU, and a reasoning
+// variant shares its weights with its sibling so only one is kept loaded.
+function conflictsWithTarget(targetId, loadedId) {
+  if (targetId === loadedId) {
+    return false;
   }
-
-  largeModelInFlightCounts.set(modelId, (largeModelInFlightCounts.get(modelId) ?? 0) + 1);
+  if (isLargeModelId(targetId) && isLargeModelId(loadedId)) {
+    return true;
+  }
+  return isVariantOf(targetId, loadedId);
 }
 
-export function releaseLargeModelReservation(modelId) {
-  if (!isLargeModelId(modelId)) {
+function trackModelInFlight(modelId) {
+  if (!modelId) {
     return;
   }
 
-  const nextCount = (largeModelInFlightCounts.get(modelId) ?? 0) - 1;
+  modelInFlightCounts.set(modelId, (modelInFlightCounts.get(modelId) ?? 0) + 1);
+}
+
+export function releaseModelReservation(modelId) {
+  if (!modelId) {
+    return;
+  }
+
+  const nextCount = (modelInFlightCounts.get(modelId) ?? 0) - 1;
   if (nextCount > 0) {
-    largeModelInFlightCounts.set(modelId, nextCount);
+    modelInFlightCounts.set(modelId, nextCount);
     return;
   }
 
-  largeModelInFlightCounts.delete(modelId);
+  modelInFlightCounts.delete(modelId);
 
-  const waiters = largeModelDrainWaiters.get(modelId) ?? [];
-  largeModelDrainWaiters.delete(modelId);
+  const waiters = modelDrainWaiters.get(modelId) ?? [];
+  modelDrainWaiters.delete(modelId);
   for (const waiter of waiters) {
     waiter();
   }
 }
 
-export function getLargeModelInFlight(modelId) {
-  return largeModelInFlightCounts.get(modelId) ?? 0;
+export function getModelInFlight(modelId) {
+  return modelInFlightCounts.get(modelId) ?? 0;
 }
 
-async function waitForLargeModelToDrain(modelId) {
-  if (!isLargeModelId(modelId) || getLargeModelInFlight(modelId) === 0) {
+async function waitForModelToDrain(modelId) {
+  if (!modelId || getModelInFlight(modelId) === 0) {
     return;
   }
 
   await new Promise((resolve) => {
-    const waiters = largeModelDrainWaiters.get(modelId) ?? [];
+    const waiters = modelDrainWaiters.get(modelId) ?? [];
     waiters.push(resolve);
-    largeModelDrainWaiters.set(modelId, waiters);
+    modelDrainWaiters.set(modelId, waiters);
   });
 }
 
@@ -243,94 +256,52 @@ export async function unloadModel(modelId, fetchImpl = fetch) {
   await postJson('/models/unload', { model: modelId }, fetchImpl);
 }
 
-export async function prepareVariantSwap(modelId, fetchImpl = fetch) {
+export function prepareModelForInference(modelId, fetchImpl = fetch) {
   if (!modelId) {
-    return [];
+    return null;
   }
 
-  const loadedModels = await fetchLoadedModels(fetchImpl);
-  const variantModel = loadedModels.find((loaded) => isVariantOf(modelId, loaded.id));
+  return withSwitchLock(async () => {
+    log('info', 'model_preflight_started', { targetModel: modelId });
 
-  if (!variantModel) {
-    return [];
-  }
-
-  log('info', 'variant_swap_unload_requested', {
-    loadedModel: variantModel.id,
-    targetModel: modelId,
-  });
-
-  await unloadModel(variantModel.id, fetchImpl);
-
-  log('info', 'variant_swap_unload_succeeded', {
-    targetModel: modelId,
-    unloadedModel: variantModel.id,
-  });
-
-  return [variantModel.id];
-}
-
-export function prepareLargeModelForInference(modelId, fetchImpl = fetch) {
-  if (!isLargeModelId(modelId)) {
-    return { trackedLargeModelId: null, unloadedModels: [] };
-  }
-
-  return withLargeModelSwitchLock(async () => {
-    log('info', 'large_model_preflight_started', { targetModel: modelId });
-
-    const trackedConflicts = [...largeModelInFlightCounts.keys()].filter(
-      (trackedModelId) => trackedModelId !== modelId
-    );
+    // Wait for any conflicting model that still has in-flight requests, so we
+    // never unload a model while it is serving inference.
+    const trackedConflicts = [...modelInFlightCounts.keys()].filter((id) => conflictsWithTarget(modelId, id));
     if (trackedConflicts.length > 0) {
-      log('info', 'large_model_preflight_waiting_for_active_requests', {
+      log('info', 'model_preflight_waiting_for_active_requests', {
         blockingModels: trackedConflicts,
         targetModel: modelId,
       });
     }
+    await Promise.all(trackedConflicts.map(waitForModelToDrain));
 
-    const otherModels = [...largeModelInFlightCounts.keys()].filter((id) => id !== modelId);
-    await Promise.all(otherModels.map(waitForLargeModelToDrain));
-
-    const loadedLargeModels = (await fetchLoadedModels(fetchImpl)).filter(
-      (loadedModel) => isLargeModelId(loadedModel.id) && loadedModel.id !== modelId
+    const loadedConflicts = (await fetchLoadedModels(fetchImpl)).filter((loaded) =>
+      conflictsWithTarget(modelId, loaded.id)
     );
 
-    log('info', 'large_model_preflight_checked', {
-      conflictingLoadedModels: loadedLargeModels.map((loadedModel) => loadedModel.id),
+    log('info', 'model_preflight_checked', {
+      conflictingLoadedModels: loadedConflicts.map((loaded) => loaded.id),
       targetModel: modelId,
-      willUnload: loadedLargeModels.length > 0,
+      willUnload: loadedConflicts.length > 0,
     });
 
+    // A conflicting model may have started serving while we fetched the loaded
+    // set; drain it too before unloading.
+    await Promise.all(loadedConflicts.map((loaded) => waitForModelToDrain(loaded.id)));
+
     const unloadedModels = [];
-
-    await Promise.all(loadedLargeModels.map((m) => waitForLargeModelToDrain(m.id)));
-
-    for (const loadedModel of loadedLargeModels) {
-      log('info', 'large_model_unload_requested', {
-        model: loadedModel.id,
-        reason: 'large_model_switch',
-        targetModel: modelId,
-      });
-    }
-
     await Promise.all(
-      loadedLargeModels.map(async (loadedModel) => {
-        await unloadModel(loadedModel.id, fetchImpl);
-        log('info', 'large_model_unload_succeeded', {
-          model: loadedModel.id,
-          reason: 'large_model_switch',
-          targetModel: modelId,
-        });
-        unloadedModels.push(loadedModel.id);
+      loadedConflicts.map(async (loaded) => {
+        log('info', 'model_unload_requested', { model: loaded.id, targetModel: modelId });
+        await unloadModel(loaded.id, fetchImpl);
+        log('info', 'model_unload_succeeded', { model: loaded.id, targetModel: modelId });
+        unloadedModels.push(loaded.id);
       })
     );
 
-    incrementLargeModelInFlight(modelId);
-    log('info', 'large_model_preflight_finished', {
-      reservedModel: modelId,
-      unloadedModels,
-    });
-    return { trackedLargeModelId: modelId, unloadedModels };
+    trackModelInFlight(modelId);
+    log('info', 'model_preflight_finished', { reservedModel: modelId, unloadedModels });
+    return modelId;
   });
 }
 
@@ -341,7 +312,7 @@ export async function unloadIdleModels(fetchImpl = fetch) {
 
   unloadInProgress = true;
   try {
-    return await withLargeModelSwitchLock(async () => {
+    return await withSwitchLock(async () => {
       if (isActive()) {
         return [];
       }
@@ -405,7 +376,7 @@ function stripHopByHopHeaders(headers) {
 
 const upstreamBase = new URL(LLAMA_SERVER_URL);
 
-function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedLargeModelId } = {}) {
+function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } = {}) {
   let trackedRequestFinished = false;
 
   const finishTrackedRequest = () => {
@@ -414,7 +385,7 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedLargeModel
     }
     trackedRequestFinished = true;
     endTrackedRequest();
-    releaseLargeModelReservation(trackedLargeModelId);
+    releaseModelReservation(trackedModelId);
   };
 
   if (trackRequest) {
@@ -495,34 +466,22 @@ async function handleInferenceRequest(req, res) {
   const bodyBuffer = await readRequestBody(req);
   const requestedModelId = extractRequestedModel(bodyBuffer);
 
-  const _swappedVariants = await prepareVariantSwap(requestedModelId);
-
-  let trackedLargeModelId = null;
-  if (isLargeModelId(requestedModelId)) {
-    const reservation = await prepareLargeModelForInference(requestedModelId);
-    ({ trackedLargeModelId } = reservation);
-  } else {
-    log('info', 'large_model_preflight_skipped', {
-      isLargeModel: false,
-      targetModel: requestedModelId,
-    });
-  }
+  const trackedModelId = await prepareModelForInference(requestedModelId);
 
   try {
     proxyToUpstream(req, res, {
       bodyBuffer,
-      trackedLargeModelId,
+      trackedModelId,
       trackRequest: true,
     });
   } catch (error) {
-    releaseLargeModelReservation(trackedLargeModelId);
+    releaseModelReservation(trackedModelId);
     throw error;
   }
 }
 
 // -- HTTP server --------------------------------------------------------------
 
-const activityPaths = new Set(['/models', '/v1/models']);
 const embeddingPaths = new Set(['/v1/embeddings']);
 const inferencePaths = new Set(['/v1/chat/completions', '/v1/completions']);
 
@@ -570,8 +529,6 @@ export function startServer() {
     }
 
     if (trackRequest) {
-      recordActivity();
-    } else if (activityPaths.has(requestPath)) {
       recordActivity();
     }
 
