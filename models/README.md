@@ -44,7 +44,7 @@ Legend:
 
 - 💭 — thinking preset available
 - 👀 — multimodal capabilities (vision encoder enabled)
-- ⚡️ — speculative decoding with Multi Token Prediction (MTP) enabled
+- ⚡️ — speculative decoding enabled (DFlash or MTP)
 - 🪶 — embedding-only model (no text generation)
 
 ### Configuration
