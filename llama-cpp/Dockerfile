@@ -3,8 +3,8 @@ FROM rocm/dev-ubuntu-24.04:7.2.4-complete
 
 ARG HOST_UID="1000"
 ARG HOST_GID="$HOST_UID"
-ARG LLAMA_CPP_REPO="https://github.com/TheTom/llama-cpp-turboquant"
-ARG LLAMA_CPP_REF="feature/turboquant-kv-cache"
+ARG LLAMA_CPP_REPO="https://github.com/ggml-org/llama.cpp"
+ARG LLAMA_CPP_REF="master"
 ARG LLAMA_CPP_USER="llama-cpp"
 ARG ROCM_ARCH="gfx1201"
 
