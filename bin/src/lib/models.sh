@@ -22,10 +22,7 @@ panther_t2i_referenced_files() {
 # Pass a model name to exclude that model.
 panther_llm_referenced_files() {
   jq -r --arg ex "${1:-}" \
-    '.models[]
-       | select(.name != $ex)
-       | .repository as $r
-       | .files[] | $r + "/" + .' \
+    '.models[] | select(.name != $ex) | .components[] | .repository + "/" + .file' \
     "$(panther_llm_config_file)"
 }
 

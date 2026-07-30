@@ -9,22 +9,22 @@ Configuration files for connecting external coding agents to Panther Minor's loc
 
 ### OMP (Oh My Pi)
 
-Copy the preset files into your OMP agent directory:
+Copy the models preset into your OMP agent directory:
 
 ```bash
 mkdir -p ~/.omp/agent
-cp harnesses/omp/*.yml ~/.omp/agent/
+cp harnesses/omp.yml ~/.omp/agent/models.yml
 ```
 
 See [OMP docs](https://omp.sh/docs/custom-models) for details.
 
 ### Pi
 
-Copy the preset files into your Pi agent directory:
+Copy the models preset into your Pi agent directory:
 
 ```bash
 mkdir -p ~/.pi/agent
-cp harnesses/pi/*.json ~/.pi/agent/
+cp harnesses/pi.json ~/.pi/agent/models.json
 ```
 
 See [Pi settings docs](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent#settings) for details.

@@ -1,19 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "autoupdate": true,
-  "compaction": {
-    "auto": true,
-    "prune": true
-  },
   "provider": {
     "panther-minor": {
       "name": "Panther Minor",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://<domain>:8000/v1",
-        "chunkTimeout": 600000,
-        "setCacheKey": true,
-        "timeout": 600000
+        "setCacheKey": true
       },
       "models": {
         "Qwen3.6-27B-thinking": {
@@ -70,18 +63,18 @@
             "output": 8192
           }
         },
-        "DeepSeek-V4-Flash-thinking": {
-          "id": "DeepSeek-V4-Flash-thinking",
-          "name": "DeepSeek V4 Flash (thinking)",
+        "Laguna-S-2.1-thinking": {
+          "id": "Laguna-S-2.1-thinking",
+          "name": "Laguna-S-2.1 (thinking)",
           "reasoning": true,
           "limit": {
             "context": 262144,
             "output": 65536
           }
         },
-        "DeepSeek-V4-Flash": {
-          "id": "DeepSeek-V4-Flash",
-          "name": "DeepSeek V4 Flash",
+        "Laguna-S-2.1": {
+          "id": "Laguna-S-2.1",
+          "name": "Laguna-S-2.1",
           "reasoning": false,
           "limit": {
             "context": 262144,

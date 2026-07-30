@@ -5,8 +5,8 @@ export const largeModelIds = new Set([
   'Qwen3.6-35B-A3B',
   'Gemma-4-31B-thinking',
   'Gemma-4-31B',
-  'DeepSeek-V4-Flash-thinking',
-  'DeepSeek-V4-Flash',
+  'Laguna-S-2.1-thinking',
+  'Laguna-S-2.1',
 ]);
 
 export function isLargeModelId(modelId) {

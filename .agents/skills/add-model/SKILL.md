@@ -14,15 +14,14 @@ clarification before proceeding.
 
 ## Files affected
 
-| File                         | What changes                                 |
-| ---------------------------- | -------------------------------------------- |
-| `models/llm.config.json`     | New model entry with repository + files list |
-| `llama-cpp/preset.ini`       | New INI section(s) with runtime settings     |
-| `harnesses/opencode.json`    | New model definition(s) under provider       |
-| `harnesses/omp/models.yml`   | New model entry in provider's models list    |
-| `llama-cpp/models.js`        | Added to `largeModelIds` if ≥ 27B params     |
-| `harnesses/pi/models.json`   | New model entry in provider's models array   |
-| `harnesses/pi/settings.json` | Added to `enabledModels` if coding-suitable  |
+| File                      | What changes                               |
+| ------------------------- | ------------------------------------------ |
+| `models/llm.config.json`  | New model entry with a `components` list   |
+| `llama-cpp/preset.ini`    | New INI section(s) with runtime settings   |
+| `harnesses/opencode.json` | New model definition(s) under provider     |
+| `harnesses/omp.yml`       | New model entry in provider's models list  |
+| `llama-cpp/models.js`     | Added to `largeModelIds` if ≥ 27B params   |
+| `harnesses/pi.json`       | New model entry in provider's models array |
 
 ## Wizard questions
 
@@ -32,7 +31,8 @@ Ask these **one at a time**. Wait for the answer before moving on.
 2. **Alias** — human-readable display name (e.g. `Qwen3.6 35B A3B`).
 3. **Hugging Face repository** — e.g. `unsloth/Qwen3.6-35B-A3B-MTP-GGUF`.
 4. **Files to download** — list of filenames from the repo (e.g. `model.gguf, mmproj-F16.gguf`).
-   The first file is treated as the main model weight.
+   The first file is treated as the main model weight. If a file lives in a **different** repository
+   than the one given above, ask for that repository too — each file is configured with its own.
 5. **Context size** — e.g. `262144`, `131072`, `8192`.
 6. **Cache type K / V** — e.g. `q8_0 / q8_0` or `q8_0 / q4_0`.
 7. **Split mode?** — `layer` (recommended for large models) or `none` (for small models).
@@ -45,7 +45,7 @@ Ask these **one at a time**. Wait for the answer before moving on.
     `"input": ["text", "image"]`). `no` means text only (`"input": ["text"]`).
 11. **Max tokens?** — maximum output tokens for Pi (defaults to `65536`).
 12. **Coding-suitable?** — `yes` means the model is added to `opencode.json`,
-    `omp/models.yml`, `pi/models.json`, and `pi/settings.json`.
+    `omp.yml`, `pi.json`.
 
 ## Defaults
 
@@ -78,26 +78,32 @@ if needed) to validate.
 
 ### `models/llm.config.json`
 
-Add a new object to the `models` array:
+Add a new object to the `models` array, one `components` entry per file:
 
 ```json
 {
   "name": "<name>",
-  "repository": "<repo>",
-  "files": ["<file1>", "<file2>"]
+  "components": [
+    { "repository": "<repo>", "file": "<file1>" },
+    { "repository": "<repo>", "file": "<file2>" }
+  ]
 }
 ```
+
+Components of one model may point at different repositories; each file is cached at
+`<repository>/<file>`.
 
 ### `llama-cpp/preset.ini`
 
 Add one section (or two if reasoning variant). The `model` path is:
 
 ```
-/home/llama-cpp/.cache/huggingface/hub/<repository>/<main_model_file>
+/home/llama-cpp/.cache/huggingface/hub/<repository>/<file>
 ```
 
-If any filename in the files list starts with `mmproj-`, add an `mmproj` line with the same
-path pattern. If a draft model file was provided, add a `model-draft` line.
+using the first component as the main `model`. If any component's file starts with `mmproj-`, add an
+`mmproj` line built from that component's own `repository` and `file`. If a draft model file was
+provided, add a `model-draft` line the same way.
 
 ### `llama-cpp/models.js`
 
@@ -122,7 +128,7 @@ If coding-suitable, add under `provider.panther-minor.models`:
 
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
 
-### `harnesses/omp/models.yml`
+### `harnesses/omp.yml`
 
 If coding-suitable, add under `providers.panther-minor.models`:
 
@@ -138,7 +144,7 @@ If coding-suitable, add under `providers.panther-minor.models`:
 For the thinking variant: `reasoning: true`, name appended with ` (thinking)`.
 For multimodal models, set `input: [text, image]`.
 
-### `harnesses/pi/models.json`
+### `harnesses/pi.json`
 
 If coding-suitable, add a new object to `providers.panther-minor.models`:
 
@@ -155,8 +161,3 @@ If coding-suitable, add a new object to `providers.panther-minor.models`:
 
 For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
 For multimodal models, set `"input": ["text", "image"]`.
-
-### `harnesses/pi/settings.json`
-
-If coding-suitable, append the model ID and its thinking variant ID (if applicable) to
-`enabledModels`.

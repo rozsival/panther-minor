@@ -3,44 +3,88 @@
   "models": [
     {
       "name": "Qwen3.6-27B",
-      "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
-      "files": [
-        "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf",
-        "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf"
+      "components": [
+        {
+          "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
+          "file": "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf"
+        },
+        {
+          "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
+          "file": "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf"
+        }
       ]
     },
     {
       "name": "Qwen3.6-35B-A3B",
-      "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
-      "files": ["Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf", "mmproj-F16.gguf"]
-    },
-    {
-      "name": "Qwen3.5-2B",
-      "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
-      "files": ["Qwen3.5-2B-Q8_0.gguf", "mmproj-F16.gguf"]
-    },
-    {
-      "name": "Qwen3-Embedding-0.6B",
-      "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
-      "files": ["Qwen3-Embedding-0.6B-f16.gguf"]
-    },
-    {
-      "name": "Gemma-4-31B",
-      "repository": "unsloth/gemma-4-31B-it-GGUF",
-      "files": [
-        "gemma-4-31B-it-UD-Q4_K_XL.gguf",
-        "mtp-gemma-4-31B-it.gguf",
-        "mmproj-F16.gguf"
+      "components": [
+        {
+          "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
+          "file": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+        },
+        {
+          "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
+          "file": "mmproj-F16.gguf"
+        }
       ]
     },
     {
-      "name": "DeepSeek-V4-Flash",
-      "repository": "unsloth/DeepSeek-V4-Flash-GGUF",
-      "files": [
-        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00001-of-00004.gguf",
-        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00002-of-00004.gguf",
-        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00003-of-00004.gguf",
-        "UD-IQ4_NL/DeepSeek-V4-Flash-UD-IQ4_NL-00004-of-00004.gguf"
+      "name": "Qwen3.5-2B",
+      "components": [
+        {
+          "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
+          "file": "Qwen3.5-2B-Q8_0.gguf"
+        },
+        {
+          "repository": "unsloth/Qwen3.5-2B-MTP-GGUF",
+          "file": "mmproj-F16.gguf"
+        }
+      ]
+    },
+    {
+      "name": "Qwen3-Embedding-0.6B",
+      "components": [
+        {
+          "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
+          "file": "Qwen3-Embedding-0.6B-f16.gguf"
+        }
+      ]
+    },
+    {
+      "name": "Gemma-4-31B",
+      "components": [
+        {
+          "repository": "unsloth/gemma-4-31B-it-GGUF",
+          "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf"
+        },
+        {
+          "repository": "unsloth/gemma-4-31B-it-GGUF",
+          "file": "mtp-gemma-4-31B-it.gguf"
+        },
+        {
+          "repository": "unsloth/gemma-4-31B-it-GGUF",
+          "file": "mmproj-F16.gguf"
+        }
+      ]
+    },
+    {
+      "name": "Laguna-S-2.1",
+      "components": [
+        {
+          "repository": "unsloth/Laguna-S-2.1-GGUF",
+          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00001-of-00003.gguf"
+        },
+        {
+          "repository": "unsloth/Laguna-S-2.1-GGUF",
+          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00002-of-00003.gguf"
+        },
+        {
+          "repository": "unsloth/Laguna-S-2.1-GGUF",
+          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00003-of-00003.gguf"
+        },
+        {
+          "repository": "poolside/Laguna-S-2.1-GGUF",
+          "file": "laguna-s-2.1-DFlash-BF16.gguf"
+        }
       ]
     }
   ],
