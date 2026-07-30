@@ -105,9 +105,14 @@ using the first component as the main `model`. If any component's file starts wi
 `mmproj` line built from that component's own `repository` and `file`. If a draft model file was
 provided, add a `model-draft` line the same way.
 
+If the model is a MoE that would leave no VRAM headroom for the always-resident embedding model, add
+`n-cpu-moe = N` to move the leading N blocks' expert weights to system RAM. This is cheap at decode time — only
+`expert_used_count` of `expert_count` experts are read per token — but it disables llama.cpp's multi-GPU pipeline
+parallelism, so keep N as low as the VRAM budget allows.
+
 ### `llama-cpp/models.js`
 
-If the model is ≥ 27B parameters (judge from the name — e.g. "35B", "31B"), add its ID(s) to
+If the model is ≥ 27B parameters (judge from the name — e.g. "35B", "27B"), add its ID(s) to
 `largeModelIds`.
 
 ### `harnesses/opencode.json`

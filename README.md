@@ -309,6 +309,10 @@ second model resident (for embeddings or quick tasks). The logic is as follows:
 
 This keeps the small helper model untouched while making large-model handovers deterministic.
 
+Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
+is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `preset.ini` instead:
+`Laguna-S-2.1` moves its leading expert blocks to system RAM with `n-cpu-moe`.
+
 ### Image generation VRAM
 
 `sd-server` offloads its weights to RAM between generations (`--offload-to-cpu`), so it only holds VRAM while actually

@@ -6,7 +6,7 @@
       "components": [
         {
           "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
-          "file": "ThinkingCap-Qwen3.6-27B-Q4_K_M.gguf"
+          "file": "ThinkingCap-Qwen3.6-27B-Q6_K.gguf"
         },
         {
           "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
@@ -19,7 +19,7 @@
       "components": [
         {
           "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
-          "file": "Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf"
+          "file": "Qwen3.6-35B-A3B-UD-Q6_K_XL.gguf"
         },
         {
           "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
@@ -46,23 +46,6 @@
         {
           "repository": "Qwen/Qwen3-Embedding-0.6B-GGUF",
           "file": "Qwen3-Embedding-0.6B-f16.gguf"
-        }
-      ]
-    },
-    {
-      "name": "Gemma-4-31B",
-      "components": [
-        {
-          "repository": "unsloth/gemma-4-31B-it-GGUF",
-          "file": "gemma-4-31B-it-UD-Q4_K_XL.gguf"
-        },
-        {
-          "repository": "unsloth/gemma-4-31B-it-GGUF",
-          "file": "mtp-gemma-4-31B-it.gguf"
-        },
-        {
-          "repository": "unsloth/gemma-4-31B-it-GGUF",
-          "file": "mmproj-F16.gguf"
         }
       ]
     },

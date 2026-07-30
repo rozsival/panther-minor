@@ -119,7 +119,7 @@ async function withSwitchLock(task) {
 }
 
 // A loaded model conflicts with the requested one when the two cannot sensibly
-// stay resident together: two large models never share the GPU, and a reasoning
+// stay resident together: two large models never share the GPUs, and a reasoning
 // variant shares its weights with its sibling so only one is kept loaded.
 function conflictsWithTarget(targetId, loadedId) {
   if (targetId === loadedId) {
