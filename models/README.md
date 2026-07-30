@@ -38,13 +38,13 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 | `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`                  | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
 | `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
 | `Gemma-4-31B` 💭 👀 ⚡️     | `unsloth/gemma-4-31B-it-GGUF`              | 131K | Midweight dense model providing maximum consistency for extensive analysis and text generation tasks        |
-| `Laguna-S-2.1` 💭 ⚡️       | `unsloth/Laguna-S-2.1-GGUF`                | 262K | Heavyweight MoE model optimized for long-running agentic tasks and deep reasoning capabilities              |
+| `Laguna-S-2.1` 💭          | `unsloth/Laguna-S-2.1-GGUF`                | 262K | Heavyweight MoE model optimized for long-running agentic tasks and deep reasoning capabilities              |
 
 Legend:
 
 - 💭 — thinking preset available
 - 👀 — multimodal capabilities (vision encoder enabled)
-- ⚡️ — speculative decoding enabled (DFlash or MTP)
+- ⚡️ — speculative decoding with Multi Token Prediction (MTP) enabled
 - 🪶 — embedding-only model (no text generation)
 
 ### Configuration

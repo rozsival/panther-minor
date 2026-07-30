@@ -80,10 +80,6 @@
         {
           "repository": "unsloth/Laguna-S-2.1-GGUF",
           "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00003-of-00003.gguf"
-        },
-        {
-          "repository": "poolside/Laguna-S-2.1-GGUF",
-          "file": "laguna-s-2.1-DFlash-BF16.gguf"
         }
       ]
     }
