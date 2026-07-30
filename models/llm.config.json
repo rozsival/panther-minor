@@ -19,7 +19,7 @@
       "components": [
         {
           "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
-          "file": "Qwen3.6-35B-A3B-UD-Q6_K_XL.gguf"
+          "file": "Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf"
         },
         {
           "repository": "unsloth/Qwen3.6-35B-A3B-MTP-GGUF",
