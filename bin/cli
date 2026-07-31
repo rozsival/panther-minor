@@ -792,12 +792,12 @@ cli_models_llm_load_usage() {
 
     # :argument.usage
     printf "  %s\n" "MODEL"
-    printf "    Model name from models/llm.config.json\n"
+    printf "    Preset name from llama-cpp/preset.ini (reasoning variants end with\n    -thinking)\n"
     echo
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models llm load Qwen3.5-35B-A3B\n"
+    printf "  cli models llm load Laguna-S-2.1-thinking\n"
     echo
 
   fi
@@ -827,12 +827,12 @@ cli_models_llm_unload_usage() {
 
     # :argument.usage
     printf "  %s\n" "MODEL"
-    printf "    Model name from models/llm.config.json\n"
+    printf "    Preset name from llama-cpp/preset.ini (reasoning variants end with\n    -thinking)\n"
     echo
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models llm unload Qwen3.5-35B-A3B\n"
+    printf "  cli models llm unload Laguna-S-2.1-thinking\n"
     echo
 
   fi
@@ -1654,6 +1654,25 @@ panther_llm_model_files() {
   local model="$1"
   panther_llm_config "$model" | jq -r '.components[] | .repository + "/" + .file'
 }
+panther_llm_preset_file() {
+  printf '%s\n' "$PANTHER_REPO_ROOT/llama-cpp/preset.ini"
+}
+# Preset section names are the identifiers llama-server actually serves, so they
+# carry the reasoning variants (e.g. 'Laguna-S-2.1-thinking') that llm.config.json
+# does not - that file only tracks which weight files to download.
+panther_loadable_llms() {
+  sed -n 's/^\[\(.*\)\]$/\1/p' "$(panther_llm_preset_file)"
+}
+panther_assert_loadable_llm() {
+  local model="$1"
+  if panther_loadable_llms | grep -Fxq "$model"; then
+    return 0
+  fi
+
+  local loadable_models
+  loadable_models="$(panther_loadable_llms | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+  panther_log_error "Unknown model '$model'. Loadable models: $loadable_models"
+}
 
 # src/lib/logging.sh
 panther_log_info() {
@@ -1832,7 +1851,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models llm unload\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm.config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && sed -n \'s/^\[\(.*\)\]$/\1/p\' llama-cpp/preset.ini) --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models llm remove\'*)'
@@ -1852,7 +1871,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models llm load\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r \'.models.[] | .name\' models/llm.config.json)") --help -h")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && sed -n \'s/^\[\(.*\)\]$/\1/p\' llama-cpp/preset.ini) --help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'models llm list\'*)'
@@ -2201,6 +2220,23 @@ validate_integer() {
   if ! [[ "$1" =~ ^[0-9]+$ ]]; then
     echo "must be an integer"
   fi
+}
+
+# src/lib/validations/validate_loadable_llm.sh
+validate_loadable_llm() {
+  local preset_file="$PANTHER_REPO_ROOT/llama-cpp/preset.ini"
+  if [[ ! -f "$preset_file" ]]; then
+    echo "llama.cpp preset file not found: $preset_file"
+    return
+  fi
+
+  if sed -n 's/^\[\(.*\)\]$/\1/p' "$preset_file" | grep -Fxq "$1"; then
+    return 0
+  fi
+
+  local loadable_models
+  loadable_models="$(sed -n 's/^\[\(.*\)\]$/\1/p' "$preset_file" | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+  echo "must be one of: $loadable_models"
 }
 
 # src/lib/validations/validate_not_empty.sh
@@ -2870,14 +2906,16 @@ cli_models_llm_load_command() {
   # src/models_llm_load_command.sh
   panther_llm_load() {
     local model="${args[model]}"
-    panther_assert_supported_llm "$model"
+    panther_assert_loadable_llm "$model"
 
     # Make POST request to llama-manager to load the model (via HTTPS as external client)
     local response
-    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
+    if ! response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
       -H "Content-Type: application/json" \
       --insecure \
-      -d "{\"model\": \"$model\"}")
+      -d "{\"model\": \"$model\"}"); then
+      panther_log_error "Cannot reach llama-manager at https://localhost:8000. Is the cluster running?"
+    fi
 
     local http_code="${response: -3}"
     local body="${response%???}"
@@ -2901,14 +2939,16 @@ cli_models_llm_unload_command() {
   # src/models_llm_unload_command.sh
   panther_llm_unload() {
     local model="${args[model]}"
-    panther_assert_supported_llm "$model"
+    panther_assert_loadable_llm "$model"
 
     # Make POST request to llama-manager to unload the model (via HTTPS as external client)
     local response
-    response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/unload" \
+    if ! response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/unload" \
       -H "Content-Type: application/json" \
       --insecure \
-      -d "{\"model\": \"$model\"}")
+      -d "{\"model\": \"$model\"}"); then
+      panther_log_error "Cannot reach llama-manager at https://localhost:8000. Is the cluster running?"
+    fi
 
     local http_code="${response: -3}"
     local body="${response%???}"
@@ -5280,7 +5320,7 @@ cli_models_llm_load_parse_requirements() {
   # :command.validations
   # :argument.validations
   if [[ -v args['model'] ]]; then
-    validation_output="$(validate_supported_llm "${args['model']:-}")"
+    validation_output="$(validate_loadable_llm "${args['model']:-}")"
     if [[ -n "$validation_output" ]]; then
       printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
       exit 1
@@ -5350,7 +5390,7 @@ cli_models_llm_unload_parse_requirements() {
   # :command.validations
   # :argument.validations
   if [[ -v args['model'] ]]; then
-    validation_output="$(validate_supported_llm "${args['model']:-}")"
+    validation_output="$(validate_loadable_llm "${args['model']:-}")"
     if [[ -n "$validation_output" ]]; then
       printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
       exit 1

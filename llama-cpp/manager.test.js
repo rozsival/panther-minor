@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   beginTrackedRequest,
+  classifyRequest,
   endTrackedRequest,
   extractRequestedModel,
   fetchLoadedModels,
@@ -329,4 +330,37 @@ test('prepareModelForInference returns null and makes no upstream calls for a mi
   });
   assert.equal(reserved, null);
   assert.equal(called, false);
+});
+
+test('classifyRequest arbitrates model loads as well as inference', () => {
+  assert.equal(classifyRequest('POST', '/models/load'), 'model-load');
+  assert.equal(classifyRequest('POST', '/v1/chat/completions'), 'inference');
+  assert.equal(classifyRequest('POST', '/v1/completions'), 'inference');
+  assert.equal(classifyRequest('POST', '/v1/embeddings'), 'embedding');
+});
+
+test('classifyRequest leaves catalogue reads and unloads unarbitrated', () => {
+  assert.equal(classifyRequest('GET', '/models'), 'proxy');
+  assert.equal(classifyRequest('GET', '/v1/models'), 'proxy');
+  assert.equal(classifyRequest('GET', '/models/load'), 'proxy');
+  assert.equal(classifyRequest('POST', '/models/unload'), 'proxy');
+});
+
+test('prepareModelForInference switches between Laguna reasoning variants', async () => {
+  resetActivityTracking();
+  const calls = [];
+  const reserved = await prepareModelForInference('Laguna-S-2.1', (url, options = {}) => {
+    calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
+    if (url.pathname === '/models') {
+      return new Response(JSON.stringify({ data: [{ id: 'Laguna-S-2.1-thinking', status: { value: 'loaded' } }] }), {
+        status: 200,
+      });
+    }
+    return new Response(null, { status: 200 });
+  });
+
+  assert.equal(reserved, 'Laguna-S-2.1');
+  const unloaded = calls.filter((call) => call.method === 'POST').map((call) => JSON.parse(call.body).model);
+  assert.deepEqual(unloaded, ['Laguna-S-2.1-thinking']);
+  releaseModelReservation('Laguna-S-2.1');
 });

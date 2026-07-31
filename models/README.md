@@ -66,9 +66,15 @@ through `llama-cpp/preset.ini`
 ./bin/cli models llm download <model>       # Download an LLM into the cache (only missing files)
 ./bin/cli models llm download <model> -f    # Force re-download of the model's files
 ./bin/cli models llm remove <model>         # Remove an LLM's unshared files from the cache
-./bin/cli models llm load <model>           # Manually load an LLM into the llama.cpp cluster
-./bin/cli models llm unload <model>         # Manually unload an LLM from the llama.cpp cluster
+./bin/cli models llm load <preset>          # Manually load an LLM into the llama.cpp cluster
+./bin/cli models llm unload <preset>        # Manually unload an LLM from the llama.cpp cluster
 ```
+
+`download` and `remove` take a **model name** from this file — they operate on weight files. `load` and
+`unload` take a **preset name** from [`llama-cpp/preset.ini`](../llama-cpp/preset.ini), which is what
+llama-server actually serves, so reasoning variants are addressable individually (`Laguna-S-2.1` vs
+`Laguna-S-2.1-thinking`). Loading either variant unloads its sibling, because the two share one set of
+weights on the GPU.
 
 ---
 

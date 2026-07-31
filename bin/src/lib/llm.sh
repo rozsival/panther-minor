@@ -24,3 +24,22 @@ panther_llm_model_files() {
   local model="$1"
   panther_llm_config "$model" | jq -r '.components[] | .repository + "/" + .file'
 }
+panther_llm_preset_file() {
+  printf '%s\n' "$PANTHER_REPO_ROOT/llama-cpp/preset.ini"
+}
+# Preset section names are the identifiers llama-server actually serves, so they
+# carry the reasoning variants (e.g. 'Laguna-S-2.1-thinking') that llm.config.json
+# does not - that file only tracks which weight files to download.
+panther_loadable_llms() {
+  sed -n 's/^\[\(.*\)\]$/\1/p' "$(panther_llm_preset_file)"
+}
+panther_assert_loadable_llm() {
+  local model="$1"
+  if panther_loadable_llms | grep -Fxq "$model"; then
+    return 0
+  fi
+
+  local loadable_models
+  loadable_models="$(panther_loadable_llms | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+  panther_log_error "Unknown model '$model'. Loadable models: $loadable_models"
+}

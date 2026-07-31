@@ -380,11 +380,13 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
   let trackedRequestFinished = false;
 
   const finishTrackedRequest = () => {
-    if (!trackRequest || trackedRequestFinished) {
+    if (trackedRequestFinished) {
       return;
     }
     trackedRequestFinished = true;
-    endTrackedRequest();
+    if (trackRequest) {
+      endTrackedRequest();
+    }
     releaseModelReservation(trackedModelId);
   };
 
@@ -480,10 +482,57 @@ async function handleInferenceRequest(req, res) {
   }
 }
 
+// Manual loads run the same arbitration as inference, so a variant switch or a
+// large-model handover never leaves two conflicting models resident. This is
+// deliberately not an activity signal: loading a model must not defeat idle unload.
+async function handleModelLoadRequest(req, res) {
+  const bodyBuffer = await readRequestBody(req);
+  const trackedModelId = await prepareModelForInference(extractRequestedModel(bodyBuffer));
+
+  try {
+    proxyToUpstream(req, res, { bodyBuffer, trackedModelId, trackRequest: false });
+  } catch (error) {
+    releaseModelReservation(trackedModelId);
+    throw error;
+  }
+}
+
 // -- HTTP server --------------------------------------------------------------
 
+const MODEL_LOAD_PATH = '/models/load';
 const embeddingPaths = new Set(['/v1/embeddings']);
 const inferencePaths = new Set(['/v1/chat/completions', '/v1/completions']);
+
+// Routing contract. 'inference' and 'model-load' both arbitrate conflicting models
+// before proxying; only 'inference' and 'embedding' count as activity. Everything
+// else - catalogue reads included - proxies untouched, so listing models never
+// keeps one resident.
+export function classifyRequest(method, requestPath) {
+  if (method !== 'POST') {
+    return 'proxy';
+  }
+  if (inferencePaths.has(requestPath)) {
+    return 'inference';
+  }
+  if (requestPath === MODEL_LOAD_PATH) {
+    return 'model-load';
+  }
+  if (embeddingPaths.has(requestPath)) {
+    return 'embedding';
+  }
+  return 'proxy';
+}
+
+function respondBadGateway(res, kind, requestPath, error) {
+  log('warn', `${kind}_request_failed`, {
+    error: error?.message ?? String(error),
+    path: requestPath,
+  });
+  if (!res.headersSent) {
+    res.writeHead(502);
+    res.end('Bad Gateway\n');
+  }
+}
 
 export function startServer() {
   const server = createServer((req, res) => {
@@ -511,28 +560,23 @@ export function startServer() {
       return;
     }
 
-    const isInferenceRequest = req.method === 'POST' && inferencePaths.has(requestPath);
-    const trackRequest = isInferenceRequest || (req.method === 'POST' && embeddingPaths.has(requestPath));
+    const kind = classifyRequest(req.method, requestPath);
 
-    if (isInferenceRequest) {
-      handleInferenceRequest(req, res).catch((error) => {
-        log('warn', 'inference_request_failed', {
-          error: error?.message ?? String(error),
-          path: requestPath,
-        });
-        if (!res.headersSent) {
-          res.writeHead(502);
-          res.end('Bad Gateway\n');
-        }
-      });
+    if (kind === 'inference') {
+      handleInferenceRequest(req, res).catch((error) => respondBadGateway(res, 'inference', requestPath, error));
       return;
     }
 
-    if (trackRequest) {
+    if (kind === 'model-load') {
+      handleModelLoadRequest(req, res).catch((error) => respondBadGateway(res, 'model_load', requestPath, error));
+      return;
+    }
+
+    if (kind === 'embedding') {
       recordActivity();
     }
 
-    proxyToUpstream(req, res, { trackRequest });
+    proxyToUpstream(req, res, { trackRequest: kind === 'embedding' });
   });
 
   server.listen(PORT, '0.0.0.0', () => {

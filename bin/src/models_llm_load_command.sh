@@ -1,13 +1,15 @@
 panther_llm_load() {
   local model="${args[model]}"
-  panther_assert_supported_llm "$model"
+  panther_assert_loadable_llm "$model"
 
   # Make POST request to llama-manager to load the model (via HTTPS as external client)
   local response
-  response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
+  if ! response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
     -H "Content-Type: application/json" \
     --insecure \
-    -d "{\"model\": \"$model\"}")
+    -d "{\"model\": \"$model\"}"); then
+    panther_log_error "Cannot reach llama-manager at https://localhost:8000. Is the cluster running?"
+  fi
 
   local http_code="${response: -3}"
   local body="${response%???}"
