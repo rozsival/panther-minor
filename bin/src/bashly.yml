@@ -227,7 +227,7 @@ commands:
             examples:
               - cli models llm load Laguna-S-2.1-thinking
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && sed -n 's/^\[\(.*\)\]$/\1/p' llama-cpp/preset.ini)
+              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
           - name: unload
             help: Unload an LLM from the llama.cpp server
@@ -239,7 +239,7 @@ commands:
             examples:
               - cli models llm unload Laguna-S-2.1-thinking
             completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && sed -n 's/^\[\(.*\)\]$/\1/p' llama-cpp/preset.ini)
+              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
       - name: t2i
         help: Manage text-to-image models

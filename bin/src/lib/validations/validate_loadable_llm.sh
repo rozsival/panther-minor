@@ -5,11 +5,11 @@ validate_loadable_llm() {
     return
   fi
 
-  if sed -n 's/^\[\(.*\)\]$/\1/p' "$preset_file" | grep -Fxq "$1"; then
+  if awk -F'[][]' 'NF==3{print $2}' "$preset_file" | grep -Fxq "$1"; then
     return 0
   fi
 
   local loadable_models
-  loadable_models="$(sed -n 's/^\[\(.*\)\]$/\1/p' "$preset_file" | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
+  loadable_models="$(awk -F'[][]' 'NF==3{print $2}' "$preset_file" | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
   echo "must be one of: $loadable_models"
 }

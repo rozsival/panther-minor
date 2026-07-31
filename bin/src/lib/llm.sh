@@ -31,7 +31,7 @@ panther_llm_preset_file() {
 # carry the reasoning variants (e.g. 'Laguna-S-2.1-thinking') that llm.config.json
 # does not - that file only tracks which weight files to download.
 panther_loadable_llms() {
-  sed -n 's/^\[\(.*\)\]$/\1/p' "$(panther_llm_preset_file)"
+  awk -F'[][]' 'NF==3{print $2}' "$(panther_llm_preset_file)"
 }
 panther_assert_loadable_llm() {
   local model="$1"
