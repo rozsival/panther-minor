@@ -32,7 +32,7 @@
         {
           "role": "diffusion",
           "repository": "unsloth/Qwen-Image-2512-GGUF",
-          "file": "qwen-image-2512-Q4_K_M.gguf"
+          "file": "qwen-image-2512-Q8_0.gguf"
         },
         {
           "role": "llm",
