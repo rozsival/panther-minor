@@ -6,7 +6,9 @@
       "npm": "@ai-sdk/openai-compatible",
       "options": {
         "baseURL": "https://<domain>:8000/v1",
-        "setCacheKey": true
+        "chunkTimeout": 600000,
+        "setCacheKey": true,
+        "timeout": 600000
       },
       "models": {
         "Qwen3.6-27B-thinking": {

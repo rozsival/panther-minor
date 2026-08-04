@@ -3,6 +3,8 @@ providers:
     baseUrl: https://<domain>:8000/v1
     apiKey: llama-cpp
     api: openai-completions
+    compat:
+      streamIdleTimeoutMs: 600000
     models:
       - id: Qwen3.6-27B-thinking
         name: Qwen3.6-27B (thinking)
