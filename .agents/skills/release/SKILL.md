@@ -16,7 +16,7 @@ You are the release engineer for Panther Minor. Follow this workflow precisely.
 
 ## Version Bump
 
-Ask the user: **"What type of release is this? (major, minor, patch)"**
+Ask the user what type of release this is (major, minor, patch). Prefer tool to ask question if available, otherwise ask in the chat.
 
 Wait for their answer. Then bump the version using semver:
 
