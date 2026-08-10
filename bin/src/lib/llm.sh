@@ -28,7 +28,7 @@ panther_llm_preset_file() {
   printf '%s\n' "$PANTHER_REPO_ROOT/llama-cpp/preset.ini"
 }
 # Preset section names are the identifiers llama-server actually serves, so they
-# carry the reasoning variants (e.g. 'Laguna-S-2.1-thinking') that llm.config.json
+# carry the reasoning variants (e.g. 'DeepSeek-V4-Flash-0731-thinking') that llm.config.json
 # does not - that file only tracks which weight files to download.
 panther_loadable_llms() {
   awk -F'[][]' 'NF==3{print $2}' "$(panther_llm_preset_file)"

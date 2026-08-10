@@ -225,7 +225,7 @@ commands:
                 help: Preset name from llama-cpp/preset.ini (reasoning variants end with -thinking)
                 validate: loadable_llm
             examples:
-              - cli models llm load Laguna-S-2.1-thinking
+              - cli models llm load DeepSeek-V4-Flash-0731-thinking
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
@@ -237,7 +237,7 @@ commands:
                 help: Preset name from llama-cpp/preset.ini (reasoning variants end with -thinking)
                 validate: loadable_llm
             examples:
-              - cli models llm unload Laguna-S-2.1-thinking
+              - cli models llm unload DeepSeek-V4-Flash-0731-thinking
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 

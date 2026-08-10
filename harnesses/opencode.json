@@ -65,18 +65,18 @@
             "output": 8192
           }
         },
-        "Laguna-S-2.1-thinking": {
-          "id": "Laguna-S-2.1-thinking",
-          "name": "Laguna-S-2.1 (thinking)",
+        "DeepSeek-V4-Flash-0731-thinking": {
+          "id": "DeepSeek-V4-Flash-0731-thinking",
+          "name": "DeepSeek-V4-Flash-0731 (thinking)",
           "reasoning": true,
           "limit": {
             "context": 262144,
             "output": 65536
           }
         },
-        "Laguna-S-2.1": {
-          "id": "Laguna-S-2.1",
-          "name": "Laguna-S-2.1",
+        "DeepSeek-V4-Flash-0731": {
+          "id": "DeepSeek-V4-Flash-0731",
+          "name": "DeepSeek-V4-Flash-0731",
           "reasoning": false,
           "limit": {
             "context": 262144,

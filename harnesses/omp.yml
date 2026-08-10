@@ -42,14 +42,14 @@ providers:
         input: [text, image]
         contextWindow: 32768
         maxTokens: 8192
-      - id: Laguna-S-2.1-thinking
-        name: Laguna-S-2.1 (thinking)
+      - id: DeepSeek-V4-Flash-0731-thinking
+        name: DeepSeek-V4-Flash-0731 (thinking)
         reasoning: true
         input: [text]
         contextWindow: 262144
         maxTokens: 65536
-      - id: Laguna-S-2.1
-        name: Laguna-S-2.1
+      - id: DeepSeek-V4-Flash-0731
+        name: DeepSeek-V4-Flash-0731
         reasoning: false
         input: [text]
         contextWindow: 262144

@@ -346,21 +346,24 @@ test('classifyRequest leaves catalogue reads and unloads unarbitrated', () => {
   assert.equal(classifyRequest('POST', '/models/unload'), 'proxy');
 });
 
-test('prepareModelForInference switches between Laguna reasoning variants', async () => {
+test('prepareModelForInference switches between DeepSeek reasoning variants', async () => {
   resetActivityTracking();
   const calls = [];
-  const reserved = await prepareModelForInference('Laguna-S-2.1', (url, options = {}) => {
+  const reserved = await prepareModelForInference('DeepSeek-V4-Flash-0731', (url, options = {}) => {
     calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
-      return new Response(JSON.stringify({ data: [{ id: 'Laguna-S-2.1-thinking', status: { value: 'loaded' } }] }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731-thinking', status: { value: 'loaded' } }] }),
+        {
+          status: 200,
+        }
+      );
     }
     return new Response(null, { status: 200 });
   });
 
-  assert.equal(reserved, 'Laguna-S-2.1');
+  assert.equal(reserved, 'DeepSeek-V4-Flash-0731');
   const unloaded = calls.filter((call) => call.method === 'POST').map((call) => JSON.parse(call.body).model);
-  assert.deepEqual(unloaded, ['Laguna-S-2.1-thinking']);
-  releaseModelReservation('Laguna-S-2.1');
+  assert.deepEqual(unloaded, ['DeepSeek-V4-Flash-0731-thinking']);
+  releaseModelReservation('DeepSeek-V4-Flash-0731');
 });

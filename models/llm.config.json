@@ -50,19 +50,27 @@
       ]
     },
     {
-      "name": "Laguna-S-2.1",
+      "name": "DeepSeek-V4-Flash-0731",
       "components": [
         {
-          "repository": "unsloth/Laguna-S-2.1-GGUF",
-          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00001-of-00003.gguf"
+          "repository": "unsloth/DeepSeek-V4-Flash-0731-GGUF",
+          "file": "UD-IQ4_NL/DeepSeek-V4-Flash-0731-UD-IQ4_NL-00001-of-00004.gguf"
         },
         {
-          "repository": "unsloth/Laguna-S-2.1-GGUF",
-          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00002-of-00003.gguf"
+          "repository": "unsloth/DeepSeek-V4-Flash-0731-GGUF",
+          "file": "UD-IQ4_NL/DeepSeek-V4-Flash-0731-UD-IQ4_NL-00002-of-00004.gguf"
         },
         {
-          "repository": "unsloth/Laguna-S-2.1-GGUF",
-          "file": "UD-IQ4_NL/Laguna-S-2.1-UD-IQ4_NL-00003-of-00003.gguf"
+          "repository": "unsloth/DeepSeek-V4-Flash-0731-GGUF",
+          "file": "UD-IQ4_NL/DeepSeek-V4-Flash-0731-UD-IQ4_NL-00003-of-00004.gguf"
+        },
+        {
+          "repository": "unsloth/DeepSeek-V4-Flash-0731-GGUF",
+          "file": "UD-IQ4_NL/DeepSeek-V4-Flash-0731-UD-IQ4_NL-00004-of-00004.gguf"
+        },
+        {
+          "repository": "unsloth/DeepSeek-V4-Flash-0731-GGUF",
+          "file": "dspark-DeepSeek-V4-Flash-0731-Q8_0.gguf"
         }
       ]
     }

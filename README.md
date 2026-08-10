@@ -311,7 +311,7 @@ This keeps the small helper model untouched while making large-model handovers d
 
 Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
 is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `preset.ini` instead:
-`Laguna-S-2.1` moves its leading expert blocks to system RAM with `n-cpu-moe`.
+`DeepSeek-V4-Flash-0731` moves most of its expert blocks to system RAM with `n-cpu-moe`.
 
 ### Image generation VRAM
 

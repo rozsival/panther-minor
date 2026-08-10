@@ -31,19 +31,19 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 ### Supported models
 
-| Model                      | Base                                       | Ctx  | Purpose                                                                                                     |
-| -------------------------- | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------- |
-| `Qwen3.6-27B` 💭 👀 ⚡️️     | `bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF` | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
-| `Qwen3.6-35B-A3B` 💭 👀 ⚡️ | `unsloth/Qwen3.6-35B-A3B-GGUF`             | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
-| `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`                  | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
-| `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
-| `Laguna-S-2.1` 💭          | `unsloth/Laguna-S-2.1-GGUF`                | 262K | Heavyweight MoE model optimized for long-running agentic tasks and deep reasoning capabilities              |
+| Model                          | Base                                       | Ctx  | Purpose                                                                                                     |
+| ------------------------------ | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------- |
+| `Qwen3.6-27B` 💭 👀 ⚡️️         | `bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF` | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
+| `Qwen3.6-35B-A3B` 💭 👀 ⚡️     | `unsloth/Qwen3.6-35B-A3B-GGUF`             | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
+| `Qwen3.5-2B` 💭 👀️ ⚡️          | `unsloth/Qwen3.5-2B-GGUF`                  | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
+| `Qwen3-Embedding-0.6B` 🪶      | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
+| `DeepSeek-V4-Flash-0731` 💭 ⚡️ | `unsloth/DeepSeek-V4-Flash-0731-GGUF`      | 262K | Heavyweight sparse MoE (284B total, ~10B active) for long-running agentic, coding, and deep reasoning tasks |
 
 Legend:
 
 - 💭 — thinking preset available
 - 👀 — multimodal capabilities (vision encoder enabled)
-- ⚡️ — speculative decoding with Multi Token Prediction (MTP) enabled
+- ⚡️ — speculative decoding enabled (Multi Token Prediction, or a DSpark draft model)
 - 🪶 — embedding-only model (no text generation)
 
 ### Configuration
@@ -72,8 +72,8 @@ through `llama-cpp/preset.ini`
 
 `download` and `remove` take a **model name** from this file — they operate on weight files. `load` and
 `unload` take a **preset name** from [`llama-cpp/preset.ini`](../llama-cpp/preset.ini), which is what
-llama-server actually serves, so reasoning variants are addressable individually (`Laguna-S-2.1` vs
-`Laguna-S-2.1-thinking`). Loading either variant unloads its sibling, because the two share one set of
+llama-server actually serves, so reasoning variants are addressable individually (`DeepSeek-V4-Flash-0731` vs
+`DeepSeek-V4-Flash-0731-thinking`). Loading either variant unloads its sibling, because the two share one set of
 weights on the GPU.
 
 ---
