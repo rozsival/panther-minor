@@ -5,52 +5,51 @@ providers:
     api: openai-completions
     compat:
       streamIdleTimeoutMs: 600000
+      # Thinking is a per-request switch on the llama.cpp chat template, so one
+      # model id serves both modes: `chat_template_kwargs.enable_thinking` is
+      # flipped by the thinking toggle (Shift+Tab) instead of switching models.
+      thinkingFormat: qwen-chat-template
+      reasoningContentField: reasoning_content
     models:
-      - id: Qwen3.6-27B-thinking
-        name: Qwen3.6-27B (thinking)
-        reasoning: true
-        input: [text, image]
-        contextWindow: 262144
-        maxTokens: 65536
       - id: Qwen3.6-27B
         name: Qwen3.6-27B
-        reasoning: false
-        input: [text, image]
-        contextWindow: 262144
-        maxTokens: 65536
-      - id: Qwen3.6-35B-A3B-thinking
-        name: Qwen3.6-35B-A3B (thinking)
         reasoning: true
         input: [text, image]
         contextWindow: 262144
         maxTokens: 65536
+        compat:
+          # Qwen recommends a higher temperature plus a presence penalty without
+          # thinking, and greedier sampling with it.
+          extraBody:
+            presence_penalty: 1.5
+            temperature: 1.0
+          whenThinking:
+            extraBody:
+              presence_penalty: 0.0
+              temperature: 0.6
       - id: Qwen3.6-35B-A3B
         name: Qwen3.6-35B-A3B
-        reasoning: false
+        reasoning: true
         input: [text, image]
         contextWindow: 262144
         maxTokens: 65536
-      - id: Qwen3.5-2B-thinking
-        name: Qwen3.5-2B (thinking)
-        reasoning: true
-        input: [text, image]
-        contextWindow: 32768
-        maxTokens: 8192
+        compat:
+          extraBody:
+            presence_penalty: 1.5
+            temperature: 1.0
+          whenThinking:
+            extraBody:
+              presence_penalty: 0.0
+              temperature: 0.6
       - id: Qwen3.5-2B
         name: Qwen3.5-2B
-        reasoning: false
+        reasoning: true
         input: [text, image]
         contextWindow: 32768
         maxTokens: 8192
-      - id: DeepSeek-V4-Flash-0731-thinking
-        name: DeepSeek-V4-Flash-0731 (thinking)
-        reasoning: true
-        input: [text]
-        contextWindow: 262144
-        maxTokens: 65536
       - id: DeepSeek-V4-Flash-0731
         name: DeepSeek-V4-Flash-0731
-        reasoning: false
+        reasoning: true
         input: [text]
         contextWindow: 262144
         maxTokens: 65536

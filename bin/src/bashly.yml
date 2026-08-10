@@ -222,10 +222,10 @@ commands:
             args:
               - name: model
                 required: true
-                help: Preset name from llama-cpp/preset.ini (reasoning variants end with -thinking)
+                help: Preset name from llama-cpp/preset.ini
                 validate: loadable_llm
             examples:
-              - cli models llm load DeepSeek-V4-Flash-0731-thinking
+              - cli models llm load DeepSeek-V4-Flash-0731
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
@@ -234,10 +234,10 @@ commands:
             args:
               - name: model
                 required: true
-                help: Preset name from llama-cpp/preset.ini (reasoning variants end with -thinking)
+                help: Preset name from llama-cpp/preset.ini
                 validate: loadable_llm
             examples:
-              - cli models llm unload DeepSeek-V4-Flash-0731-thinking
+              - cli models llm unload DeepSeek-V4-Flash-0731
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 

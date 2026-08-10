@@ -1,11 +1,4 @@
-export const largeModelIds = new Set([
-  'Qwen3.6-27B-thinking',
-  'Qwen3.6-27B',
-  'Qwen3.6-35B-A3B-thinking',
-  'Qwen3.6-35B-A3B',
-  'DeepSeek-V4-Flash-0731-thinking',
-  'DeepSeek-V4-Flash-0731',
-]);
+export const largeModelIds = new Set(['Qwen3.6-27B', 'Qwen3.6-35B-A3B', 'DeepSeek-V4-Flash-0731']);
 
 export function isLargeModelId(modelId) {
   return typeof modelId === 'string' && largeModelIds.has(modelId.trim());
@@ -28,16 +21,4 @@ export function normalizeModelsPayload(payload) {
   }
 
   return models;
-}
-
-export function isVariantOf(a, b) {
-  if (typeof a !== 'string' || typeof b !== 'string') {
-    return false;
-  }
-  const trimA = a.trim();
-  const trimB = b.trim();
-  if (trimA === trimB) {
-    return false;
-  }
-  return trimA === `${trimB}-thinking` || trimB === `${trimA}-thinking`;
 }

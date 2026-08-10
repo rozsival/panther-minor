@@ -36,8 +36,9 @@ Ask these **one at a time**. Wait for the answer before moving on.
 5. **Context size** — e.g. `262144`, `131072`, `8192`.
 6. **Cache type K / V** — e.g. `q8_0 / q8_0` or `q8_0 / q4_0`.
 7. **Split mode?** — `layer` (recommended for large models) or `none` (for small models).
-8. **Reasoning variant?** — `yes` creates both `<name>` (reasoning off) and `<name>-thinking`
-   (reasoning on). `no` creates only `<name>` with reasoning off.
+8. **Reasoning?** — `auto` for hybrid models (thinking on by default, switched per request by the
+   client) or `off` for utility models that must never think, such as the Open WebUI task model.
+   Either way only **one** preset section is created; there are no `-thinking` variants.
 9. **Speculative decoding (MTP)?** — `yes` enables `spec-type = draft-mtp` and `spec-draft-n-max = 2`.
    If yes, follow up: **separate draft model file needed?** If yes, the user provides a draft
    filename (added to the files list and as `model-draft` in preset.ini).
@@ -63,8 +64,10 @@ Apply these defaults unless the user specifies otherwise:
 | `top-p`            | `0.95`     |
 | `maxTokens`        | `65536`    |
 | `input`            | `["text"]` |
+| `reasoning`        | `auto`     |
 
-For reasoning (`-thinking`) variants: `temp = 0.6`.
+Hybrid reasoning models take the thinking-mode sampler as their preset default (`temp = 0.6`,
+`presence-penalty = 0.0`); the non-thinking sampler is pinned client-side in `harnesses/omp.yml`.
 
 ## Confirmation
 
@@ -95,7 +98,8 @@ Components of one model may point at different repositories; each file is cached
 
 ### `llama-cpp/preset.ini`
 
-Add one section (or two if reasoning variant). The `model` path is:
+Add one section per model. Thinking is a per-request switch, so a reasoning variant never gets its own
+section. The `model` path is:
 
 ```
 /home/llama-cpp/.cache/huggingface/hub/<repository>/<file>
@@ -123,15 +127,22 @@ If coding-suitable, add under `provider.panther-minor.models`:
 "<name>": {
   "id": "<name>",
   "name": "<alias>",
-  "reasoning": false,
+  "reasoning": true,
   "limit": {
     "context": <ctx-size>,
     "output": <ctx-size>
+  },
+  "options": {
+    "chat_template_kwargs": { "enable_thinking": true }
+  },
+  "variants": {
+    "none": { "chat_template_kwargs": { "enable_thinking": false } },
+    "thinking": { "chat_template_kwargs": { "enable_thinking": true } }
   }
 }
 ```
 
-For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
+Set `"reasoning": false` and drop `options`/`variants` for models whose preset pins `reasoning = off`.
 
 ### `harnesses/omp.yml`
 
@@ -140,14 +151,16 @@ If coding-suitable, add under `providers.panther-minor.models`:
 ```yaml
 - id: '<name>'
   name: '<alias>'
-  reasoning: false
+  reasoning: true
   input: [text]
   contextWindow: <ctx-size>
   maxTokens: <max-tokens>
 ```
 
-For the thinking variant: `reasoning: true`, name appended with ` (thinking)`.
-For multimodal models, set `input: [text, image]`.
+For multimodal models, set `input: [text, image]`. The provider-level `compat.thinkingFormat:
+qwen-chat-template` already routes the thinking toggle to `chat_template_kwargs.enable_thinking`; add a
+per-model `compat.extraBody` / `compat.whenThinking.extraBody` pair only when the two modes need
+different sampling.
 
 ### `harnesses/pi.json`
 
@@ -157,12 +170,15 @@ If coding-suitable, add a new object to `providers.panther-minor.models`:
 {
   "id": "<name>",
   "name": "<alias>",
-  "reasoning": false,
+  "reasoning": true,
   "input": ["text"],
   "contextWindow": <ctx-size>,
-  "maxTokens": <max-tokens>
+  "maxTokens": <max-tokens>,
+  "compat": {
+    "thinkingFormat": "chat-template",
+    "chatTemplateKwargs": { "enable_thinking": { "$var": "thinking.enabled" } }
+  }
 }
 ```
 
-For the thinking variant: `"reasoning": true`, name appended with ` (thinking)`.
 For multimodal models, set `"input": ["text", "image"]`.

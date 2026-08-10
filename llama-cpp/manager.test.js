@@ -17,7 +17,6 @@ import {
   resetActivityTracking,
   unloadIdleModels,
 } from './manager.js';
-import { isVariantOf } from './models.js';
 
 async function withEnv(name, value, callback) {
   const previous = process.env[name];
@@ -220,34 +219,19 @@ test('unloadIdleModels unloads every loaded model via /models/unload', async () 
   });
 });
 
-test('isVariantOf detects reasoning/non-reasoning model pairs', () => {
-  assert.ok(isVariantOf('Qwen3.5-2B-thinking', 'Qwen3.5-2B'));
-  assert.ok(isVariantOf('Qwen3.5-2B', 'Qwen3.5-2B-thinking'));
-  assert.ok(isVariantOf('Qwen3.6-27B-thinking', 'Qwen3.6-27B'));
-  assert.ok(isVariantOf('  Qwen3.5-2B-thinking  ', 'Qwen3.5-2B'));
-});
-
-test('isVariantOf rejects non-variants and identical ids', () => {
-  assert.equal(isVariantOf('Qwen3.5-2B', 'Qwen3.5-2B'), false);
-  assert.equal(isVariantOf('Qwen3.5-2B', 'Qwen3.6-27B'), false);
-  assert.equal(isVariantOf('Qwen3.5-2B-thinking', 'Qwen3.6-27B-thinking'), false);
-  assert.equal(isVariantOf(null, 'Qwen3.5-2B'), false);
-  assert.equal(isVariantOf('Qwen3.5-2B', undefined), false);
-});
-
-test('prepareModelForInference unloads only the sibling variant, not unrelated models', async () => {
+test('prepareModelForInference unloads only conflicting large models', async () => {
   resetActivityTracking();
   const calls = [];
 
-  const reserved = await prepareModelForInference('Qwen3.5-2B-thinking', (url, options = {}) => {
+  const reserved = await prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
     calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
 
     if (url.pathname === '/models') {
       return new Response(
         JSON.stringify({
           data: [
+            { id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } },
             { id: 'Qwen3.5-2B', status: { value: 'loaded' } },
-            { id: 'tiny-model', status: { value: 'loaded' } },
           ],
         }),
         { status: 200 }
@@ -257,30 +241,34 @@ test('prepareModelForInference unloads only the sibling variant, not unrelated m
     return new Response(null, { status: 200 });
   });
 
-  assert.equal(reserved, 'Qwen3.5-2B-thinking');
+  assert.equal(reserved, 'Qwen3.6-27B');
   assert.deepEqual(calls, [
     { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
-    { body: JSON.stringify({ model: 'Qwen3.5-2B' }), method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+    {
+      body: JSON.stringify({ model: 'DeepSeek-V4-Flash-0731' }),
+      method: 'POST',
+      url: 'http://llama-cpp:8000/models/unload',
+    },
   ]);
-  assert.equal(getModelInFlight('Qwen3.5-2B-thinking'), 1);
-  releaseModelReservation('Qwen3.5-2B-thinking');
+  assert.equal(getModelInFlight('Qwen3.6-27B'), 1);
+  releaseModelReservation('Qwen3.6-27B');
 });
 
-test('prepareModelForInference waits for a loaded variant to drain before switching', async () => {
+test('prepareModelForInference waits for a conflicting model to drain before switching', async () => {
   resetActivityTracking();
 
   const first = await prepareModelForInference(
-    'Qwen3.5-2B',
+    'DeepSeek-V4-Flash-0731',
     () => new Response(JSON.stringify({ data: [] }), { status: 200 })
   );
-  assert.equal(first, 'Qwen3.5-2B');
-  assert.equal(getModelInFlight('Qwen3.5-2B'), 1);
+  assert.equal(first, 'DeepSeek-V4-Flash-0731');
+  assert.equal(getModelInFlight('DeepSeek-V4-Flash-0731'), 1);
 
   const calls = [];
-  const secondPromise = prepareModelForInference('Qwen3.5-2B-thinking', (url, options = {}) => {
+  const secondPromise = prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
-      return new Response(JSON.stringify({ data: [{ id: 'Qwen3.5-2B', status: { value: 'loaded' } }] }), {
+      return new Response(JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } }] }), {
         status: 200,
       });
     }
@@ -290,15 +278,15 @@ test('prepareModelForInference waits for a loaded variant to drain before switch
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(calls.length, 0);
 
-  releaseModelReservation('Qwen3.5-2B');
+  releaseModelReservation('DeepSeek-V4-Flash-0731');
   const second = await secondPromise;
 
-  assert.equal(second, 'Qwen3.5-2B-thinking');
+  assert.equal(second, 'Qwen3.6-27B');
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  releaseModelReservation('Qwen3.5-2B-thinking');
+  releaseModelReservation('Qwen3.6-27B');
 });
 
 test('prepareModelForInference reserves the target without unloading when nothing conflicts', async () => {
@@ -346,24 +334,20 @@ test('classifyRequest leaves catalogue reads and unloads unarbitrated', () => {
   assert.equal(classifyRequest('POST', '/models/unload'), 'proxy');
 });
 
-test('prepareModelForInference switches between DeepSeek reasoning variants', async () => {
+test('prepareModelForInference keeps an already loaded target resident', async () => {
   resetActivityTracking();
   const calls = [];
   const reserved = await prepareModelForInference('DeepSeek-V4-Flash-0731', (url, options = {}) => {
     calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
-      return new Response(
-        JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731-thinking', status: { value: 'loaded' } }] }),
-        {
-          status: 200,
-        }
-      );
+      return new Response(JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } }] }), {
+        status: 200,
+      });
     }
     return new Response(null, { status: 200 });
   });
 
   assert.equal(reserved, 'DeepSeek-V4-Flash-0731');
-  const unloaded = calls.filter((call) => call.method === 'POST').map((call) => JSON.parse(call.body).model);
-  assert.deepEqual(unloaded, ['DeepSeek-V4-Flash-0731-thinking']);
+  assert.deepEqual(calls, [{ body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' }]);
   releaseModelReservation('DeepSeek-V4-Flash-0731');
 });

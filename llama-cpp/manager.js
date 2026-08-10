@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest } from 'node:http';
-import { isLargeModelId, isVariantOf, normalizeModelsPayload } from './models.js';
+import { isLargeModelId, normalizeModelsPayload } from './models.js';
 
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
@@ -119,16 +119,11 @@ async function withSwitchLock(task) {
 }
 
 // A loaded model conflicts with the requested one when the two cannot sensibly
-// stay resident together: two large models never share the GPUs, and a reasoning
-// variant shares its weights with its sibling so only one is kept loaded.
+// stay resident together: two large models never share the GPUs. Reasoning is a
+// per-request switch (`chat_template_kwargs.enable_thinking`), so a model never
+// conflicts with itself in another thinking mode.
 function conflictsWithTarget(targetId, loadedId) {
-  if (targetId === loadedId) {
-    return false;
-  }
-  if (isLargeModelId(targetId) && isLargeModelId(loadedId)) {
-    return true;
-  }
-  return isVariantOf(targetId, loadedId);
+  return targetId !== loadedId && isLargeModelId(targetId) && isLargeModelId(loadedId);
 }
 
 function trackModelInFlight(modelId) {

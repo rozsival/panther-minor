@@ -41,7 +41,7 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 Legend:
 
-- 💭 — thinking preset available
+- 💭 — hybrid reasoning (thinking is switched per request, not per preset)
 - 👀 — multimodal capabilities (vision encoder enabled)
 - ⚡️ — speculative decoding enabled (Multi Token Prediction, or a DSpark draft model)
 - 🪶 — embedding-only model (no text generation)
@@ -72,9 +72,28 @@ through `llama-cpp/preset.ini`
 
 `download` and `remove` take a **model name** from this file — they operate on weight files. `load` and
 `unload` take a **preset name** from [`llama-cpp/preset.ini`](../llama-cpp/preset.ini), which is what
-llama-server actually serves, so reasoning variants are addressable individually (`DeepSeek-V4-Flash-0731` vs
-`DeepSeek-V4-Flash-0731-thinking`). Loading either variant unloads its sibling, because the two share one set of
-weights on the GPU.
+llama-server actually serves. Presets map 1:1 to models: thinking is a per-request switch, so changing
+reasoning mode never reloads weights.
+
+### Reasoning control
+
+Chat presets leave `reasoning = auto`, so the chat template decides — thinking is on unless a request says
+otherwise. `Qwen3.5-2B` pins `reasoning = off` instead, because Open WebUI drives it as the task model for
+titles, tags and query rewriting, which must never think.
+
+Per-request switches, in order of preference:
+
+- `chat_template_kwargs: { "enable_thinking": true | false }` — works in both directions regardless of what
+  the preset says. This is what the harness configs in [`harnesses/`](../harnesses/README.md) send.
+- `reasoning_effort: "none"` — disables thinking, but only while the preset leaves `reasoning = auto`. A
+  preset that pins `reasoning = on` ignores it and leaks raw `<think>` tags into `content`.
+- `reasoning_budget_tokens: N` — caps the trace at `N` tokens. Only `N > 0` is honoured; `0` is ignored.
+
+The trace comes back in `message.reasoning_content`, streamed as `delta.reasoning_content`.
+
+In Open WebUI, either type `none` into _Chat Controls → Advanced Params → reasoning_effort_, or add a
+Workspace Model over the same base model with the custom parameter `chat_template_kwargs` set to
+`{"enable_thinking": false}` — unknown parameters are forwarded to llama.cpp verbatim.
 
 ---
 
