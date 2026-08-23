@@ -2,15 +2,19 @@
   "$schema": "./llm.schema.json",
   "models": [
     {
-      "name": "Qwen3.6-27B",
+      "name": "Qwen3.8-27B",
       "components": [
         {
-          "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
-          "file": "ThinkingCap-Qwen3.6-27B-Q6_K.gguf"
+          "repository": "unsloth/Qwen3.8-27B-GGUF",
+          "file": "Qwen3.8-27B-UD-Q6_K_XL.gguf"
         },
         {
-          "repository": "bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF",
-          "file": "mmproj-ThinkingCap-Qwen3.6-27B-f16.gguf"
+          "repository": "unsloth/Qwen3.8-27B-GGUF",
+          "file": "mmproj-F16.gguf"
+        },
+        {
+          "repository": "unsloth/Qwen3.8-27B-GGUF",
+          "file": "MTP/mtp-Qwen3.8-27B-Q4_0.gguf"
         }
       ]
     },

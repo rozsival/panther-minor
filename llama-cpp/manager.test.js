@@ -124,7 +124,7 @@ test('prepareModelForInference unloads a conflicting large model before reservin
       return new Response(
         JSON.stringify({
           data: [
-            { id: 'Qwen3.6-27B', status: { value: 'loaded' } },
+            { id: 'Qwen3.8-27B', status: { value: 'loaded' } },
             { id: 'tiny-task-model', status: { value: 'loaded' } },
           ],
         }),
@@ -138,7 +138,7 @@ test('prepareModelForInference unloads a conflicting large model before reservin
   assert.equal(reserved, 'Qwen3.6-35B-A3B');
   assert.deepEqual(calls, [
     { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
-    { body: JSON.stringify({ model: 'Qwen3.6-27B' }), method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+    { body: JSON.stringify({ model: 'Qwen3.8-27B' }), method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
   assert.equal(getModelInFlight('Qwen3.6-35B-A3B'), 1);
   releaseModelReservation('Qwen3.6-35B-A3B');
@@ -154,7 +154,7 @@ test('prepareModelForInference waits for conflicting large requests to drain', a
   );
   assert.equal(first, 'Qwen3.6-35B-A3B');
 
-  const secondPromise = prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
+  const secondPromise = prepareModelForInference('Qwen3.8-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
       return new Response(
@@ -173,12 +173,12 @@ test('prepareModelForInference waits for conflicting large requests to drain', a
   releaseModelReservation('Qwen3.6-35B-A3B');
   const second = await secondPromise;
 
-  assert.equal(second, 'Qwen3.6-27B');
+  assert.equal(second, 'Qwen3.8-27B');
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  releaseModelReservation('Qwen3.6-27B');
+  releaseModelReservation('Qwen3.8-27B');
 });
 
 test('unloadIdleModels unloads every loaded model via /models/unload', async () => {
@@ -223,7 +223,7 @@ test('prepareModelForInference unloads only conflicting large models', async () 
   resetActivityTracking();
   const calls = [];
 
-  const reserved = await prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
+  const reserved = await prepareModelForInference('Qwen3.8-27B', (url, options = {}) => {
     calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
 
     if (url.pathname === '/models') {
@@ -241,7 +241,7 @@ test('prepareModelForInference unloads only conflicting large models', async () 
     return new Response(null, { status: 200 });
   });
 
-  assert.equal(reserved, 'Qwen3.6-27B');
+  assert.equal(reserved, 'Qwen3.8-27B');
   assert.deepEqual(calls, [
     { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
     {
@@ -250,8 +250,8 @@ test('prepareModelForInference unloads only conflicting large models', async () 
       url: 'http://llama-cpp:8000/models/unload',
     },
   ]);
-  assert.equal(getModelInFlight('Qwen3.6-27B'), 1);
-  releaseModelReservation('Qwen3.6-27B');
+  assert.equal(getModelInFlight('Qwen3.8-27B'), 1);
+  releaseModelReservation('Qwen3.8-27B');
 });
 
 test('prepareModelForInference waits for a conflicting model to drain before switching', async () => {
@@ -265,7 +265,7 @@ test('prepareModelForInference waits for a conflicting model to drain before swi
   assert.equal(getModelInFlight('DeepSeek-V4-Flash-0731'), 1);
 
   const calls = [];
-  const secondPromise = prepareModelForInference('Qwen3.6-27B', (url, options = {}) => {
+  const secondPromise = prepareModelForInference('Qwen3.8-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
       return new Response(JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } }] }), {
@@ -281,12 +281,12 @@ test('prepareModelForInference waits for a conflicting model to drain before swi
   releaseModelReservation('DeepSeek-V4-Flash-0731');
   const second = await secondPromise;
 
-  assert.equal(second, 'Qwen3.6-27B');
+  assert.equal(second, 'Qwen3.8-27B');
   assert.deepEqual(calls, [
     { method: 'GET', url: 'http://llama-cpp:8000/models' },
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
-  releaseModelReservation('Qwen3.6-27B');
+  releaseModelReservation('Qwen3.8-27B');
 });
 
 test('prepareModelForInference reserves the target without unloading when nothing conflicts', async () => {

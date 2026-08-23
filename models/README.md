@@ -31,13 +31,13 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 ### Supported models
 
-| Model                          | Base                                       | Ctx  | Purpose                                                                                                     |
-| ------------------------------ | ------------------------------------------ | ---- | ----------------------------------------------------------------------------------------------------------- |
-| `Qwen3.6-27B` 💭 👀 ⚡️️         | `bottlecapai/ThinkingCap-Qwen3.6-27B-GGUF` | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
-| `Qwen3.6-35B-A3B` 💭 👀 ⚡️     | `unsloth/Qwen3.6-35B-A3B-GGUF`             | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
-| `Qwen3.5-2B` 💭 👀️ ⚡️          | `unsloth/Qwen3.5-2B-GGUF`                  | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
-| `Qwen3-Embedding-0.6B` 🪶      | `Qwen/Qwen3-Embedding-0.6B-GGUF`           | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
-| `DeepSeek-V4-Flash-0731` 💭 ⚡️ | `unsloth/DeepSeek-V4-Flash-0731-GGUF`      | 262K | Heavyweight sparse MoE (284B total, ~10B active) for long-running agentic, coding, and deep reasoning tasks |
+| Model                          | Base                                  | Ctx  | Purpose                                                                                                     |
+| ------------------------------ | ------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
+| `Qwen3.8-27B` 💭 👀 ⚡️️         | `unsloth/Qwen3.8-27B-GGUF`            | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
+| `Qwen3.6-35B-A3B` 💭 👀 ⚡️     | `unsloth/Qwen3.6-35B-A3B-GGUF`        | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
+| `Qwen3.5-2B` 💭 👀️ ⚡️          | `unsloth/Qwen3.5-2B-GGUF`             | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
+| `Qwen3-Embedding-0.6B` 🪶      | `Qwen/Qwen3-Embedding-0.6B-GGUF`      | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
+| `DeepSeek-V4-Flash-0731` 💭 ⚡️ | `unsloth/DeepSeek-V4-Flash-0731-GGUF` | 262K | Heavyweight sparse MoE (284B total, ~10B active) for long-running agentic, coding, and deep reasoning tasks |
 
 Legend:
 
@@ -85,6 +85,8 @@ Per-request switches, in order of preference:
 
 - `chat_template_kwargs: { "enable_thinking": true | false }` — works in both directions regardless of what
   the preset says. This is what the harness configs in [`harnesses/`](../harnesses/README.md) send.
+- `chat_template_kwargs: { "reasoning_effort": "low" | "medium" | "xhigh" }` — sets how deep the model
+  thinks. `Qwen3.8-27B` defaults to `xhigh`, so lower it when long traces cost more than they buy.
 - `reasoning_effort: "none"` — disables thinking, but only while the preset leaves `reasoning = auto`. A
   preset that pins `reasoning = on` ignores it and leaks raw `<think>` tags into `content`.
 - `reasoning_budget_tokens: N` — caps the trace at `N` tokens. Only `N > 0` is honoured; `0` is ignored.
@@ -196,7 +198,7 @@ where the two text-to-image models differ, so pick the chat model to match the l
 | Loaded image model | Prompting                                  | Recommended chat model  | Why                                                                                                                                                                |
 | ------------------ | ------------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `Qwen-Image-2512`  | Plain text                                 | `Qwen3.5-2B`            | Relaying a text prompt needs no capacity — and staying lightweight matters, because Qwen-Image is the VRAM-heavy stack and OOMs when paired with a heavyweight LLM |
-| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.6-27B` or larger | Small models lack the capacity to drive the JSON-prompt skill reliably — and Ideogram 4's stack is light on VRAM, so a heavyweight LLM coexists with it just fine  |
+| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.8-27B` or larger | Small models lack the capacity to drive the JSON-prompt skill reliably — and Ideogram 4's stack is light on VRAM, so a heavyweight LLM coexists with it just fine  |
 
 1. Load a text-to-image model once: `./bin/cli models t2i load <model>`.
 2. When you want images, start the chat with the model from the table above.

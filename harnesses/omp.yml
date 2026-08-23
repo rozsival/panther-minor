@@ -11,22 +11,24 @@ providers:
       thinkingFormat: qwen-chat-template
       reasoningContentField: reasoning_content
     models:
-      - id: Qwen3.6-27B
-        name: Qwen3.6-27B
+      - id: Qwen3.8-27B
+        name: Qwen3.8-27B
         reasoning: true
         input: [text, image]
         contextWindow: 262144
         maxTokens: 65536
         compat:
-          # Qwen recommends a higher temperature plus a presence penalty without
-          # thinking, and greedier sampling with it.
+          # Qwen3.8 documents a tighter sampler plus a presence penalty without
+          # thinking, and a wider one with it.
           extraBody:
             presence_penalty: 1.5
-            temperature: 1.0
+            temperature: 0.7
+            top_p: 0.8
           whenThinking:
             extraBody:
               presence_penalty: 0.0
-              temperature: 0.6
+              temperature: 1.0
+              top_p: 0.95
       - id: Qwen3.6-35B-A3B
         name: Qwen3.6-35B-A3B
         reasoning: true

@@ -51,7 +51,7 @@ Each model is served under a single id and switches reasoning per request throug
 | Pi       | thinking level toggle               | `compat.chatTemplateKwargs.enable_thinking` bound to `thinking.enabled` |
 | OpenCode | model variant `thinking` / `none`   | `variants.<name>.chat_template_kwargs`                                  |
 
-The OMP preset also restores the per-mode sampling the old split presets encoded for the Qwen3.6 models:
+The OMP preset also restores the per-mode sampling the old split presets encoded for the Qwen chat models:
 the baseline `extraBody` carries the non-thinking sampler, `whenThinking.extraBody` the thinking one. Pi
 and OpenCode send no sampling overrides, so both modes use the preset defaults in
 [`llama-cpp/preset.ini`](../llama-cpp/preset.ini), which are tuned for thinking.

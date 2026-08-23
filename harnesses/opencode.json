@@ -11,9 +11,9 @@
         "timeout": 600000
       },
       "models": {
-        "Qwen3.6-27B": {
-          "id": "Qwen3.6-27B",
-          "name": "Qwen3.6 27B",
+        "Qwen3.8-27B": {
+          "id": "Qwen3.8-27B",
+          "name": "Qwen3.8 27B",
           "reasoning": true,
           "limit": {
             "context": 262144,

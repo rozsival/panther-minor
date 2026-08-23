@@ -1,4 +1,4 @@
-export const largeModelIds = new Set(['Qwen3.6-27B', 'Qwen3.6-35B-A3B', 'DeepSeek-V4-Flash-0731']);
+export const largeModelIds = new Set(['Qwen3.8-27B', 'Qwen3.6-35B-A3B', 'DeepSeek-V4-Flash-0731']);
 
 export function isLargeModelId(modelId) {
   return typeof modelId === 'string' && largeModelIds.has(modelId.trim());

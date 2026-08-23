@@ -6,8 +6,8 @@
       "api": "openai-completions",
       "models": [
         {
-          "id": "Qwen3.6-27B",
-          "name": "Qwen3.6-27B",
+          "id": "Qwen3.8-27B",
+          "name": "Qwen3.8-27B",
           "reasoning": true,
           "input": ["text", "image"],
           "contextWindow": 262144,
