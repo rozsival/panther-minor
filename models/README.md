@@ -87,6 +87,55 @@ alternative (`dspark/…-BF16.gguf`, 11.31 GB) differs solely in those 25 projec
 identically. A hand-built 4-bit conversion would recover at most ~0.3 GB — under a tenth of the ~3 GB that
 one `n-cpu-moe` step costs — while quantizing the heads that choose the drafts would cost acceptance rate.
 
+#### Draft depth
+
+`spec-draft-n-max` sets how many tokens the drafter proposes per round. Acceptance decays geometrically,
+so the optimum is where the marginal accepted token stops paying for its draft-and-sample cycle — not the
+largest value the checkpoint allows. Measure it, don't assume: `llama-server` reports
+`draft acceptance = <rate> (<accepted> / <generated>), mean len = <n>` per request, and llama.cpp `v0.2.0`
+added per-position counters that show exactly where acceptance falls off:
+
+```bash
+curl -s localhost:8000/metrics | grep spec_decode_num_accepted_tokens_per_pos_total
+```
+
+Note that acceptance is sampler-dependent: greedy decoding accepts far more than the `temp = 1.0` these
+presets run at, so benchmark at production sampling or the optimum lands too high.
+
+### GPU split mode
+
+`split-mode` decides how a model is spread over the GPUs, and the choice is not free on ROCm:
+
+- **`tensor`** — every GPU holds a slice of every layer, so the weight stream per GPU is divided by the
+  GPU count. For **dense** models, where decode is bandwidth-bound on weights, this is the fastest option
+  and is what `Qwen3.8-27B` uses. The cost is an all-reduce after every row-parallel projection.
+- **`layer`** — whole layers per GPU. No all-reduce, but a single request streams the full weights through
+  one GPU at a time, so dense decode is slower. Suits sparse MoE models and uneven topologies, optionally
+  with `tensor-split`.
+- **`none`** — single GPU, paired with `main-gpu`.
+
+Two llama.cpp features are unavailable under `tensor`, both silent apart from a load-time warning:
+
+- **Backend (GPU) sampling.** `llama_set_sampler` refuses under `SPLIT_MODE_TENSOR`, so sampling runs on
+  the CPU — every draft and verify position ships a full logit vector over PCIe. With Qwen3.8's 248,320
+  vocab that is ~0.99 MB per sample call, which raises the per-draft-token cost well above the drafter's
+  own weight cost and pulls the best `spec-draft-n-max` down. Look for
+  `backend sampling not supported with SPLIT_MODE_TENSOR` and `backend offload failed for seq_id=`.
+- **`llama_params_fit`.** Not implemented for tensor split, so placement must be pinned by hand
+  (`n-gpu-layers`, `n-cpu-moe`, `tensor-split`) rather than fitted automatically.
+
+The all-reduce itself needs a collectives library. llama.cpp's bundled "internal" implementation is
+**CUDA-only** — on HIP it is a stub that always fails — so without RCCL every reduction falls back to the
+meta backend's generic path. This is why the image builds with `-DGGML_HIP_RCCL=ON` (`rccl-dev`, pulled in
+by `rocm-libs`). A build missing it logs:
+
+```
+internal AllReduce init failed (n_devices != 2?); falling back to meta-backend butterfly
+```
+
+The `n_devices` hint is misleading on ROCm — the device count is irrelevant when the implementation is
+compiled out. Any `split-mode = tensor` preset depends on that flag to perform.
+
 ### Management
 
 ```bash

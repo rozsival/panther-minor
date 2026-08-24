@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install build dependencies
 RUN apt update && \
-    apt install -y cmake git libcurl4-openssl-dev nano ninja-build && \
+    apt install -y cmake git libcurl4-openssl-dev nano ninja-build rccl-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes
@@ -46,6 +46,7 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     -DCMAKE_CXX_COMPILER=/opt/rocm/llvm/bin/clang++ \
     -DGGML_CUDA_FA_ALL_QUANTS=ON \
     -DGGML_HIP=ON \
+    -DGGML_HIP_RCCL=ON \
     -DLLAMA_CURL=ON \
     && cmake --build build --config Release -j$(nproc)
 
