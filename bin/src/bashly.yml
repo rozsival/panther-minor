@@ -1,6 +1,6 @@
 name: cli
 help: '🐆 Panther Minor CLI'
-version: 11.0.0
+version: 11.0.1
 
 commands:
   - name: setup
