@@ -86,12 +86,26 @@ Per-request switches, in order of preference:
 - `chat_template_kwargs: { "enable_thinking": true | false }` — works in both directions regardless of what
   the preset says. This is what the harness configs in [`harnesses/`](../harnesses/README.md) send.
 - `chat_template_kwargs: { "reasoning_effort": "low" | "medium" | "xhigh" }` — sets how deep the model
-  thinks. `Qwen3.8-27B` defaults to `xhigh`, so lower it when long traces cost more than they buy.
+  thinks. Those three are the only values `Qwen3.8-27B` accepts: `high` is folded into `xhigh`, and
+  anything else (`minimal`, `max`) makes the template raise instead of answering. The template's own
+  default is `xhigh`, so the preset pins `reasoning-effort = medium` and lets clients ask for more.
 - `reasoning_effort: "none"` — disables thinking, but only while the preset leaves `reasoning = auto`. A
   preset that pins `reasoning = on` ignores it and leaks raw `<think>` tags into `content`.
 - `reasoning_budget_tokens: N` — caps the trace at `N` tokens. Only `N > 0` is honoured; `0` is ignored.
 
 The trace comes back in `message.reasoning_content`, streamed as `delta.reasoning_content`.
+
+`Qwen3.8-27B` also replays every historical `<think>` block into the prompt unless told not to — its
+template defaults `preserve_thinking` to true — so the preset sets `reasoning-preserve = off`. Note that
+`--reasoning-preserve` does not pass a kwarg of that name through: llama.cpp intercepts it and applies a
+dialect-normalizing layer (`jinja::caps_apply_preserve_reasoning`) that sets `preserve_thinking`,
+`clear_thinking`, `truncate_history_thinking` and `drop_thinking` together, so the one flag covers every
+vendor's spelling. Prefer it over hand-written `chat-template-kwargs`, which pins a single spelling and
+silently stops working if a future template renames the variable.
+
+Turning preservation off does not touch reasoning inside the current turn: the template keeps the
+`<think>` block of every assistant message after the last real user message, so a multi-step tool-calling
+chain retains its full reasoning. Only traces from turns that closed before the latest user message drop.
 
 In Open WebUI, either type `none` into _Chat Controls → Advanced Params → reasoning_effort_, or add a
 Workspace Model over the same base model with the custom parameter `chat_template_kwargs` set to

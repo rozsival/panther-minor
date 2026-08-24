@@ -29,6 +29,12 @@ providers:
               presence_penalty: 0.0
               temperature: 1.0
               top_p: 0.95
+          # OMP routes the thinking level onto `chat_template_kwargs.reasoning_effort`
+          # for Qwen 3.8+ ids, but the template accepts only low | medium | xhigh and
+          # raises on anything else — clamp the two levels that would 500.
+          reasoningEffortMap:
+            minimal: low
+            max: xhigh
       - id: Qwen3.6-35B-A3B
         name: Qwen3.6-35B-A3B
         reasoning: true
