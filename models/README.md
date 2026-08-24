@@ -59,6 +59,34 @@ through `llama-cpp/preset.ini`
   from **different repositories**, and files shared with another model are kept only once in the
   [shared cache](#-shared-model-cache).
 
+### Speculative decoding
+
+Both shapes marked ⚡️ above accelerate decoding, but they are different mechanisms, which matters when
+picking component files:
+
+- **MTP head** (`Qwen3.8-27B`, `Qwen3.6-35B-A3B`, `Qwen3.5-2B`) — a single extra layer that shares the base
+  model's embeddings and runs inside the same graph. Dense, so quantization has real headroom, and Unsloth
+  ships one precision per model (`Q4_0`, 1.37 GB for Qwen3.8). Nothing to choose.
+- **DSpark drafter** (`DeepSeek-V4-Flash-0731`) — a standalone 3-block MoE sidecar
+  (`dflash.block_count = 3`), so `spec-draft-ngl = 3` already holds **all** of it on GPU and `99` is the
+  same thing. It ships no token embeddings or output head and borrows the target's, so it must span the
+  same devices as the target — never pin it with `--spec-draft-device`. `spec-draft-n-max` is clamped to
+  the checkpoint's `dspark_block_size`, which is `5`.
+
+The DeepSeek drafter's `Q8_0` filename is misleading: only 4.4% of the file is `Q8_0`.
+
+| Tensors | Type    | Size     | Share | What                                                                    |
+| ------- | ------- | -------- | ----- | ----------------------------------------------------------------------- |
+| 9       | `MXFP4` | 10.27 GB | 94.3% | 256 routed experts — native in DeepSeek's checkpoint, never requantized |
+| 25      | `Q8_0`  | 0.47 GB  | 4.4%  | FP8 `E4M3` projections                                                  |
+| 6       | `BF16`  | 0.14 GB  | 1.3%  | Markov / confidence heads                                               |
+| 41      | `F32`   | 0.01 GB  | 0.1%  | Norms                                                                   |
+
+It is therefore **already a 4-bit drafter**, and there is no smaller variant to switch to. The repo's only
+alternative (`dspark/…-BF16.gguf`, 11.31 GB) differs solely in those 25 projections and measures
+identically. A hand-built 4-bit conversion would recover at most ~0.3 GB — under a tenth of the ~3 GB that
+one `n-cpu-moe` step costs — while quantizing the heads that choose the drafts would cost acceptance rate.
+
 ### Management
 
 ```bash
