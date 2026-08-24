@@ -134,7 +134,10 @@ internal AllReduce init failed (n_devices != 2?); falling back to meta-backend b
 ```
 
 The `n_devices` hint is misleading on ROCm — the device count is irrelevant when the implementation is
-compiled out. Any `split-mode = tensor` preset depends on that flag to perform.
+compiled out. Any `split-mode = tensor` preset depends on that flag to perform: on `Qwen3.8-27B` enabling
+it cut the target forward pass by **~20%**, taking decode from ~54 to **66 tok/s** together with the
+`spec-draft-n-max` retune. Roughly a third of what remains is the CPU sampling above, which no
+configuration can recover while `split-mode = tensor` stands.
 
 ### Management
 
