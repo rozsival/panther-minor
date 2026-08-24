@@ -77,20 +77,28 @@ reasoning mode never reloads weights.
 
 ### Reasoning control
 
-Chat presets leave `reasoning = auto`, so the chat template decides — thinking is on unless a request says
-otherwise. `Qwen3.5-2B` pins `reasoning = off` instead, because Open WebUI drives it as the task model for
-titles, tags and query rewriting, which must never think.
+Chat presets pin `reasoning` explicitly instead of relying on the template default, because the two chat
+templates disagree about what that default is: `Qwen3.8-27B` thinks unless told not to, while the Unsloth
+`DeepSeek-V4-Flash-0731` template sets `thinking = false`. `--reasoning auto` sends no `enable_thinking`
+kwarg at all, so it inherits whatever the template chose — which is why DeepSeek pins `reasoning = on` to
+get the Think High behaviour its model card documents. `Qwen3.5-2B` pins `reasoning = off` instead, because
+Open WebUI drives it as the task model for titles, tags and query rewriting, which must never think.
 
 Per-request switches, in order of preference:
 
 - `chat_template_kwargs: { "enable_thinking": true | false }` — works in both directions regardless of what
   the preset says. This is what the harness configs in [`harnesses/`](../harnesses/README.md) send.
-- `chat_template_kwargs: { "reasoning_effort": "low" | "medium" | "xhigh" }` — sets how deep the model
-  thinks. Those three are the only values `Qwen3.8-27B` accepts: `high` is folded into `xhigh`, and
-  anything else (`minimal`, `max`) makes the template raise instead of answering. The template's own
-  default is `xhigh`, so the preset pins `reasoning-effort = medium` and lets clients ask for more.
-- `reasoning_effort: "none"` — disables thinking, but only while the preset leaves `reasoning = auto`. A
-  preset that pins `reasoning = on` ignores it and leaks raw `<think>` tags into `content`.
+- `chat_template_kwargs: { "reasoning_effort": … }` — sets how deep the model thinks. Both the vocabulary
+  and the failure mode are per-model:
+  - `Qwen3.8-27B` takes `low`, `medium`, `xhigh`. `high` folds into `xhigh`, and anything else (`minimal`,
+    `max`) makes the template raise instead of answering. Its own default is `xhigh`, so the preset pins
+    `reasoning-effort = medium` and lets clients ask for more. `"none"` disables thinking outright, but
+    only while the preset leaves `reasoning = auto` — a preset pinning `reasoning = on` ignores it and
+    leaks raw `<think>` tags into `content`.
+  - `DeepSeek-V4-Flash-0731` takes `high` and `max`, each prepending an effort preamble to the system
+    prompt. Every other value — including `"none"` — is silently ignored and leaves plain thinking, so the
+    model has three real modes: non-think, Think High, Think Max. Effort is gated behind thinking, so it
+    does nothing while `enable_thinking` is false.
 - `reasoning_budget_tokens: N` — caps the trace at `N` tokens. Only `N > 0` is honoured; `0` is ignored.
 
 The trace comes back in `message.reasoning_content`, streamed as `delta.reasoning_content`.
@@ -106,6 +114,12 @@ silently stops working if a future template renames the variable.
 Turning preservation off does not touch reasoning inside the current turn: the template keeps the
 `<think>` block of every assistant message after the last real user message, so a multi-step tool-calling
 chain retains its full reasoning. Only traces from turns that closed before the latest user message drop.
+
+`DeepSeek-V4-Flash-0731` needs no such flag, and would ignore it: its template reads none of those four
+variables. Its retention rule is hardcoded — `keep_reasoning = tools_present or (index > last_user_index)`
+— so as soon as a request carries tools, **every** historical `<think>` block is replayed, with no way to
+turn it off from the preset. Budget context accordingly on long agentic runs; the model card also asks for
+at least 384K context for Think Max, above the 262144 the preset sets.
 
 In Open WebUI, either type `none` into _Chat Controls → Advanced Params → reasoning_effort_, or add a
 Workspace Model over the same base model with the custom parameter `chat_template_kwargs` set to

@@ -99,7 +99,8 @@
           },
           "options": {
             "chat_template_kwargs": {
-              "enable_thinking": true
+              "enable_thinking": true,
+              "reasoning_effort": "high"
             }
           },
           "variants": {
@@ -110,7 +111,20 @@
             },
             "thinking": {
               "chat_template_kwargs": {
-                "enable_thinking": true
+                "enable_thinking": true,
+                "reasoning_effort": "none"
+              }
+            },
+            "high": {
+              "chat_template_kwargs": {
+                "enable_thinking": true,
+                "reasoning_effort": "high"
+              }
+            },
+            "max": {
+              "chat_template_kwargs": {
+                "enable_thinking": true,
+                "reasoning_effort": "max"
               }
             }
           }

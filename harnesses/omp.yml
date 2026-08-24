@@ -61,3 +61,19 @@ providers:
         input: [text]
         contextWindow: 262144
         maxTokens: 65536
+        compat:
+          # DeepSeek-V4 exposes three modes: non-think, Think High, Think Max. Effort
+          # routing is auto-detected only for Qwen 3.8+ ids, so force it on here; the
+          # template reads the same `chat_template_kwargs.reasoning_effort` kwarg.
+          qwenTemplateReasoningEffort: true
+          # Only `high` and `max` inject an effort preamble - every other value is
+          # silently ignored (no exception, unlike Qwen3.8), leaving plain thinking.
+          reasoningEffortMap:
+            minimal: none
+            low: none
+            medium: none
+            xhigh: max
+          # With tools present the template keeps the reasoning of every assistant turn
+          # and always opens a `<think>` block, so a missing `reasoning_content` would
+          # replay empty ones.
+          requiresReasoningContentForToolCalls: true

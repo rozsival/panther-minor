@@ -54,10 +54,19 @@
           "input": ["text"],
           "contextWindow": 262144,
           "maxTokens": 65536,
+          "thinkingLevelMap": {
+            "minimal": null,
+            "low": null,
+            "medium": null,
+            "high": "high",
+            "xhigh": null,
+            "max": "max"
+          },
           "compat": {
             "thinkingFormat": "chat-template",
             "chatTemplateKwargs": {
-              "enable_thinking": { "$var": "thinking.enabled" }
+              "enable_thinking": { "$var": "thinking.enabled" },
+              "reasoning_effort": { "$var": "thinking.effort" }
             }
           }
         }
