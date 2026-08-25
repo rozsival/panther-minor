@@ -26,8 +26,12 @@ panther_setup_amdgpu() {
   apt purge -y amdgpu-install || true
   apt autoremove -y
 
-  rm -rf /var/cache/apt/*
-  apt clean all
+  # 'apt clean' empties the package cache but keeps the directories apt owns.
+  # 'rm -rf /var/cache/apt/*' used to be here: it also deleted
+  # archives/partial/, which apt recreates on an install but NOT on 'apt update',
+  # so the breakage stayed invisible until the next download-only fetcher
+  # (notably 'do-release-upgrade') failed every fetch with ENOENT.
+  apt clean
   apt update
 
   panther_log_info "Installing AMD GPU & ROCm for ${rocm_arch}..."
