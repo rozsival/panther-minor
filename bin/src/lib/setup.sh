@@ -7,11 +7,30 @@ panther_resolve_setup_context() {
   declare -g PANTHER_ACTIONS_FILE
 
   PANTHER_SERVER_NAME="$(panther_resolve_option '--server-name' PANTHER_SERVER_NAME "$HOSTNAME")"
-  PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "$USER")"
+  # Every setup step calls panther_require_root, so $USER is always 'root' here
+  # and never the human being configured - the old default could not once have
+  # been right. sudo records the real account in SUDO_USER; a direct root login
+  # has no record of it and must pass the flag.
+  PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-}")"
   PANTHER_SSH_PORT="$(panther_resolve_option '--ssh-port' PANTHER_SSH_PORT '2222')"
   PANTHER_TIMEZONE="$(panther_resolve_option '--timezone' PANTHER_TIMEZONE 'Europe/Prague')"
   PANTHER_LVM_DEVICE="$(panther_resolve_option '--lvm-device' PANTHER_LVM_DEVICE '/dev/ubuntu-vg/ubuntu-lv')"
   PANTHER_ACTIONS_FILE="/tmp/${PANTHER_SERVER_NAME}_actions"
+
+  if [[ -z "$PANTHER_ALLOWED_USER" ]]; then
+    panther_log_error "Could not detect which user to configure. Run the CLI with 'sudo' from your own account, or pass --allowed-user <name>."
+  fi
+
+  # 'setup ssh' writes PermitRootLogin no together with AllowUsers, and 'setup
+  # ufw' then closes everything but that port. A wrong name here locks every
+  # account out of the host on the next reboot, so both cases fail up front.
+  if [[ "$PANTHER_ALLOWED_USER" == 'root' ]]; then
+    panther_log_error "'root' cannot be the allowed user: 'setup ssh' sets PermitRootLogin no and AllowUsers root, which would lock you out. Pass --allowed-user <name>."
+  fi
+
+  if ! id -u "$PANTHER_ALLOWED_USER" >/dev/null 2>&1; then
+    panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host: 'setup ssh' would restrict AllowUsers to it and lock you out."
+  fi
 }
 panther_ensure_actions_file() {
   mkdir -p "$(dirname "$PANTHER_ACTIONS_FILE")"

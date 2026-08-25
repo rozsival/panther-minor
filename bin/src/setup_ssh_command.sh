@@ -1,4 +1,9 @@
 panther_setup_ssh() {
+  # Resolved up front because bash expands ${PANTHER_SSH_PORT} at the call site
+  # below - before panther_prepare_setup_step could resolve it - so a standalone
+  # 'setup ssh' on a fresh host died on 'unbound variable'. Resolution is
+  # idempotent, so prepare doing it again is free.
+  panther_resolve_setup_context
   panther_prepare_setup_step "Harden SSH configuration (port ${PANTHER_SSH_PORT}, key-only auth)."
 
   panther_log_info "Configuring SSH (${PANTHER_SSHD_CONFIG})..."
@@ -56,7 +61,10 @@ AUGEOF
   # 22 becomes unreachable. Report that here rather than at the next login.
   local listening_ports
   if ((socket_activated)); then
-    listening_ports=$(systemctl show ssh.socket -p Listen --value | tr ' ' '\n' | grep -oE ':[0-9]+$' | tr -d ':' | sort -u | tr '\n' ' ')
+    # '|| true' because pipefail makes the whole substitution fail when grep
+    # matches nothing, and 'set -e' then killed the step here - right where it
+    # is supposed to warn that SSH is about to become unreachable.
+    listening_ports=$(systemctl show ssh.socket -p Listen --value | tr ' ' '\n' | grep -oE ':[0-9]+$' | tr -d ':' | sort -u | tr '\n' ' ' || true)
   else
     listening_ports=$(sshd -T 2>/dev/null | awk '/^port /{print $2}' | sort -u | tr '\n' ' ')
   fi

@@ -1,5 +1,23 @@
 #!/usr/bin/env bash
 
+# Every step in dependency order: init prepares the disk and clock, packages and
+# brew install tooling, docker/tailscale/ssh/ufw/fail2ban bring the platform up,
+# amdgpu and grub the GPU, then per-user config. These are the same functions
+# './bin/cli setup <step>' dispatches to, so each step has one implementation.
+panther_setup_all() {
+  local step
+
+  for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env; do
+    "cli_setup_${step}_command"
+  done
+
+  # Prints the checklist and, more importantly, the ACTIONS REQUIRED list the
+  # steps registered along the way: reboot for the kernel params and the new
+  # amdgpu driver, Tailscale authentication, SSH port confirmation. Nothing else
+  # calls it, so without this a full run ends without ever showing them.
+  panther_print_setup_summary
+}
+
 # Interactive setup that prompts for ALL configuration values with smart defaults
 panther_interactive_setup() {
   # First resolve context using existing logic (flags and env vars)
@@ -15,7 +33,7 @@ panther_interactive_setup() {
     PANTHER_SERVER_NAME="$server_name"
   fi
 
-  read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER:-$USER}): " allowed_user
+  read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER}): " allowed_user
   if [[ -n "$allowed_user" ]]; then
     PANTHER_ALLOWED_USER="$allowed_user"
   fi

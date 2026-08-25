@@ -8,8 +8,13 @@ panther_resolve_option() {
     return 0
   fi
 
-  if [[ -v $env_name ]]; then
-    printf '%s\n' "$(printenv "$env_name")"
+  # Indirect expansion rather than 'printenv': these are plain shell globals set
+  # by earlier resolution and by the 'setup all' prompts, and printenv only sees
+  # *exported* variables. It returned an empty string for every unexported one,
+  # so a resolved value silently erased itself on the next resolution pass.
+  # An empty value falls through to the default instead of winning.
+  if [[ -n "${!env_name:-}" ]]; then
+    printf '%s\n' "${!env_name}"
     return 0
   fi
 
