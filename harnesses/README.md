@@ -40,6 +40,25 @@ cp harnesses/opencode.json ~/.config/opencode/opencode.json
 
 See [OpenCode docs](https://opencode.ai/docs/config/) for details.
 
+## Images
+
+llama.cpp decodes image input with `stb_image` (`stbi_load_from_memory` in `tools/mtmd/mtmd-helper.cpp`),
+which supports PNG, JPEG, GIF, BMP, TGA, PSD, HDR, PIC and PNM — but **not WebP**. A `data:image/webp`
+part is rejected by the server with `400 Failed to load image or audio file`, even though the model itself
+is multimodal.
+
+OMP re-encodes every image it sends (screenshots, `read` on an image file, `eval` display output, fetched
+images) and keeps the smallest of PNG / JPEG / WebP, so screenshots frequently land on WebP. It suppresses
+WebP for servers whose decoder is stb-backed, but only recognises that automatically for auto-discovered
+`llama.cpp` / Ollama / LM Studio providers — a hand-written provider like `panther-minor` must declare it,
+which is why every vision model in [`omp.yml`](omp.yml) carries `imageInputDecoder: stb`. That flag also
+transcodes WebP parts already present in a resumed session. `OMP_NO_WEBP=1` in the environment is the
+global equivalent if you add another provider and forget the flag.
+
+Pi and OpenCode never encode WebP — their resize ladders emit PNG and JPEG only, and browser screenshots
+are PNG — but both pass a WebP **source file** through untouched and offer no switch, so `read`ing a
+`.webp` from disk still fails against llama.cpp on those harnesses.
+
 ## Thinking
 
 Each model is served under a single id and switches reasoning per request through

@@ -15,6 +15,14 @@ providers:
         name: Qwen3.8-27B
         reasoning: true
         input: [text, image]
+        # llama.cpp decodes images with stb_image (`stbi_load_from_memory` in
+        # tools/mtmd/mtmd-helper.cpp), which has no WebP support — a WebP data
+        # URL fails with 400 "Failed to load image or audio file". OMP's image
+        # pipeline picks the smallest of PNG/JPEG/WebP, so screenshots often
+        # land on WebP. This flag is auto-set for discovered llama.cpp servers
+        # but must be declared for a hand-written provider; it forces PNG/JPEG
+        # encoding and transcodes WebP already in the history.
+        imageInputDecoder: stb
         contextWindow: 262144
         maxTokens: 65536
         compat:
@@ -39,6 +47,7 @@ providers:
         name: Qwen3.6-35B-A3B
         reasoning: true
         input: [text, image]
+        imageInputDecoder: stb
         contextWindow: 262144
         maxTokens: 65536
         compat:
@@ -53,6 +62,7 @@ providers:
         name: Qwen3.5-2B
         reasoning: true
         input: [text, image]
+        imageInputDecoder: stb
         contextWindow: 32768
         maxTokens: 8192
       - id: DeepSeek-V4-Flash-0731
