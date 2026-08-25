@@ -49,6 +49,18 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
     -DSD_HIPBLAS=ON \
     && cmake --build build --config Release -j$(nproc)
 
+# Register ROCm with the dynamic loader. The TheRock-built base image ships no
+# /etc/ld.so.conf.d entry for /opt/rocm/lib, unlike the deb-based
+# rocm/dev-ubuntu-24.04 images it replaces, and CMake deliberately emits no
+# RUNPATH here because /opt/rocm/lib is one of HIP's implicit link directories.
+# Without this, sd-server aborts at startup on a missing libamdhip64/libhipblas.
+# Only /opt/rocm/lib is added: ROCm's bundled sysdeps sit in
+# lib/rocm_sysdeps/lib and are resolved through $ORIGIN, so nothing here shadows
+# a system library. Kept after the build so it stays a cheap layer that does not
+# invalidate the compile cache.
+RUN echo '/opt/rocm/lib' > /etc/ld.so.conf.d/rocm.conf && \
+    ldconfig
+
 COPY entrypoint.sh /entrypoint.sh
 
 RUN chmod +x /entrypoint.sh && \
