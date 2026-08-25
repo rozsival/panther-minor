@@ -126,8 +126,9 @@ Two llama.cpp features are unavailable under `tensor`, both silent apart from a 
 
 The all-reduce itself needs a collectives library. llama.cpp's bundled "internal" implementation is
 **CUDA-only** — on HIP it is a stub that always fails — so without RCCL every reduction falls back to the
-meta backend's generic path. This is why the image builds with `-DGGML_HIP_RCCL=ON` (`rccl-dev`, pulled in
-by `rocm-libs`). A build missing it logs:
+meta backend's generic path. This is why the image builds with `-DGGML_HIP_RCCL=ON`, using the RCCL headers,
+library, and CMake config that the `rocm/dev-ubuntu-26.04` base image ships under `/opt/rocm`. A build
+missing it logs:
 
 ```
 internal AllReduce init failed (n_devices != 2?); falling back to meta-backend butterfly

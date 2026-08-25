@@ -1,5 +1,5 @@
 # -- stable-diffusion.cpp build for AMD ROCm 7 and gfx1201 --------------------
-FROM rocm/dev-ubuntu-24.04:7.2.4-complete
+FROM rocm/dev-ubuntu-26.04:7.14.0-full
 
 ARG HOST_UID="1000"
 ARG HOST_GID="$HOST_UID"

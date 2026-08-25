@@ -4,7 +4,7 @@
 
 ### Self-hosted AI workstation stack for [AMD](https://www.amd.com/en.html)
 
-![Platform](https://img.shields.io/badge/Platform-Ubuntu%2025.10%2B-0A84FF)
+![Platform](https://img.shields.io/badge/Platform-Ubuntu%2026.04%20LTS%2B-0A84FF)
 ![GPU](https://img.shields.io/badge/GPU-AMD%20RDNA%204-E01F27)
 ![Inference](https://img.shields.io/badge/Inference-llama.cpp%20%2B%20stable--diffusion.cpp-4CAF50)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
@@ -84,7 +84,7 @@ flowchart LR
 
 ### Software
 
-- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **25.10 or newer**
+- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS or newer** (Linux kernel 7)
 - Server installed with a non-root user that has `sudo` privileges
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
 - A [Tailscale](https://tailscale.com/) account for secure remote access

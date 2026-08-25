@@ -11,7 +11,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 ## Stack
 
-- **Host**: Ubuntu 25.10+, ROCm 7, kernel params `amdgpu.mes=1 iommu=pt`
+- **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 7, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
