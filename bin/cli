@@ -2508,23 +2508,27 @@ cli_setup_brew_command() {
       # own path, every call below is absolute and runs through 'sudo -u', and
       # exported vars would die with this process anyway. The .bashrc entry above
       # is what puts brew on the user's PATH.
+      # '--no-ask' because upstream made ask-mode the default for 'brew install':
+      # it prompts for confirmation before downloading, and only skips the prompt
+      # when there is no TTY. Setup runs on a console, so without this every
+      # formula below stops and waits for a keypress.
       panther_log_info "Installing bottom via Homebrew..."
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install bottom"
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask bottom"
       panther_log_success "bottom installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
       panther_log_info 'Installing LLMFit via Homebrew...'
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install llmfit"
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask llmfit"
       panther_log_success "LLMFit installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
       panther_log_info 'Installing Hugging Face CLI via Homebrew...'
       # Formula renamed to 'hf' upstream; 'huggingface-cli' only still resolves
       # through Homebrew's old-name mapping. 'hf' is also the binary the models
       # download commands invoke.
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install hf"
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask hf"
       panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
       panther_log_info 'Installing yq via Homebrew...'
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install yq"
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask yq"
       panther_log_success "yq installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
     else
       panther_log_error 'Homebrew installation failed.'
