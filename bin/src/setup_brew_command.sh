@@ -20,8 +20,10 @@ panther_setup_brew() {
     panther_register_bashrc_entry 'Homebrew' "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
     panther_log_success "Homebrew installed and configured for ${PANTHER_ALLOWED_USER}."
 
-    eval "\$(${brew_prefix}/bin/brew shellenv)"
-
+    # No 'eval "$(brew shellenv)"' here: brew derives HOMEBREW_PREFIX from its
+    # own path, every call below is absolute and runs through 'sudo -u', and
+    # exported vars would die with this process anyway. The .bashrc entry above
+    # is what puts brew on the user's PATH.
     panther_log_info "Installing bottom via Homebrew..."
     sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install bottom"
     panther_log_success "bottom installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
