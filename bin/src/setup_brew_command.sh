@@ -31,7 +31,10 @@ panther_setup_brew() {
     panther_log_success "LLMFit installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
     panther_log_info 'Installing Hugging Face CLI via Homebrew...'
-    sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install huggingface-cli"
+    # Formula renamed to 'hf' upstream; 'huggingface-cli' only still resolves
+    # through Homebrew's old-name mapping. 'hf' is also the binary the models
+    # download commands invoke.
+    sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install hf"
     panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
     panther_log_info 'Installing yq via Homebrew...'

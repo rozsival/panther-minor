@@ -2119,6 +2119,12 @@ panther_prepare_setup_step() {
   panther_require_root
   panther_confirm "$message"
   panther_ensure_actions_file
+
+  # Every setup step runs apt-get unattended. Without this, dpkg conffile
+  # prompts and needrestart's DPkg::Post-Invoke hook (a ubuntu-server
+  # recommend, which branches on this variable) open dialogs that block the
+  # run on a terminal nobody is watching.
+  export DEBIAN_FRONTEND=noninteractive
 }
 panther_print_setup_summary() {
   echo ''
@@ -2366,8 +2372,22 @@ cli_setup_init_command() {
   panther_setup_init() {
     panther_prepare_setup_step 'Extend LVM logical volume to full disk capacity.'
 
-    panther_log_info 'Extending LVM logical volume to full disk capacity...'
-    lvextend -An -l +100%FREE "$PANTHER_LVM_DEVICE"
+    # The installer leaves the rest of the disk unallocated, so this claims it.
+    # 'lvextend' exits non-zero when there is nothing left to claim, which under
+    # 'set -e' would abort the whole run on a re-run or a fully-allocated install,
+    # so the free extents are checked first. 'resize2fs' needs no such guard: it
+    # exits 0 when the filesystem already spans the volume.
+    local volume_group free_extents
+    volume_group=$(lvs --noheadings -o vg_name "$PANTHER_LVM_DEVICE" 2>/dev/null | tr -d '[:space:]')
+    free_extents=$(vgs --noheadings -o vg_free_count "$volume_group" 2>/dev/null | tr -d '[:space:]')
+
+    if [[ "$free_extents" =~ ^[0-9]+$ ]] && ((free_extents > 0)); then
+      panther_log_info 'Extending LVM logical volume to full disk capacity...'
+      lvextend -An -l +100%FREE "$PANTHER_LVM_DEVICE"
+    else
+      panther_log_info "No unallocated extents left in ${volume_group:-the volume group}."
+    fi
+
     resize2fs "$PANTHER_LVM_DEVICE"
     panther_log_success 'Disk fully allocated.'
 
@@ -2388,19 +2408,22 @@ cli_setup_packages_command() {
     panther_prepare_setup_step 'Install essential packages.'
 
     panther_log_info 'Updating system and installing essential packages...'
-    apt update
-    apt upgrade -y
-    apt install -y \
+    apt-get update
+    # '--with-new-pkgs' is what makes this equivalent to 'apt upgrade': plain
+    # 'apt-get upgrade' holds back any upgrade that needs a new package, which is
+    # exactly what a kernel ABI bump is (linux-generic pulling a new linux-image).
+    apt-get upgrade -y --with-new-pkgs
+    apt-get install -y \
       augeas-lenses \
       augeas-tools \
       build-essential \
       htop \
       jq \
+      lm-sensors \
       nvtop \
       python3 \
       python3-pip \
       python3-venv \
-      sensors \
       s-tui \
       tree \
       unattended-upgrades \
@@ -2450,7 +2473,10 @@ cli_setup_brew_command() {
       panther_log_success "LLMFit installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
       panther_log_info 'Installing Hugging Face CLI via Homebrew...'
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install huggingface-cli"
+      # Formula renamed to 'hf' upstream; 'huggingface-cli' only still resolves
+      # through Homebrew's old-name mapping. 'hf' is also the binary the models
+      # download commands invoke.
+      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install hf"
       panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
 
       panther_log_info 'Installing yq via Homebrew...'
@@ -2473,8 +2499,8 @@ cli_setup_docker_command() {
     panther_prepare_setup_step 'Install Docker and Docker Compose.'
 
     panther_log_info 'Installing Docker and Docker Compose...'
-    apt update
-    apt install -y ca-certificates curl
+    apt-get update
+    apt-get install -y ca-certificates curl
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
     chmod a+r /etc/apt/keyrings/docker.asc
@@ -2486,9 +2512,9 @@ Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
 Components: stable
 Signed-By: /etc/apt/keyrings/docker.asc
 EOF
-    apt update
+    apt-get update
 
-    apt install -y \
+    apt-get install -y \
       docker-ce \
       docker-ce-cli \
       containerd.io \
@@ -2528,8 +2554,8 @@ cli_setup_tailscale_command() {
 
     panther_log_info "Installing Tailscale for ${codename}..."
 
-    apt update
-    apt install -y ca-certificates curl
+    apt-get update
+    apt-get install -y ca-certificates curl
 
     # Staged through a temp file rather than 'curl | tee $keyring'. A pipeline
     # reports tee's status, not curl's, so an unpublished codename used to leave a
@@ -2560,8 +2586,8 @@ Components: main
 Signed-By: ${keyring}
 EOF
 
-    apt update
-    apt install -y tailscale
+    apt-get update
+    apt-get install -y tailscale
 
     if command -v tailscale >/dev/null 2>&1; then
       panther_log_success 'Tailscale installed.'
@@ -2611,9 +2637,44 @@ AUGEOF
     panther_log_info 'Validating SSH configuration...'
     sshd -t || panther_log_error 'sshd configuration is invalid -- aborting to avoid locking you out.'
 
-    panther_log_info 'Restarting SSH service...'
-    systemctl restart ssh
-    panther_log_success "SSH hardened on port ${PANTHER_SSH_PORT}. AllowUsers: ${PANTHER_ALLOWED_USER}"
+    # Ubuntu ships socket-activated SSH: 'ssh.socket' owns the listening port and
+    # its shipped unit hardcodes 22, while 'ssh.service' is RequiredBy that socket
+    # and inherits the socket's file descriptor. Restarting the service alone
+    # therefore keeps serving port 22 whatever sshd_config says. Ubuntu's
+    # 'sshd-socket-generator' turns the sshd_config Port into an ssh.socket
+    # drop-in, but generators only re-run on a daemon-reload.
+    panther_log_info 'Reloading systemd units so the SSH socket adopts the new port...'
+    systemctl daemon-reload
+
+    local socket_activated=0
+    if systemctl is-enabled --quiet ssh.socket 2>/dev/null; then
+      socket_activated=1
+    fi
+
+    if ((socket_activated)); then
+      panther_log_info 'Restarting socket-activated SSH (ssh.socket)...'
+      systemctl restart ssh.socket
+    else
+      panther_log_info 'Restarting SSH service...'
+      systemctl restart ssh
+    fi
+
+    # UFW runs next and opens only PANTHER_SSH_PORT, so a listener left behind on
+    # 22 becomes unreachable. Report that here rather than at the next login.
+    local listening_ports
+    if ((socket_activated)); then
+      listening_ports=$(systemctl show ssh.socket -p Listen --value | tr ' ' '\n' | grep -oE ':[0-9]+$' | tr -d ':' | sort -u | tr '\n' ' ')
+    else
+      listening_ports=$(sshd -T 2>/dev/null | awk '/^port /{print $2}' | sort -u | tr '\n' ' ')
+    fi
+    listening_ports="${listening_ports% }"
+
+    if [[ " $listening_ports " == *" $PANTHER_SSH_PORT "* ]]; then
+      panther_log_success "SSH hardened on port ${PANTHER_SSH_PORT}. AllowUsers: ${PANTHER_ALLOWED_USER}"
+    else
+      panther_log_warn "SSH is listening on ${listening_ports:-no port}, not ${PANTHER_SSH_PORT}."
+      panther_register_action "Confirm 'ss -tlnp | grep sshd' reports port ${PANTHER_SSH_PORT} before closing this session: UFW only opens ${PANTHER_SSH_PORT}."
+    fi
   }
 
   panther_setup_ssh
@@ -2653,15 +2714,19 @@ cli_setup_fail2ban_command() {
     panther_prepare_setup_step 'Install and configure fail2ban.'
 
     panther_log_info 'Installing fail2ban...'
-    apt install -y fail2ban
+    apt-get install -y fail2ban
 
     panther_log_info "Writing ${PANTHER_FAIL2BAN_JAIL}..."
+    # Ubuntu Server has no rsyslog, so /var/log/auth.log never exists and the
+    # journal is the only source of sshd auth failures. 'backend = systemd' is set
+    # explicitly rather than inherited from Ubuntu's jail.d/defaults-debian.conf,
+    # so the jail stays valid if that distro file ever changes.
     cat >"$PANTHER_FAIL2BAN_JAIL" <<EOF
 [sshd]
 enabled  = true
 port     = ${PANTHER_SSH_PORT}
 filter   = sshd
-logpath  = /var/log/auth.log
+backend  = systemd
 maxretry = 3
 bantime  = 1h
 findtime = 10m
@@ -2699,23 +2764,23 @@ cli_setup_amdgpu_command() {
 
     panther_log_info 'Removing any previous AMD GPU & ROCm installation...'
 
-    # Purged one at a time: apt fails the whole transaction when a single name is
-    # unknown, and which of these exist depends on the ROCm version installed
+    # Purged one at a time: apt-get fails the whole transaction when a single name
+    # is unknown, and which of these exist depends on the ROCm version installed
     # before (7.2 and older used 'rocm'/'rocm-core', 7.14 uses 'amdrocm').
     for package in amdgpu-dkms amdrocm rocm rocm-core; do
-      apt autoremove -y "$package" || true
+      apt-get autoremove -y "$package" || true
     done
 
-    apt purge -y amdgpu-install || true
-    apt autoremove -y
+    apt-get purge -y amdgpu-install || true
+    apt-get autoremove -y
 
-    # 'apt clean' empties the package cache but keeps the directories apt owns.
-    # 'rm -rf /var/cache/apt/*' used to be here: it also deleted
-    # archives/partial/, which apt recreates on an install but NOT on 'apt update',
-    # so the breakage stayed invisible until the next download-only fetcher
-    # (notably 'do-release-upgrade') failed every fetch with ENOENT.
-    apt clean
-    apt update
+    # 'apt-get clean' empties the package cache but keeps the directories apt owns.
+    # 'rm -rf /var/cache/apt/*' used to be here: it also deleted archives/partial/,
+    # which apt-get recreates on an install but NOT on 'apt-get update', so the
+    # breakage stayed invisible until the next download-only fetcher (notably
+    # 'do-release-upgrade') failed every fetch with ENOENT.
+    apt-get clean
+    apt-get update
 
     panther_log_info "Installing AMD GPU & ROCm for ${rocm_arch}..."
 
@@ -2724,8 +2789,8 @@ cli_setup_amdgpu_command() {
     fi
 
     wget "https://repo.radeon.com/amdgpu-install/${installer_version}/ubuntu/resolute/${installer_package}" -O "./temp/${installer_package}"
-    apt install -y "./temp/${installer_package}"
-    apt update
+    apt-get install -y "./temp/${installer_package}"
+    apt-get update
     rm "./temp/${installer_package}"
 
     usermod -a -G render,video "$PANTHER_ALLOWED_USER"
@@ -2734,6 +2799,34 @@ cli_setup_amdgpu_command() {
     # amdgpu-install pulls in amdgpu-dkms plus the matching linux-headers for every
     # installed kernel on its own, so neither is requested explicitly above.
     amdgpu-install -y --usecase=rocm,graphics --gfxversion="$rocm_arch"
+
+    # amdgpu-install builds the DKMS module for every installed kernel, so after a
+    # release upgrade - which keeps the previous release's kernels - three or more
+    # builds is expected output rather than a fault. What is not verified anywhere
+    # else is the part that matters: whether the kernel the host will actually run
+    # has a module at all. ROCm user space on a previous-release amdgpu/KFD
+    # degrades silently instead of failing, so it never surfaces as an error.
+    local running_kernel newest_kernel target_kernel
+    running_kernel="$(uname -r)"
+    newest_kernel=''
+
+    if compgen -G '/boot/vmlinuz-*' >/dev/null; then
+      newest_kernel="$(printf '%s\n' /boot/vmlinuz-* | sed 's|.*/vmlinuz-||' | sort -V | tail -1)"
+    fi
+
+    target_kernel="${newest_kernel:-$running_kernel}"
+    panther_log_info "Kernel running: ${running_kernel}; newest installed: ${newest_kernel:-unknown}"
+
+    if [[ -n "$newest_kernel" && "$newest_kernel" != "$running_kernel" ]]; then
+      panther_log_warn "Running ${running_kernel} while ${newest_kernel} is installed."
+      panther_register_action "Reboot into ${newest_kernel}: ROCm on the older kernel's amdgpu/KFD loses performance silently instead of failing."
+    fi
+
+    if dkms status amdgpu 2>/dev/null | grep -q "$target_kernel"; then
+      panther_log_success "amdgpu DKMS module built for ${target_kernel}."
+    else
+      panther_log_warn "No amdgpu DKMS module for ${target_kernel}; the in-tree driver would be used instead."
+    fi
 
     panther_register_action 'Reboot the server to load the new amdgpu kernel driver.'
     panther_log_success 'AMD GPU and ROCm installed.'
@@ -2857,7 +2950,7 @@ cli_setup_shell_command() {
     panther_prepare_setup_step "Set up shell with Starship prompt for ${PANTHER_ALLOWED_USER}."
 
     panther_log_info "Setting up shell with Starship prompt for ${PANTHER_ALLOWED_USER}..."
-    apt install -y starship
+    apt-get install -y starship
 
     panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
     loginctl enable-linger "$PANTHER_ALLOWED_USER"

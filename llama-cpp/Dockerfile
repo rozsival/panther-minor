@@ -13,8 +13,8 @@ ENV DEBIAN_FRONTEND="noninteractive"
 # Install build dependencies. RCCL is not listed: ROCm 7.14 dropped the `rccl-dev`
 # package, and the base image already ships the headers, library, and CMake config
 # under /opt/rocm that -DGGML_HIP_RCCL=ON needs.
-RUN apt update && \
-    apt install -y cmake git libcurl4-openssl-dev nano ninja-build && \
+RUN apt-get update && \
+    apt-get install -y cmake git libcurl4-openssl-dev nano ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes

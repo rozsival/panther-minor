@@ -13,8 +13,8 @@ panther_setup_tailscale() {
 
   panther_log_info "Installing Tailscale for ${codename}..."
 
-  apt update
-  apt install -y ca-certificates curl
+  apt-get update
+  apt-get install -y ca-certificates curl
 
   # Staged through a temp file rather than 'curl | tee $keyring'. A pipeline
   # reports tee's status, not curl's, so an unpublished codename used to leave a
@@ -45,8 +45,8 @@ Components: main
 Signed-By: ${keyring}
 EOF
 
-  apt update
-  apt install -y tailscale
+  apt-get update
+  apt-get install -y tailscale
 
   if command -v tailscale >/dev/null 2>&1; then
     panther_log_success 'Tailscale installed.'

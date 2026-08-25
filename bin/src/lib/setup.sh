@@ -96,6 +96,12 @@ panther_prepare_setup_step() {
   panther_require_root
   panther_confirm "$message"
   panther_ensure_actions_file
+
+  # Every setup step runs apt-get unattended. Without this, dpkg conffile
+  # prompts and needrestart's DPkg::Post-Invoke hook (a ubuntu-server
+  # recommend, which branches on this variable) open dialogs that block the
+  # run on a terminal nobody is watching.
+  export DEBIAN_FRONTEND=noninteractive
 }
 panther_print_setup_summary() {
   echo ''

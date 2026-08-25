@@ -16,23 +16,23 @@ panther_setup_amdgpu() {
 
   panther_log_info 'Removing any previous AMD GPU & ROCm installation...'
 
-  # Purged one at a time: apt fails the whole transaction when a single name is
-  # unknown, and which of these exist depends on the ROCm version installed
+  # Purged one at a time: apt-get fails the whole transaction when a single name
+  # is unknown, and which of these exist depends on the ROCm version installed
   # before (7.2 and older used 'rocm'/'rocm-core', 7.14 uses 'amdrocm').
   for package in amdgpu-dkms amdrocm rocm rocm-core; do
-    apt autoremove -y "$package" || true
+    apt-get autoremove -y "$package" || true
   done
 
-  apt purge -y amdgpu-install || true
-  apt autoremove -y
+  apt-get purge -y amdgpu-install || true
+  apt-get autoremove -y
 
-  # 'apt clean' empties the package cache but keeps the directories apt owns.
-  # 'rm -rf /var/cache/apt/*' used to be here: it also deleted
-  # archives/partial/, which apt recreates on an install but NOT on 'apt update',
-  # so the breakage stayed invisible until the next download-only fetcher
-  # (notably 'do-release-upgrade') failed every fetch with ENOENT.
-  apt clean
-  apt update
+  # 'apt-get clean' empties the package cache but keeps the directories apt owns.
+  # 'rm -rf /var/cache/apt/*' used to be here: it also deleted archives/partial/,
+  # which apt-get recreates on an install but NOT on 'apt-get update', so the
+  # breakage stayed invisible until the next download-only fetcher (notably
+  # 'do-release-upgrade') failed every fetch with ENOENT.
+  apt-get clean
+  apt-get update
 
   panther_log_info "Installing AMD GPU & ROCm for ${rocm_arch}..."
 
@@ -41,8 +41,8 @@ panther_setup_amdgpu() {
   fi
 
   wget "https://repo.radeon.com/amdgpu-install/${installer_version}/ubuntu/resolute/${installer_package}" -O "./temp/${installer_package}"
-  apt install -y "./temp/${installer_package}"
-  apt update
+  apt-get install -y "./temp/${installer_package}"
+  apt-get update
   rm "./temp/${installer_package}"
 
   usermod -a -G render,video "$PANTHER_ALLOWED_USER"
@@ -51,6 +51,34 @@ panther_setup_amdgpu() {
   # amdgpu-install pulls in amdgpu-dkms plus the matching linux-headers for every
   # installed kernel on its own, so neither is requested explicitly above.
   amdgpu-install -y --usecase=rocm,graphics --gfxversion="$rocm_arch"
+
+  # amdgpu-install builds the DKMS module for every installed kernel, so after a
+  # release upgrade - which keeps the previous release's kernels - three or more
+  # builds is expected output rather than a fault. What is not verified anywhere
+  # else is the part that matters: whether the kernel the host will actually run
+  # has a module at all. ROCm user space on a previous-release amdgpu/KFD
+  # degrades silently instead of failing, so it never surfaces as an error.
+  local running_kernel newest_kernel target_kernel
+  running_kernel="$(uname -r)"
+  newest_kernel=''
+
+  if compgen -G '/boot/vmlinuz-*' >/dev/null; then
+    newest_kernel="$(printf '%s\n' /boot/vmlinuz-* | sed 's|.*/vmlinuz-||' | sort -V | tail -1)"
+  fi
+
+  target_kernel="${newest_kernel:-$running_kernel}"
+  panther_log_info "Kernel running: ${running_kernel}; newest installed: ${newest_kernel:-unknown}"
+
+  if [[ -n "$newest_kernel" && "$newest_kernel" != "$running_kernel" ]]; then
+    panther_log_warn "Running ${running_kernel} while ${newest_kernel} is installed."
+    panther_register_action "Reboot into ${newest_kernel}: ROCm on the older kernel's amdgpu/KFD loses performance silently instead of failing."
+  fi
+
+  if dkms status amdgpu 2>/dev/null | grep -q "$target_kernel"; then
+    panther_log_success "amdgpu DKMS module built for ${target_kernel}."
+  else
+    panther_log_warn "No amdgpu DKMS module for ${target_kernel}; the in-tree driver would be used instead."
+  fi
 
   panther_register_action 'Reboot the server to load the new amdgpu kernel driver.'
   panther_log_success 'AMD GPU and ROCm installed.'

@@ -65,7 +65,7 @@ flowchart LR
 | ----------- | ----------------------------------------------------- |
 | Motherboard | X870E with 2x PCIe Gen5 x16 slots                     |
 | CPU         | AMD Ryzen 9 or newer, **12 cores recommended**        |
-| Memory      | **64 GB DDR5 or more**                                |
+| Memory      | **128 GB DDR5 or more**                               |
 | GPUs        | **2x AMD Radeon Pro RDNA 4** with **32 GB VRAM each** |
 | Storage     | NVMe SSD, **1 TB or more**, Gen4 or newer             |
 | PSU         | **1300W or more** with 2x 12VHPWR connectors          |

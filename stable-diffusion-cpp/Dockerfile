@@ -11,8 +11,8 @@ ARG ROCM_ARCH="gfx1201"
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # Install build dependencies
-RUN apt update && \
-    apt install -y cmake curl git libcurl4-openssl-dev nano ninja-build && \
+RUN apt-get update && \
+    apt-get install -y cmake curl git libcurl4-openssl-dev nano ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 # Set up a user and group that match the host's UID and GID to avoid permission issues with mounted volumes

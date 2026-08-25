@@ -21,7 +21,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 1. **Code Style** – Ultracite preset for Biome (use `pnpm run check` or `pnpm run fix` to check or auto-fix)
 2. **Custom ROCm builds only** — llama.cpp (`llama-cpp/Dockerfile`) for LLMs and stable-diffusion.cpp (`stable-diffusion-cpp/Dockerfile`) for image generation, both ROCm v7 with `gfx1201` support
-3. **Package manager** — `apt` only (never `apt-get`)
+3. **Package manager** — `apt-get` only in scripts and Dockerfiles (never `apt`): `apt` has no stable CLI interface and warns on every scripted call. Use `apt-get upgrade --with-new-pkgs` where `apt upgrade` was meant, and `apt-cache`/`apt-mark` for queries
 4. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
 
 ## Key Files
