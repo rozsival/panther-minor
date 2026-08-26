@@ -2,7 +2,7 @@
   "name": "@rozsival/panther-minor",
   "version": "11.0.1",
   "private": true,
-  "description": "The AI Workstation Setup",
+  "description": "Self-hosted AI workstation stack for AMD",
   "repository": {
     "type": "git",
     "url": "https://github.com/rozsival/panther-minor.git"
