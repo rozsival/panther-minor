@@ -77,25 +77,49 @@ and OpenCode send no sampling overrides, so both modes use the preset defaults i
 
 ### Reasoning effort
 
-The thinking toggle is a switch; how _hard_ a model thinks is a second, model-specific axis, and the two
-chat models disagree on both the level names and how they fail:
+The thinking toggle is a switch; how _hard_ a model thinks is a second, model-specific axis, and the
+models disagree on both the level names and how they fail:
 
 | Model                    | Accepted levels                  | Unknown level         |
 | ------------------------ | -------------------------------- | --------------------- |
 | `Qwen3.8-27B`            | `low`, `medium`, `xhigh`         | template raises → 500 |
 | `DeepSeek-V4-Flash-0731` | `high`, `max` (else no preamble) | silently ignored      |
+| `Qwen3.6-35B-A3B`        | none — thinking is on/off only   | n/a                   |
+| `Qwen3.5-2B`             | none — thinking is on/off only   | n/a                   |
 
-So each harness needs the levels remapped per model rather than passed through:
+So each harness needs the levels constrained per model rather than passed through:
 
-- **OMP** — `compat.reasoningEffortMap` rewrites the offending levels. DeepSeek also needs
-  `compat.qwenTemplateReasoningEffort: true`, because OMP only auto-routes effort onto
-  `chat_template_kwargs.reasoning_effort` for Qwen 3.8+ ids; without it the level is never sent and the
-  model always runs at the preset default.
-- **Pi** — model-level `thinkingLevelMap` maps the levels it supports and uses `null` to hide the rest,
-  so DeepSeek exposes only off / `high` / `max` in the UI. The effort value reaches the template through
-  `chatTemplateKwargs.reasoning_effort: { "$var": "thinking.effort" }`.
-- **OpenCode** — one named variant per mode (`none`, `thinking`, `high`, `max` for DeepSeek), each
-  spelling out both kwargs so the result does not depend on how variants merge over `options`.
+- **OMP** — the model-level `thinking` block owns the ladder, `compat.reasoningEffortMap` rewrites
+  individual levels, and OMP clamps a request outside the ladder to the nearest member instead of
+  sending it:
+  - `Qwen3.8-27B` declares `efforts: [low, medium, xhigh]`, so every selectable level is a value the
+    template accepts and no selection can 500. A map is the wrong tool here — a mapped value outside
+    the ladder is clamped away before it reaches the wire.
+  - `Qwen3.6-35B-A3B` and `Qwen3.5-2B` declare `efforts: [medium]`. Effort is never sent for them (OMP
+    auto-routes `chat_template_kwargs.reasoning_effort` only for Qwen 3.8+ ids), so a wider ladder
+    would be four identical wire payloads; one level makes the toggle a plain off/on.
+  - `DeepSeek-V4-Flash-0731` needs `compat.qwenTemplateReasoningEffort: true`, because effort routing
+    is auto-detected only for Qwen 3.8+ ids; without it the level is never sent and the model always
+    runs at the preset default. Its ladder is owned by OMP's built-in DeepSeek policy and cannot be
+    replaced, so the map carries the three template modes: `low → none`, `medium → high`, `xhigh → max`.
+  - Both `Qwen3.8-27B` and `DeepSeek-V4-Flash-0731` also set `requiresEffort: false`; OMP otherwise
+    treats their effort as mandatory and turns `off` into the lowest effort with thinking still on
+    instead of `enable_thinking: false`.
+- **Pi** — model-level `thinkingLevelMap` maps each level onto a template-accepted string and the effort
+  reaches the template through `chatTemplateKwargs.reasoning_effort: { "$var": "thinking.effort" }`. A
+  `null` entry does **not** hide the level: Pi clamps it to the nearest mapped one, so every level must
+  land on something the template accepts. `Qwen3.8-27B` therefore maps `minimal|low → low`,
+  `medium → medium` and `high|xhigh|max → xhigh`; DeepSeek maps `low → none` (plain thinking),
+  `high → high` and `max → max`, with the nulls in between clamping onto those three.
+- **OpenCode** — one named variant per mode, each spelling out **both** kwargs. Variants deep-merge over
+  `options`, so a variant that omits `reasoning_effort` inherits the one from `options` — DeepSeek's
+  `none` variant has to say `reasoning_effort: "none"` explicitly or "no thinking" ships
+  `enable_thinking: false` next to a stale `high`. OpenCode's auxiliary calls (session title, summaries)
+  always use `options` and ignore the selected variant, which is why `options` carries the cheapest
+  mode rather than `high`.
+
+Only OMP and Pi expose the effort axis through the thinking toggle; in OpenCode it is a model variant
+(`--variant medium`), so `Qwen3.8-27B` carries one variant per accepted level.
 
 DeepSeek-V4 keeps the reasoning of **every** assistant turn once tools are present — that branch of the
 template is hardcoded and ignores `reasoning-preserve`. It also always opens a `<think>` block for those

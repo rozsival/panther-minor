@@ -25,6 +25,16 @@ providers:
         imageInputDecoder: stb
         contextWindow: 262144
         maxTokens: 65536
+        # The template accepts only low | medium | xhigh on
+        # `chat_template_kwargs.reasoning_effort` and raises on anything else, so
+        # declare that ladder instead of remapping: OMP then sends the selected
+        # level verbatim and clamps anything outside it to the nearest member.
+        # `requiresEffort: false` keeps `off` as a real `enable_thinking: false`
+        # instead of clamping it to the lowest effort.
+        thinking:
+          mode: effort
+          efforts: [low, medium, xhigh]
+          requiresEffort: false
         compat:
           # Qwen3.8 documents a tighter sampler plus a presence penalty without
           # thinking, and a wider one with it.
@@ -37,12 +47,6 @@ providers:
               presence_penalty: 0.0
               temperature: 1.0
               top_p: 0.95
-          # OMP routes the thinking level onto `chat_template_kwargs.reasoning_effort`
-          # for Qwen 3.8+ ids, but the template accepts only low | medium | xhigh and
-          # raises on anything else — clamp the two levels that would 500.
-          reasoningEffortMap:
-            minimal: low
-            max: xhigh
       - id: Qwen3.6-35B-A3B
         name: Qwen3.6-35B-A3B
         reasoning: true
@@ -50,6 +54,13 @@ providers:
         imageInputDecoder: stb
         contextWindow: 262144
         maxTokens: 65536
+        # Reasoning on these two is a plain on/off switch: `reasoning_effort` is
+        # never sent (OMP only routes it onto the chat template for Qwen 3.8+ ids)
+        # and the template has no effort branch anyway. Collapse the ladder to a
+        # single level so the toggle cycles off/on instead of four identical ones.
+        thinking:
+          mode: effort
+          efforts: [medium]
         compat:
           extraBody:
             presence_penalty: 1.5
@@ -65,23 +76,36 @@ providers:
         imageInputDecoder: stb
         contextWindow: 32768
         maxTokens: 8192
+        thinking:
+          mode: effort
+          efforts: [medium]
       - id: DeepSeek-V4-Flash-0731
         name: DeepSeek-V4-Flash-0731
         reasoning: true
         input: [text]
         contextWindow: 262144
         maxTokens: 65536
+        # The built-in DeepSeek policy owns the ladder (low | medium | xhigh) and
+        # marks effort mandatory, which turns `off` into the lowest effort with
+        # thinking still on. Restating the ladder with `requiresEffort: false` is what
+        # makes `off` emit a real `enable_thinking: false`.
+        thinking:
+          mode: effort
+          efforts: [low, medium, xhigh]
+          requiresEffort: false
         compat:
           # DeepSeek-V4 exposes three modes: non-think, Think High, Think Max. Effort
           # routing is auto-detected only for Qwen 3.8+ ids, so force it on here; the
           # template reads the same `chat_template_kwargs.reasoning_effort` kwarg.
           qwenTemplateReasoningEffort: true
           # Only `high` and `max` inject an effort preamble - every other value is
-          # silently ignored (no exception, unlike Qwen3.8), leaving plain thinking.
+          # silently ignored (no exception, unlike Qwen3.8), leaving plain thinking. A
+          # model-level `thinking` block does not stick on this id (the built-in
+          # DeepSeek policy wins), so the ladder is fixed at low | medium | xhigh and
+          # the map is the only way to reach all three template modes.
           reasoningEffortMap:
-            minimal: none
             low: none
-            medium: none
+            medium: high
             xhigh: max
           # With tools present the template keeps the reasoning of every assistant turn
           # and always opens a `<think>` block, so a missing `reasoning_content` would

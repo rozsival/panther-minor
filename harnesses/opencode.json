@@ -32,7 +32,20 @@
             },
             "thinking": {
               "chat_template_kwargs": {
-                "enable_thinking": true
+                "enable_thinking": true,
+                "reasoning_effort": "low"
+              }
+            },
+            "medium": {
+              "chat_template_kwargs": {
+                "enable_thinking": true,
+                "reasoning_effort": "medium"
+              }
+            },
+            "xhigh": {
+              "chat_template_kwargs": {
+                "enable_thinking": true,
+                "reasoning_effort": "xhigh"
               }
             }
           }
@@ -100,13 +113,14 @@
           "options": {
             "chat_template_kwargs": {
               "enable_thinking": true,
-              "reasoning_effort": "high"
+              "reasoning_effort": "none"
             }
           },
           "variants": {
             "none": {
               "chat_template_kwargs": {
-                "enable_thinking": false
+                "enable_thinking": false,
+                "reasoning_effort": "none"
               }
             },
             "thinking": {

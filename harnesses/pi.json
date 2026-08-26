@@ -12,10 +12,19 @@
           "input": ["text", "image"],
           "contextWindow": 262144,
           "maxTokens": 65536,
+          "thinkingLevelMap": {
+            "minimal": "low",
+            "low": "low",
+            "medium": "medium",
+            "high": "xhigh",
+            "xhigh": "xhigh",
+            "max": "xhigh"
+          },
           "compat": {
             "thinkingFormat": "chat-template",
             "chatTemplateKwargs": {
-              "enable_thinking": { "$var": "thinking.enabled" }
+              "enable_thinking": { "$var": "thinking.enabled" },
+              "reasoning_effort": { "$var": "thinking.effort" }
             }
           }
         },
@@ -56,7 +65,7 @@
           "maxTokens": 65536,
           "thinkingLevelMap": {
             "minimal": null,
-            "low": null,
+            "low": "none",
             "medium": null,
             "high": "high",
             "xhigh": null,
