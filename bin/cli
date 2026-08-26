@@ -2835,12 +2835,21 @@ cli_setup_fail2ban_command() {
     # journal is the only source of sshd auth failures. 'backend = systemd' is set
     # explicitly rather than inherited from Ubuntu's jail.d/defaults-debian.conf,
     # so the jail stays valid if that distro file ever changes.
+    #
+    # 'ignoreip' covers the Tailscale CGNAT v4 pool and the tailnet ULA v6 prefix,
+    # because every administrative login reaches this host over tailscale0. Without
+    # it fail2ban's default (loopback only) treats the admin path as hostile: sshd
+    # sets MaxAuthTries 3, so a client whose agent offers three keys exhausts
+    # maxretry on its first connection, and any reconnect loop re-arms the ban past
+    # bantime. Rate-limiting buys nothing against 'AuthenticationMethods publickey'
+    # anyway; the jail still guards the port UFW exposes publicly.
     cat >"$PANTHER_FAIL2BAN_JAIL" <<EOF
 [sshd]
 enabled  = true
 port     = ${PANTHER_SSH_PORT}
 filter   = sshd
 backend  = systemd
+ignoreip = 127.0.0.1/8 ::1 100.64.0.0/10 fd7a:115c:a1e0::/48
 maxretry = 3
 bantime  = 1h
 findtime = 10m
