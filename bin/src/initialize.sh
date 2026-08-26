@@ -7,6 +7,7 @@ declare -gr PANTHER_PROXY_DIR="$PANTHER_REPO_ROOT/proxy"
 declare -gr PANTHER_ENV_FILE="$PANTHER_REPO_ROOT/.env"
 declare -gr PANTHER_ENV_EXAMPLE_FILE="$PANTHER_REPO_ROOT/.env.example"
 declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
+declare -gr PANTHER_SSHD_CONFIG_DIR="/etc/ssh/sshd_config.d"
 declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
 
 panther_is_logs_service() {
