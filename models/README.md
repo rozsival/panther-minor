@@ -140,6 +140,12 @@ it cut the target forward pass by **~20%**, taking decode from ~54 to **66 tok/s
 `spec-draft-n-max` retune. Roughly a third of what remains is the CPU sampling above, which no
 configuration can recover while `split-mode = tensor` stands.
 
+Numbers like these are only meaningful against a recorded baseline, so `./bin/cli models llm bench`
+pins every variable that would otherwise drift - fixed prompt and seed, greedy sampling, `cache_prompt`
+off so prefill is measured rather than replayed, and `ignore_eos` on so exactly `--tokens` are predicted.
+Each entry records decode and prefill throughput, speculative draft acceptance, and the host kernel,
+llama.cpp commit and image ID, so a later regression identifies which of those four moved.
+
 ### Management
 
 ```bash
@@ -149,6 +155,7 @@ configuration can recover while `split-mode = tensor` stands.
 ./bin/cli models llm remove <model>         # Remove an LLM's unshared files from the cache
 ./bin/cli models llm load <preset>          # Manually load an LLM into the llama.cpp cluster
 ./bin/cli models llm unload <preset>        # Manually unload an LLM from the llama.cpp cluster
+./bin/cli models llm bench <preset>         # Measure throughput and append it to models/bench.log
 ```
 
 `download` and `remove` take a **model name** from this file — they operate on weight files. `load` and

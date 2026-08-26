@@ -90,6 +90,14 @@ flowchart LR
 - A [Tailscale](https://tailscale.com/) account for secure remote access
 - A domain you control for required SSL certificate issuance and secure service access
 
+> [!WARNING]
+> **Install a major release cleanly rather than upgrading in place.** `do-release-upgrade` leaves the
+> previous release's kernels installed and disables third-party repositories, so the out-of-tree
+> `amdgpu` DKMS driver is rebuilt in a mixed state. Every build succeeds, the module loads, nothing
+> fails - and inference throughput silently drops. Record a baseline with
+> `./bin/cli models llm bench <model>` before any OS, driver, ROCm or llama.cpp change so a regression
+> is a diff rather than a hunch.
+
 ---
 
 ## 🚀 Quick Start

@@ -651,6 +651,7 @@ cli_models_llm_usage() {
   printf "  %s   Remove a downloaded LLM from the local Hugging Face cache\n" "remove  "
   printf "  %s   Load an LLM into the llama.cpp server\n" "load    "
   printf "  %s   Unload an LLM from the llama.cpp server\n" "unload  "
+  printf "  %s   Measure decode and prefill throughput and append it to the baseline log\n" "bench   "
   echo
 
   # :command.long_usage
@@ -833,6 +834,58 @@ cli_models_llm_unload_usage() {
     # :command.usage_examples
     printf "%s\n" "Examples:"
     printf "  cli models llm unload DeepSeek-V4-Flash-0731\n"
+    echo
+
+  fi
+}
+
+# :command.usage
+cli_models_llm_bench_usage() {
+  printf "cli models llm bench - Measure decode and prefill throughput and append it to the baseline log\n\n"
+
+  printf "%s\n" "Usage:"
+  printf "  cli models llm bench MODEL [OPTIONS]\n"
+  printf "  cli models llm bench --help | -h\n"
+  echo
+
+  # :command.long_usage
+  if [[ -n "$long_usage" ]]; then
+    # :command.usage_options
+    printf "%s\n" "Options:"
+
+    # :command.usage_flags
+    # :flag.usage
+    printf "  %s\n" "--tokens, -n COUNT"
+    printf "    Tokens to predict per run (defaults to 256)\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--runs, -r COUNT"
+    printf "    Measured runs after the discarded warm-up (defaults to 3)\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--log-path, -l PATH"
+    printf "    File to append the baseline to (defaults to models/bench.log)\n"
+    echo
+
+    # :command.usage_fixed_flags
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    # :command.usage_args
+    printf "%s\n" "Arguments:"
+
+    # :argument.usage
+    printf "  %s\n" "MODEL"
+    printf "    Preset name from llama-cpp/preset.ini\n"
+    echo
+
+    # :command.usage_examples
+    printf "%s\n" "Examples:"
+    printf "  cli models llm bench Qwen3.8-27B\n"
+    printf "  cli models llm bench --runs 5 --tokens 512 Qwen3.8-27B\n"
     echo
 
   fi
@@ -1866,6 +1919,10 @@ send_completions() {
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h")" -- "$cur")'
   echo $'      ;;'
   echo $''
+  echo $'    \'models llm bench\'*)'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && awk -F\'[][]\' \'NF==3{print $2}\' llama-cpp/preset.ini) --help --log-path --runs --tokens -h -l -n -r")" -- "$cur")'
+  echo $'      ;;'
+  echo $''
   echo $'    \'proxy setup-cron\'*)'
   echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help --log-path --schedule --user -h -l -s -u")" -- "$cur")'
   echo $'      ;;'
@@ -1955,7 +2012,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models llm\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h download list load remove unload")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "--help -h bench download list load remove unload")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'setup init\'*)'
@@ -2458,6 +2515,7 @@ cli_setup_packages_command() {
     apt-get install -y \
       augeas-lenses \
       augeas-tools \
+      bind9-dnsutils \
       build-essential \
       htop \
       jq \
@@ -2856,12 +2914,15 @@ cli_setup_amdgpu_command() {
     # installed kernel on its own, so neither is requested explicitly above.
     amdgpu-install -y --usecase=rocm,graphics --gfxversion="$rocm_arch"
 
-    # amdgpu-install builds the DKMS module for every installed kernel, so after a
-    # release upgrade - which keeps the previous release's kernels - three or more
-    # builds is expected output rather than a fault. What is not verified anywhere
-    # else is the part that matters: whether the kernel the host will actually run
-    # has a module at all. ROCm user space on a previous-release amdgpu/KFD
-    # degrades silently instead of failing, so it never surfaces as an error.
+    # amdgpu-install builds the DKMS module for every installed kernel, so several
+    # builds is mechanically expected rather than a fault. What is not benign is
+    # what those extra kernels imply: an in-place release upgrade keeps the previous
+    # release's kernels, and that residue is what silently cost throughput after the
+    # 26.04 upgrade here - every build succeeded, the module loaded, nothing failed,
+    # and only a clean install restored performance. None of that state is visible
+    # unless it is printed, so the parts that decide whether the GPU performs are
+    # reported: which kernel has a module, which driver version is loaded versus
+    # built, which firmware is installed, and which kernels are left over.
     local running_kernel newest_kernel target_kernel
     running_kernel="$(uname -r)"
     newest_kernel=''
@@ -2882,6 +2943,42 @@ cli_setup_amdgpu_command() {
       panther_log_success "amdgpu DKMS module built for ${target_kernel}."
     else
       panther_log_warn "No amdgpu DKMS module for ${target_kernel}; the in-tree driver would be used instead."
+    fi
+
+    local built_version loaded_version firmware_version
+    built_version="$(dkms status amdgpu 2>/dev/null | awk -F'[/,]' -v kernel="$target_kernel" '$0 ~ kernel { gsub(/^ +| +$/, "", $2); print $2; exit }' || true)"
+    loaded_version="$(modinfo -F version amdgpu 2>/dev/null || true)"
+    firmware_version="$(dpkg-query -W -f='${Version}' amdgpu-dkms-firmware 2>/dev/null || true)"
+
+    panther_log_info "amdgpu firmware: ${firmware_version:-not installed}"
+
+    # Stale firmware degrades clocks and power management without ever failing, so
+    # an absent package is worth saying out loud rather than leaving to inference.
+    if [[ -z "$firmware_version" ]]; then
+      panther_log_warn 'No amdgpu-dkms-firmware package; the GPU falls back to whatever linux-firmware ships.'
+    fi
+
+    if [[ -n "$loaded_version" && -n "$built_version" && "$loaded_version" != "$built_version" ]]; then
+      panther_log_warn "Loaded amdgpu ${loaded_version} differs from the ${built_version} module built for ${target_kernel}; the running driver stays stale until reboot."
+    fi
+
+    # Kernel field, not the driver version: '7.0.0-30-generic' carries a hyphen
+    # after the patch level, '6.19.14.31400100' does not. Matches both the
+    # 'amdgpu/VERSION, KERNEL' and older 'amdgpu, VERSION, KERNEL' dkms formats.
+    local -a leftover_kernels=()
+    local dkms_line dkms_kernel
+    while IFS= read -r dkms_line; do
+      dkms_kernel="$(awk -F', *' '{ for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+\.[0-9]+\.[0-9]+-/) { print $i; exit } }' <<<"$dkms_line" || true)"
+      if [[ -n "$dkms_kernel" && "$dkms_kernel" != "$target_kernel" ]]; then
+        leftover_kernels+=("$dkms_kernel")
+      fi
+    done < <(dkms status amdgpu 2>/dev/null || true)
+
+    if [[ "${#leftover_kernels[@]}" -gt 0 ]]; then
+      local leftovers
+      leftovers="$(printf '%s\n' "${leftover_kernels[@]}" | sort -u -V | tr '\n' ' ' | sed 's/ *$//')"
+      panther_log_warn "Modules also built for kernels other than ${target_kernel}: ${leftovers}"
+      panther_register_action "Confirm 'modinfo amdgpu | head -3' reports ${built_version:-the new version} after reboot: leftover kernels mean this host was upgraded in place, where a stale driver degrades throughput silently instead of failing."
     fi
 
     panther_register_action 'Reboot the server to load the new amdgpu kernel driver.'
@@ -3239,6 +3336,153 @@ cli_models_llm_unload_command() {
 }
 
 # :command.function
+cli_models_llm_bench_command() {
+
+  # src/models_llm_bench_command.sh
+  panther_llm_bench() {
+    local model="${args[model]}"
+    panther_assert_loadable_llm "$model"
+
+    local tokens runs log_path
+    tokens="$(panther_resolve_option '--tokens' PANTHER_BENCH_TOKENS '256')"
+    runs="$(panther_resolve_option '--runs' PANTHER_BENCH_RUNS '3')"
+    log_path="$(panther_resolve_option '--log-path' PANTHER_BENCH_LOG_PATH "$PANTHER_REPO_ROOT/models/bench.log")"
+
+    [[ "$tokens" -gt 0 ]] || panther_log_error '--tokens must be greater than zero.'
+    [[ "$runs" -gt 0 ]] || panther_log_error '--runs must be greater than zero.'
+
+    # A benchmark is only worth keeping if two invocations months apart are
+    # comparable, so every degree of freedom is nailed down: a fixed prompt, a
+    # fixed seed, greedy sampling, 'cache_prompt' off so prefill is measured
+    # rather than replayed from the slot cache, and 'ignore_eos' on so the model
+    # predicts exactly --tokens instead of stopping wherever it likes.
+    local prompt='' sentence i
+    sentence='Summarise the following requirement precisely and completely, without omitting any constraint. '
+    for ((i = 0; i < 24; i++)); do
+      prompt+="$sentence"
+    done
+
+    local request
+    request="$(jq -n --arg model "$model" --arg prompt "$prompt" --argjson tokens "$tokens" '{
+      model: $model,
+      messages: [{ role: "user", content: $prompt }],
+      max_tokens: $tokens,
+      temperature: 0,
+      seed: 42,
+      ignore_eos: true,
+      cache_prompt: false,
+      stream: false
+    }')"
+
+    panther_log_info "Benchmarking '$model': ${runs} run(s) of ${tokens} tokens after one discarded warm-up."
+
+    local -a samples=()
+    local run response timings
+    for ((run = 0; run <= runs; run++)); do
+      if [[ "$run" -eq 0 ]]; then
+        panther_log_info 'Warm-up run (discarded); loads the model when it is not already resident.'
+      else
+        panther_log_info "Run ${run}/${runs}..."
+      fi
+
+      # The OpenAI-compatible path is deliberate: manager.js:499 only arbitrates
+      # and preflights models for '/v1/chat/completions' and '/v1/completions'.
+      # llama.cpp's native '/completion' would proxy through unclassified, so the
+      # requested model might never be made resident.
+      if ! response="$(curl -sS --insecure --max-time 900 -X POST 'https://localhost:8000/v1/chat/completions' \
+        -H 'Content-Type: application/json' \
+        -d "$request")"; then
+        panther_log_error 'Cannot reach llama-manager at https://localhost:8000. Is the cluster running?'
+      fi
+
+      timings="$(jq -c '.timings // empty' <<<"$response" || true)"
+      if [[ -z "$timings" ]]; then
+        panther_log_error "No timings in response: $(jq -r '.error.message // tostring' <<<"$response" 2>/dev/null | head -1)"
+      fi
+
+      if [[ "$run" -gt 0 ]]; then
+        samples+=("$timings")
+      fi
+    done
+
+    # Median, not mean: one scheduling hiccup should not move the baseline.
+    local summary
+    summary="$(printf '%s\n' "${samples[@]}" | jq -s '
+      def median: sort | if length % 2 == 1 then .[length / 2 | floor] else (.[length / 2 - 1] + .[length / 2]) / 2 end;
+      {
+        decode: ([.[] | .predicted_per_second] | median),
+        prefill: ([.[] | .prompt_per_second] | median),
+        prompt_n: (.[0].prompt_n // 0),
+        cached: ([.[] | .cache_n // 0] | add),
+        draft_n: ([.[] | .draft_n // 0] | add),
+        draft_accepted: ([.[] | .draft_n_accepted // 0] | add)
+      }')"
+
+    local decode prefill accept prompt_n cached
+    decode="$(jq -r '.decode * 10 | round / 10' <<<"$summary")"
+    prefill="$(jq -r '.prefill * 10 | round / 10' <<<"$summary")"
+    accept="$(jq -r 'if .draft_n > 0 then ((.draft_accepted / .draft_n * 1000 | round / 10 | tostring) + "%") else "n/a" end' <<<"$summary")"
+    prompt_n="$(jq -r '.prompt_n' <<<"$summary")"
+    cached="$(jq -r '.cached' <<<"$summary")"
+
+    if [[ "$cached" != '0' ]]; then
+      panther_log_warn "Prompt cache served ${cached} token(s); prefill is understated for this entry."
+    fi
+
+    cd "$PANTHER_REPO_ROOT" || panther_log_error "Repository root $PANTHER_REPO_ROOT is unavailable."
+
+    # The four things that moved under us during the 26.04 upgrade, recorded so a
+    # future regression is a diff rather than an argument: host kernel, llama.cpp
+    # commit, and the image ID that pins the ROCm user space and base image.
+    local kernel llama_ref container image_id
+    kernel="$(uname -r)"
+    llama_ref="$(docker compose exec -T llama-cpp git -C /opt/llama-cpp rev-parse --short HEAD 2>/dev/null | tr -d '\r\n' || true)"
+    [[ -n "$llama_ref" ]] || llama_ref='unknown'
+    container="$(docker compose ps -q llama-cpp 2>/dev/null | head -1 || true)"
+    image_id='unknown'
+    if [[ -n "$container" ]]; then
+      image_id="$(docker inspect --format '{{.Image}}' "$container" 2>/dev/null | cut -c8-19 || true)"
+      [[ -n "$image_id" ]] || image_id='unknown'
+    fi
+
+    local previous=''
+    if [[ -f "$log_path" ]]; then
+      previous="$(awk -F'\t' -v m="$model" '$2 == m { line = $0 } END { print line }' "$log_path" || true)"
+    else
+      mkdir -p "$(dirname "$log_path")" || panther_log_error "Cannot create $(dirname "$log_path")."
+      printf 'timestamp\tmodel\ttokens\truns\tdecode_tps\tprefill_tps\tdraft_accept\tkernel\tllama_ref\timage\n' >"$log_path"
+    fi
+
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+      "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$model" "$tokens" "$runs" \
+      "$decode" "$prefill" "$accept" "$kernel" "$llama_ref" "$image_id" >>"$log_path"
+
+    panther_log_success "decode ${decode} tok/s | prefill ${prefill} tok/s (${prompt_n} tokens) | draft accepted ${accept}"
+    panther_log_info "kernel ${kernel} | llama.cpp ${llama_ref} | image ${image_id}"
+
+    if [[ -n "$previous" ]]; then
+      local previous_decode previous_stamp previous_ref delta regressed
+      previous_stamp="$(cut -f1 <<<"$previous")"
+      previous_decode="$(cut -f5 <<<"$previous")"
+      previous_ref="$(cut -f9 <<<"$previous")"
+      delta="$(awk -v a="$decode" -v b="$previous_decode" 'BEGIN { if (b + 0 == 0) { print "n/a"; exit } printf "%+.1f%%", (a - b) / b * 100 }')"
+      regressed="$(awk -v a="$decode" -v b="$previous_decode" 'BEGIN { print (b + 0 > 0 && (a - b) / b * 100 <= -10) ? "yes" : "no" }')"
+
+      if [[ "$regressed" == 'yes' ]]; then
+        panther_log_warn "Decode ${delta} vs ${previous_stamp} (${previous_decode} tok/s, llama.cpp ${previous_ref}) - rebuild with the older ref to isolate llama.cpp from the platform."
+      else
+        panther_log_info "Decode ${delta} vs ${previous_stamp} (${previous_decode} tok/s, llama.cpp ${previous_ref})."
+      fi
+    else
+      panther_log_info "Baseline recorded in ${log_path}; re-run after any kernel, driver, ROCm or llama.cpp change."
+    fi
+  }
+
+  panther_llm_bench
+
+}
+
+# :command.function
 cli_models_t2i_download_command() {
 
   # src/models_t2i_download_command.sh
@@ -3515,7 +3759,57 @@ cli_proxy_certbot_command() {
     echo "Target:       $fulldomain"
     echo '=================================================================='
     echo ''
-    read -r -p 'Press Enter to continue after DNS propagation...'
+    # Pressing Enter here used to hand acme.sh a validation that could not succeed,
+    # and Let's Encrypt allows only five failed validations per hostname per hour.
+    # The CNAME is resolved through a recursive resolver first - the same path
+    # Let's Encrypt takes - so a record saved in a zone that is not the delegated
+    # one fails in seconds here instead of as an endless 'not valid yet' poll.
+    local challenge_fqdn="_acme-challenge.${domain}"
+    local resolved='' control control_resolved wildcard
+
+    if ! command -v dig >/dev/null 2>&1; then
+      panther_log_warn 'dig is unavailable, so the CNAME cannot be verified. Install bind9-dnsutils to enable this check.'
+      read -r -p 'Press Enter to continue after DNS propagation...' || panther_log_error 'Aborted before issuance.'
+    else
+      while true; do
+        read -r -p 'Press Enter once the record is saved to verify it...' || panther_log_error 'Aborted before the CNAME could be verified.'
+
+        resolved="$(dig +short CNAME "$challenge_fqdn" @1.1.1.1 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+        if [[ -z "$resolved" ]]; then
+          resolved="$(dig +short CNAME "$challenge_fqdn" 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+        fi
+
+        # A wildcard record answers for names that do not exist, which makes an
+        # absent challenge record look like a wrong target instead. This zone
+        # class is common, so a control lookup for a name nobody would ever
+        # create separates real answers from synthesised ones.
+        wildcard=false
+        control="_panther-preflight-${RANDOM}.${domain}"
+        control_resolved="$(dig +short CNAME "$control" @1.1.1.1 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+        if [[ -n "$resolved" && "$resolved" == "$control_resolved" ]]; then
+          resolved=''
+          wildcard=true
+        fi
+
+        if [[ "$resolved" == "$fulldomain" ]]; then
+          panther_log_success "$challenge_fqdn resolves to $fulldomain."
+          break
+        fi
+
+        if [[ -z "$resolved" ]]; then
+          panther_log_warn "$challenge_fqdn does not resolve."
+          if [[ "$wildcard" == true ]]; then
+            echo '  A wildcard in the zone answers for every name, so the record is absent rather than misdirected.'
+          fi
+          echo '  If the record looks correct in your DNS panel, the zone you edited may not be the delegated one. Compare:'
+          echo "    dig +short NS ${domain#*.}"
+          echo '  against the nameservers your registrar publishes. A record in an undelegated zone never resolves.'
+        else
+          panther_log_warn "$challenge_fqdn points at '$resolved', expected '$fulldomain'."
+          echo '  A stale target usually means acme-dns was re-registered with --force after the record was created.'
+        fi
+      done
+    fi
 
     panther_log_info 'Issuing certificate...'
     local issue_args=(--issue --dns dns_acmedns -d "$domain" --server letsencrypt)
@@ -5297,6 +5591,13 @@ cli_models_llm_parse_requirements() {
       shift $#
       ;;
 
+    bench)
+      action="bench"
+      shift
+      cli_models_llm_bench_parse_requirements "$@"
+      shift $#
+      ;;
+
     # :command.command_fallback
     "")
       cli_models_llm_usage >&2
@@ -5665,6 +5966,135 @@ cli_models_llm_unload_parse_requirements() {
     validation_output="$(validate_loadable_llm "${args['model']:-}")"
     if [[ -n "$validation_output" ]]; then
       printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+}
+
+# :command.parse_requirements
+cli_models_llm_bench_parse_requirements() {
+  local key
+
+  # :command.fixed_flags_filter
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        cli_models_llm_bench_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  # :command.command_filter
+  action="models llm bench"
+
+  # :command.parse_requirements_while
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      # :flag.case
+      --tokens | -n)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--tokens']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--tokens requires an argument: --tokens, -n COUNT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --runs | -r)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--runs']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--runs requires an argument: --runs, -r COUNT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --log-path | -l)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--log-path']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--log-path requires an argument: --log-path, -l PATH" >&2
+          exit 1
+        fi
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+        # :command.parse_requirements_case
+        # :command.parse_requirements_case_simple
+        # :argument.case
+        if [[ -z ${args['model']+x} ]]; then
+          args['model']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
+
+        ;;
+
+    esac
+  done
+
+  # :command.required_args_filter
+  if [[ -z ${args['model']+x} ]]; then
+    printf "missing required argument: MODEL\nusage: cli models llm bench MODEL [OPTIONS]\n" >&2
+
+    exit 1
+  fi
+
+  # :command.validations
+  # :argument.validations
+  if [[ -v args['model'] ]]; then
+    validation_output="$(validate_loadable_llm "${args['model']:-}")"
+    if [[ -n "$validation_output" ]]; then
+      printf "validation error in %s:\n%s\n" "MODEL" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--tokens'] ]]; then
+    validation_output="$(validate_integer "${args['--tokens']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--tokens, -n COUNT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--runs'] ]]; then
+    validation_output="$(validate_integer "${args['--runs']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--runs, -r COUNT" "$validation_output" >&2
       exit 1
     fi
   fi
@@ -7247,6 +7677,7 @@ run() {
     "models llm remove") cli_models_llm_remove_command ;;
     "models llm load") cli_models_llm_load_command ;;
     "models llm unload") cli_models_llm_unload_command ;;
+    "models llm bench") cli_models_llm_bench_command ;;
     "models t2i") cli_models_t2i_command ;;
     "models t2i download") cli_models_t2i_download_command ;;
     "models t2i list") cli_models_t2i_list_command ;;

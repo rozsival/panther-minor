@@ -10,6 +10,7 @@ panther_setup_packages() {
   apt-get install -y \
     augeas-lenses \
     augeas-tools \
+    bind9-dnsutils \
     build-essential \
     htop \
     jq \

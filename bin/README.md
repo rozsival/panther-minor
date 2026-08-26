@@ -15,15 +15,15 @@ This directory contains the Panther Minor command-line interface, powered by [Ba
 
 ## 🗂️ Command groups
 
-| Command       | Purpose                                       |
-| ------------- | --------------------------------------------- |
-| `setup`       | Prepare and secure the host machine           |
-| `models`      | Manage supported model downloads and cache    |
-| `proxy`       | Work with certificate and proxy-related tasks |
-| `cluster`     | Build, start, and stop the AI stack           |
-| `logs`        | Inspect service logs                          |
-| `update`      | Refresh project assets or dependencies        |
-| `completions` | Print shell completion scripts                |
+| Command       | Purpose                                                 |
+| ------------- | ------------------------------------------------------- |
+| `setup`       | Prepare and secure the host machine                     |
+| `models`      | Manage model downloads, cache, and throughput baselines |
+| `proxy`       | Work with certificate and proxy-related tasks           |
+| `cluster`     | Build, start, and stop the AI stack                     |
+| `logs`        | Inspect service logs                                    |
+| `update`      | Refresh project assets or dependencies                  |
+| `completions` | Print shell completion scripts                          |
 
 Inspect available commands with:
 

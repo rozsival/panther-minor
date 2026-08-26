@@ -241,6 +241,34 @@ commands:
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
+          - name: bench
+            help: Measure decode and prefill throughput and append it to the baseline log
+            args:
+              - name: model
+                required: true
+                help: Preset name from llama-cpp/preset.ini
+                validate: loadable_llm
+            flags:
+              - long: --tokens
+                short: -n
+                arg: count
+                help: Tokens to predict per run (defaults to 256)
+                validate: integer
+              - long: --runs
+                short: -r
+                arg: count
+                help: Measured runs after the discarded warm-up (defaults to 3)
+                validate: integer
+              - long: --log-path
+                short: -l
+                arg: path
+                help: File to append the baseline to (defaults to models/bench.log)
+            examples:
+              - cli models llm bench Qwen3.8-27B
+              - cli models llm bench --runs 5 --tokens 512 Qwen3.8-27B
+            completions:
+              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
+
       - name: t2i
         help: Manage text-to-image models
         commands:

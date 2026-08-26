@@ -59,7 +59,57 @@ panther_proxy_certbot() {
   echo "Target:       $fulldomain"
   echo '=================================================================='
   echo ''
-  read -r -p 'Press Enter to continue after DNS propagation...'
+  # Pressing Enter here used to hand acme.sh a validation that could not succeed,
+  # and Let's Encrypt allows only five failed validations per hostname per hour.
+  # The CNAME is resolved through a recursive resolver first - the same path
+  # Let's Encrypt takes - so a record saved in a zone that is not the delegated
+  # one fails in seconds here instead of as an endless 'not valid yet' poll.
+  local challenge_fqdn="_acme-challenge.${domain}"
+  local resolved='' control control_resolved wildcard
+
+  if ! command -v dig >/dev/null 2>&1; then
+    panther_log_warn 'dig is unavailable, so the CNAME cannot be verified. Install bind9-dnsutils to enable this check.'
+    read -r -p 'Press Enter to continue after DNS propagation...' || panther_log_error 'Aborted before issuance.'
+  else
+    while true; do
+      read -r -p 'Press Enter once the record is saved to verify it...' || panther_log_error 'Aborted before the CNAME could be verified.'
+
+      resolved="$(dig +short CNAME "$challenge_fqdn" @1.1.1.1 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+      if [[ -z "$resolved" ]]; then
+        resolved="$(dig +short CNAME "$challenge_fqdn" 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+      fi
+
+      # A wildcard record answers for names that do not exist, which makes an
+      # absent challenge record look like a wrong target instead. This zone
+      # class is common, so a control lookup for a name nobody would ever
+      # create separates real answers from synthesised ones.
+      wildcard=false
+      control="_panther-preflight-${RANDOM}.${domain}"
+      control_resolved="$(dig +short CNAME "$control" @1.1.1.1 2>/dev/null | head -1 | sed 's/\.$//' || true)"
+      if [[ -n "$resolved" && "$resolved" == "$control_resolved" ]]; then
+        resolved=''
+        wildcard=true
+      fi
+
+      if [[ "$resolved" == "$fulldomain" ]]; then
+        panther_log_success "$challenge_fqdn resolves to $fulldomain."
+        break
+      fi
+
+      if [[ -z "$resolved" ]]; then
+        panther_log_warn "$challenge_fqdn does not resolve."
+        if [[ "$wildcard" == true ]]; then
+          echo '  A wildcard in the zone answers for every name, so the record is absent rather than misdirected.'
+        fi
+        echo '  If the record looks correct in your DNS panel, the zone you edited may not be the delegated one. Compare:'
+        echo "    dig +short NS ${domain#*.}"
+        echo '  against the nameservers your registrar publishes. A record in an undelegated zone never resolves.'
+      else
+        panther_log_warn "$challenge_fqdn points at '$resolved', expected '$fulldomain'."
+        echo '  A stale target usually means acme-dns was re-registered with --force after the record was created.'
+      fi
+    done
+  fi
 
   panther_log_info 'Issuing certificate...'
   local issue_args=(--issue --dns dns_acmedns -d "$domain" --server letsencrypt)

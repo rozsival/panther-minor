@@ -52,12 +52,15 @@ panther_setup_amdgpu() {
   # installed kernel on its own, so neither is requested explicitly above.
   amdgpu-install -y --usecase=rocm,graphics --gfxversion="$rocm_arch"
 
-  # amdgpu-install builds the DKMS module for every installed kernel, so after a
-  # release upgrade - which keeps the previous release's kernels - three or more
-  # builds is expected output rather than a fault. What is not verified anywhere
-  # else is the part that matters: whether the kernel the host will actually run
-  # has a module at all. ROCm user space on a previous-release amdgpu/KFD
-  # degrades silently instead of failing, so it never surfaces as an error.
+  # amdgpu-install builds the DKMS module for every installed kernel, so several
+  # builds is mechanically expected rather than a fault. What is not benign is
+  # what those extra kernels imply: an in-place release upgrade keeps the previous
+  # release's kernels, and that residue is what silently cost throughput after the
+  # 26.04 upgrade here - every build succeeded, the module loaded, nothing failed,
+  # and only a clean install restored performance. None of that state is visible
+  # unless it is printed, so the parts that decide whether the GPU performs are
+  # reported: which kernel has a module, which driver version is loaded versus
+  # built, which firmware is installed, and which kernels are left over.
   local running_kernel newest_kernel target_kernel
   running_kernel="$(uname -r)"
   newest_kernel=''
@@ -78,6 +81,42 @@ panther_setup_amdgpu() {
     panther_log_success "amdgpu DKMS module built for ${target_kernel}."
   else
     panther_log_warn "No amdgpu DKMS module for ${target_kernel}; the in-tree driver would be used instead."
+  fi
+
+  local built_version loaded_version firmware_version
+  built_version="$(dkms status amdgpu 2>/dev/null | awk -F'[/,]' -v kernel="$target_kernel" '$0 ~ kernel { gsub(/^ +| +$/, "", $2); print $2; exit }' || true)"
+  loaded_version="$(modinfo -F version amdgpu 2>/dev/null || true)"
+  firmware_version="$(dpkg-query -W -f='${Version}' amdgpu-dkms-firmware 2>/dev/null || true)"
+
+  panther_log_info "amdgpu firmware: ${firmware_version:-not installed}"
+
+  # Stale firmware degrades clocks and power management without ever failing, so
+  # an absent package is worth saying out loud rather than leaving to inference.
+  if [[ -z "$firmware_version" ]]; then
+    panther_log_warn 'No amdgpu-dkms-firmware package; the GPU falls back to whatever linux-firmware ships.'
+  fi
+
+  if [[ -n "$loaded_version" && -n "$built_version" && "$loaded_version" != "$built_version" ]]; then
+    panther_log_warn "Loaded amdgpu ${loaded_version} differs from the ${built_version} module built for ${target_kernel}; the running driver stays stale until reboot."
+  fi
+
+  # Kernel field, not the driver version: '7.0.0-30-generic' carries a hyphen
+  # after the patch level, '6.19.14.31400100' does not. Matches both the
+  # 'amdgpu/VERSION, KERNEL' and older 'amdgpu, VERSION, KERNEL' dkms formats.
+  local -a leftover_kernels=()
+  local dkms_line dkms_kernel
+  while IFS= read -r dkms_line; do
+    dkms_kernel="$(awk -F', *' '{ for (i = 1; i <= NF; i++) if ($i ~ /^[0-9]+\.[0-9]+\.[0-9]+-/) { print $i; exit } }' <<<"$dkms_line" || true)"
+    if [[ -n "$dkms_kernel" && "$dkms_kernel" != "$target_kernel" ]]; then
+      leftover_kernels+=("$dkms_kernel")
+    fi
+  done < <(dkms status amdgpu 2>/dev/null || true)
+
+  if [[ "${#leftover_kernels[@]}" -gt 0 ]]; then
+    local leftovers
+    leftovers="$(printf '%s\n' "${leftover_kernels[@]}" | sort -u -V | tr '\n' ' ' | sed 's/ *$//')"
+    panther_log_warn "Modules also built for kernels other than ${target_kernel}: ${leftovers}"
+    panther_register_action "Confirm 'modinfo amdgpu | head -3' reports ${built_version:-the new version} after reboot: leftover kernels mean this host was upgraded in place, where a stale driver degrades throughput silently instead of failing."
   fi
 
   panther_register_action 'Reboot the server to load the new amdgpu kernel driver.'
