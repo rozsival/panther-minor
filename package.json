@@ -1,6 +1,6 @@
 {
   "name": "@rozsival/panther-minor",
-  "version": "11.0.1",
+  "version": "12.0.0",
   "private": true,
   "description": "Self-hosted AI workstation stack for AMD",
   "repository": {
