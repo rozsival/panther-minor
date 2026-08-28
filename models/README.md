@@ -126,6 +126,13 @@ came out **slower** than no speculation at all. Treat those as a starting point 
 result: acceptance is workload- and sampler-dependent, and the same thread reports MTP being a net loss
 over RPC and greedy output diverging from the unspeculated run on ROCm.
 
+Budget for it before flipping the switch: at 4B and `Q4_0` the head is ~2.10 GiB, plus ~0.27 GiB for one
+layer of draft attention cache at the full 262144-token context. With all three models resident the cards
+have 1.32 and 1.38 GiB free, so it does not fit as a preset one-liner - `n-cpu-moe` has to go to **26**,
+which frees 2.93 GiB on GPU 0 and costs 0.06 GiB per token of extra host traffic (0.76 total). Against
++17% decode that trade is clearly worth taking. Note the freed room lands on GPU 0, since blocks 24-25
+sit on that side of the split; if the head is placed on GPU 1 instead, `tensor-split` needs a nudge too.
+
 #### Draft depth
 
 `spec-draft-n-max` sets how many tokens the drafter proposes per round. Acceptance decays geometrically,
