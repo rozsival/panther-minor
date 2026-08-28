@@ -12,7 +12,7 @@ exec /opt/llama-cpp/build/bin/llama-server \
   --metrics \
   --models-max "$LLAMA_CPP_MODELS_MAX" \
   --models-preset "$HOME/.cache/huggingface/preset.ini" \
-  --parallel 2 \
+  --parallel 1 \
   --port 8000 \
   --slots \
   --spec-default \
