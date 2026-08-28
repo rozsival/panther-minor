@@ -319,8 +319,8 @@ This keeps the small helper model untouched while making large-model handovers d
 
 Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
 is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `preset.ini` instead:
-`Qwen3.8-Flash-Next` moves blocks 0-18's routed experts to system RAM with `n-cpu-moe = 19`. Its 26.82 GiB n-gram
-table is mmap'd host-side and never enters VRAM at all.
+`Qwen3.8-Flash-Next` moves blocks 0-23's routed experts to system RAM with `n-cpu-moe = 24`. Its 26.82 GiB n-gram
+table is read host-side and never enters VRAM at all.
 
 ### Image generation VRAM
 

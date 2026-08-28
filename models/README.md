@@ -62,27 +62,42 @@ through `llama-cpp/preset.ini`
 #### Weight placement
 
 Most models fit in VRAM whole and need nothing beyond `n-gpu-layers`. `Qwen3.8-Flash-Next` does not: at
-`UD-Q4_K_XL` it is 103.7 GiB against 62.6 GiB of usable VRAM, so its preset pins placement by hand.
+`UD-Q4_K_XL` it is 103.7 GiB against 2x 31.86 GiB of VRAM, so its preset pins placement by hand.
 
-Two thirds of that lands off the GPUs, and only one third of the reason is the experts:
+Two thirds of it lands off the GPUs, and the experts are only part of the reason:
 
 - **The n-gram table never enters VRAM.** All 51B of its parameters are a single `per_layer_token_embd`
   tensor - 26.82 GiB at `IQ4_NL` - read host-side through `ggml_get_rows`, the same approach Gemma 3n
-  uses for per-layer embeddings. `load-mode = mmap` leaves it in the page cache instead of copying it
-  onto the heap, which is what `load-mode = none` would do for no benefit.
-- **`n-cpu-moe = 19`** keeps blocks 0-18's routed experts in system RAM. That leaves 48.34 GiB resident
-  out of the 76.86 GiB that is VRAM-eligible, with ~4.8 GiB of headroom. Decode reads ~0.56 GiB per token
-  back over PCIe, because top-10 routing touches 10 of each block's 512 experts.
-- **`tensor-split = 52,48`** gives GPU 1 the smaller share of the layers, since it also holds the
-  embedding model.
+  uses for per-layer embeddings.
+- **`n-cpu-moe = 24`** keeps blocks 0-23's routed experts in system RAM, leaving 40.9 GiB of weights
+  resident. Decode reads ~0.70 GiB per token back over PCIe, because top-10 routing touches 10 of each
+  block's 512 experts.
+- **`load-mode = none`** reads that ~60 GiB of host-side tensors into memory instead of mapping them.
+  llama.cpp warns that CPU tensor overrides under `mmap` are slower, and the box has 176 GiB free.
+- **`tensor-split = 72,28`** - see below, this one is a trap.
 
 The attention cache is the cheap part: only 12 of 48 layers have one, so a full 262144-token context costs
 3.19 GiB at `q8_0` (6.00 GiB at `f16`), plus 0.10 GiB of indexer keys and 0.11 GiB of DeltaNet state.
 
+> [!WARNING]
+> **`tensor-split` divides by layer count, not by bytes.** `llama-model.cpp` assigns layer `il` to a
+> device by comparing `il / (n_layer + 1)` against the normalized split, so it knows nothing about how
+> heavy each layer is. `n-cpu-moe` makes the first N layers nearly weightless - 0.08 GiB against 1.79 GiB
+> for a layer whose experts stayed on the GPU - so a split that looks balanced is not. The first attempt
+> here used `52,48`, which handed GPU 0 nineteen empty layers and GPU 1 twenty-two heavy ones plus the
+> output head: a single 35.35 GiB allocation on a 31.86 GiB card, and `cudaMalloc failed: out of memory`.
+> Count the heavy blocks on each side, not the layers.
+
+GPU 1 gets the smaller share for a second reason: `Qwen3-Embedding-0.6B` and `Qwen3.5-2B` both pin
+`main-gpu = 1` and cost ~6 GiB whenever they are resident, and the manager only arbitrates _large_
+models, so they stay loaded. With all three resident the cards sit at 30.5 GiB and 30.5 GiB of 31.86.
+
+Measured at that setting: **571 t/s prefill, 18.6 t/s decode** on a 2222-token prompt.
+
 `UD-IQ4_XS` (87.2 GiB) is the trade in the other direction: byte-identical apart from routed experts
 (`IQ3_S`/`IQ4_NL` against `Q4_K`/`Q5_1`, ~3.9 against ~5.1 bits per weight) and the output head, which
-buys `n-cpu-moe = 8` and roughly half the host traffic per token. Going up is not practical -
-`UD-Q5_K_XL` is 147.4 GiB with a 50.66 GiB n-gram table and would need `n-cpu-moe = 23`.
+would keep far more of them on the GPUs. Going up is not practical - `UD-Q5_K_XL` is 147.4 GiB with a
+50.66 GiB n-gram table.
 
 ### Speculative decoding
 
