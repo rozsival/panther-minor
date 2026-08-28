@@ -230,7 +230,7 @@ test('prepareModelForInference unloads only conflicting large models', async () 
       return new Response(
         JSON.stringify({
           data: [
-            { id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } },
+            { id: 'Qwen3.8-Flash-Next', status: { value: 'loaded' } },
             { id: 'Qwen3.5-2B', status: { value: 'loaded' } },
           ],
         }),
@@ -245,7 +245,7 @@ test('prepareModelForInference unloads only conflicting large models', async () 
   assert.deepEqual(calls, [
     { body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' },
     {
-      body: JSON.stringify({ model: 'DeepSeek-V4-Flash-0731' }),
+      body: JSON.stringify({ model: 'Qwen3.8-Flash-Next' }),
       method: 'POST',
       url: 'http://llama-cpp:8000/models/unload',
     },
@@ -258,17 +258,17 @@ test('prepareModelForInference waits for a conflicting model to drain before swi
   resetActivityTracking();
 
   const first = await prepareModelForInference(
-    'DeepSeek-V4-Flash-0731',
+    'Qwen3.8-Flash-Next',
     () => new Response(JSON.stringify({ data: [] }), { status: 200 })
   );
-  assert.equal(first, 'DeepSeek-V4-Flash-0731');
-  assert.equal(getModelInFlight('DeepSeek-V4-Flash-0731'), 1);
+  assert.equal(first, 'Qwen3.8-Flash-Next');
+  assert.equal(getModelInFlight('Qwen3.8-Flash-Next'), 1);
 
   const calls = [];
   const secondPromise = prepareModelForInference('Qwen3.8-27B', (url, options = {}) => {
     calls.push({ method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
-      return new Response(JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } }] }), {
+      return new Response(JSON.stringify({ data: [{ id: 'Qwen3.8-Flash-Next', status: { value: 'loaded' } }] }), {
         status: 200,
       });
     }
@@ -278,7 +278,7 @@ test('prepareModelForInference waits for a conflicting model to drain before swi
   await new Promise((resolve) => setTimeout(resolve, 20));
   assert.equal(calls.length, 0);
 
-  releaseModelReservation('DeepSeek-V4-Flash-0731');
+  releaseModelReservation('Qwen3.8-Flash-Next');
   const second = await secondPromise;
 
   assert.equal(second, 'Qwen3.8-27B');
@@ -337,17 +337,17 @@ test('classifyRequest leaves catalogue reads and unloads unarbitrated', () => {
 test('prepareModelForInference keeps an already loaded target resident', async () => {
   resetActivityTracking();
   const calls = [];
-  const reserved = await prepareModelForInference('DeepSeek-V4-Flash-0731', (url, options = {}) => {
+  const reserved = await prepareModelForInference('Qwen3.8-Flash-Next', (url, options = {}) => {
     calls.push({ body: options.body, method: options.method ?? 'GET', url: url.toString() });
     if (url.pathname === '/models') {
-      return new Response(JSON.stringify({ data: [{ id: 'DeepSeek-V4-Flash-0731', status: { value: 'loaded' } }] }), {
+      return new Response(JSON.stringify({ data: [{ id: 'Qwen3.8-Flash-Next', status: { value: 'loaded' } }] }), {
         status: 200,
       });
     }
     return new Response(null, { status: 200 });
   });
 
-  assert.equal(reserved, 'DeepSeek-V4-Flash-0731');
+  assert.equal(reserved, 'Qwen3.8-Flash-Next');
   assert.deepEqual(calls, [{ body: undefined, method: 'GET', url: 'http://llama-cpp:8000/models' }]);
-  releaseModelReservation('DeepSeek-V4-Flash-0731');
+  releaseModelReservation('Qwen3.8-Flash-Next');
 });

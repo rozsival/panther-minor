@@ -31,19 +31,19 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 ### Supported models
 
-| Model                          | Base                                  | Ctx  | Purpose                                                                                                     |
-| ------------------------------ | ------------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
-| `Qwen3.8-27B` 💭 👀 ⚡️️         | `unsloth/Qwen3.8-27B-GGUF`            | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
-| `Qwen3.6-35B-A3B` 💭 👀 ⚡️     | `unsloth/Qwen3.6-35B-A3B-GGUF`        | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
-| `Qwen3.5-2B` 💭 👀️ ⚡️          | `unsloth/Qwen3.5-2B-GGUF`             | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
-| `Qwen3-Embedding-0.6B` 🪶      | `Qwen/Qwen3-Embedding-0.6B-GGUF`      | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
-| `DeepSeek-V4-Flash-0731` 💭 ⚡️ | `unsloth/DeepSeek-V4-Flash-0731-GGUF` | 262K | Heavyweight sparse MoE (284B total, ~10B active) for long-running agentic, coding, and deep reasoning tasks |
+| Model                      | Base                              | Ctx  | Purpose                                                                                                     |
+| -------------------------- | --------------------------------- | ---- | ----------------------------------------------------------------------------------------------------------- |
+| `Qwen3.8-27B` 💭 👀 ⚡️️     | `unsloth/Qwen3.8-27B-GGUF`        | 262K | Primary dense model optimized for a wide range of tasks, from general reasoning to multimodal processing    |
+| `Qwen3.6-35B-A3B` 💭 👀 ⚡️ | `unsloth/Qwen3.6-35B-A3B-GGUF`    | 262K | Versatile MoE model for highly specialized tasks, including multimodal reasoning and fast problem solving   |
+| `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`         | 33K  | Lightweight dense model optimized for blazing fast inference, rapid scaffolding, and image-generation chats |
+| `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`  | 16K  | Lightweight embedding model strictly for RAG pipelines                                                      |
+| `Qwen3.8-Flash-Next` 💭 👀 | `unsloth/Qwen3.8-Flash-Next-GGUF` | 262K | Heavyweight sparse MoE (125B total, ~6B active) for long-running agentic, coding, and deep reasoning tasks  |
 
 Legend:
 
 - 💭 — hybrid reasoning (thinking is switched per request, not per preset)
 - 👀 — multimodal capabilities (vision encoder enabled)
-- ⚡️ — speculative decoding enabled (Multi Token Prediction, or a DSpark draft model)
+- ⚡️ — speculative decoding enabled (Multi Token Prediction)
 - 🪶 — embedding-only model (no text generation)
 
 ### Configuration
@@ -59,33 +59,57 @@ through `llama-cpp/preset.ini`
   from **different repositories**, and files shared with another model are kept only once in the
   [shared cache](#-shared-model-cache).
 
+#### Weight placement
+
+Most models fit in VRAM whole and need nothing beyond `n-gpu-layers`. `Qwen3.8-Flash-Next` does not: at
+`UD-Q4_K_XL` it is 103.7 GiB against 62.6 GiB of usable VRAM, so its preset pins placement by hand.
+
+Two thirds of that lands off the GPUs, and only one third of the reason is the experts:
+
+- **The n-gram table never enters VRAM.** All 51B of its parameters are a single `per_layer_token_embd`
+  tensor - 26.82 GiB at `IQ4_NL` - read host-side through `ggml_get_rows`, the same approach Gemma 3n
+  uses for per-layer embeddings. `load-mode = mmap` leaves it in the page cache instead of copying it
+  onto the heap, which is what `load-mode = none` would do for no benefit.
+- **`n-cpu-moe = 19`** keeps blocks 0-18's routed experts in system RAM. That leaves 48.34 GiB resident
+  out of the 76.86 GiB that is VRAM-eligible, with ~4.8 GiB of headroom. Decode reads ~0.56 GiB per token
+  back over PCIe, because top-10 routing touches 10 of each block's 512 experts.
+- **`tensor-split = 52,48`** gives GPU 1 the smaller share of the layers, since it also holds the
+  embedding model.
+
+The attention cache is the cheap part: only 12 of 48 layers have one, so a full 262144-token context costs
+3.19 GiB at `q8_0` (6.00 GiB at `f16`), plus 0.10 GiB of indexer keys and 0.11 GiB of DeltaNet state.
+
+`UD-IQ4_XS` (87.2 GiB) is the trade in the other direction: byte-identical apart from routed experts
+(`IQ3_S`/`IQ4_NL` against `Q4_K`/`Q5_1`, ~3.9 against ~5.1 bits per weight) and the output head, which
+buys `n-cpu-moe = 8` and roughly half the host traffic per token. Going up is not practical -
+`UD-Q5_K_XL` is 147.4 GiB with a 50.66 GiB n-gram table and would need `n-cpu-moe = 23`.
+
 ### Speculative decoding
 
-Both shapes marked ⚡️ above accelerate decoding, but they are different mechanisms, which matters when
-picking component files:
+Every model marked ⚡️ above uses the same mechanism — an **MTP head**: a single extra layer that shares
+the base model's embeddings and runs inside the same graph. Dense, so quantization has real headroom, and
+Unsloth ships one precision per model (`Q4_0`, 1.37 GB for Qwen3.8). Nothing to choose.
 
-- **MTP head** (`Qwen3.8-27B`, `Qwen3.6-35B-A3B`, `Qwen3.5-2B`) — a single extra layer that shares the base
-  model's embeddings and runs inside the same graph. Dense, so quantization has real headroom, and Unsloth
-  ships one precision per model (`Q4_0`, 1.37 GB for Qwen3.8). Nothing to choose.
-- **DSpark drafter** (`DeepSeek-V4-Flash-0731`) — a standalone 3-block MoE sidecar
-  (`dflash.block_count = 3`), so `spec-draft-ngl = 3` already holds **all** of it on GPU and `99` is the
-  same thing. It ships no token embeddings or output head and borrows the target's, so it must span the
-  same devices as the target — never pin it with `--spec-draft-device`. `spec-draft-n-max` is clamped to
-  the checkpoint's `dspark_block_size`, which is `5`.
+`Qwen3.8-Flash-Next` **has** an MTP head - the card counts it separately from the 125B, at 4B and one
+layer, and the base checkpoint carries 31 `mtp.*` tensors with their own hyper-connection mixer. It still
+carries no ⚡️ badge, because nothing in the stack can reach it yet:
 
-The DeepSeek drafter's `Q8_0` filename is misleading: only 4.4% of the file is `Q8_0`.
+- llama.cpp master does not implement it. The merged `qwen4exp` port declares no `NEXTN_*` tensors, so
+  the converter drops the head. Support is open in
+  [PR #27836](https://github.com/ggml-org/llama.cpp/pull/27836), which adds both the draft head and a
+  `--mtp` converter flag.
+- No published GGUF contains the head, Unsloth's included - every quant in the repo parses to zero
+  `mtp.*`/`nextn.*` tensors. The head must live in the same file, not a sidecar, and the merged reader
+  enforces 32-byte data alignment and an exact `split.tensors.count`, so older community exports with a
+  grafted head are rejected.
 
-| Tensors | Type    | Size     | Share | What                                                                    |
-| ------- | ------- | -------- | ----- | ----------------------------------------------------------------------- |
-| 9       | `MXFP4` | 10.27 GB | 94.3% | 256 routed experts — native in DeepSeek's checkpoint, never requantized |
-| 25      | `Q8_0`  | 0.47 GB  | 4.4%  | FP8 `E4M3` projections                                                  |
-| 6       | `BF16`  | 0.14 GB  | 1.3%  | Markov / confidence heads                                               |
-| 41      | `F32`   | 0.01 GB  | 0.1%  | Norms                                                                   |
-
-It is therefore **already a 4-bit drafter**, and there is no smaller variant to switch to. The repo's only
-alternative (`dspark/…-BF16.gguf`, 11.31 GB) differs solely in those 25 projections and measures
-identically. A hand-built 4-bit conversion would recover at most ~0.3 GB — under a tenth of the ~3 GB that
-one `n-cpu-moe` step costs — while quantizing the heads that choose the drafts would cost acceptance rate.
+So the preset sets `spec-type = none` and `spec-draft-n-max = 0` for now, and the model decodes without
+speculation. When #27836 merges and a GGUF ships with the head, this becomes `spec-type = draft-mtp` with
+`spec-draft-n-max = 2`: on this exact hardware (2x R9700, gfx1201, ROCm) a tester in that thread measured
+**+17% decode** at depth 2 with `ubatch-size 1024` - which the stack already sets - while depths 3 and 4
+came out **slower** than no speculation at all. Treat those as a starting point to re-measure, not a
+result: acceptance is workload- and sampler-dependent, and the same thread reports MTP being a net loss
+over RPC and greedy output diverging from the unspeculated run on ROCm.
 
 #### Draft depth
 
@@ -165,11 +189,9 @@ reasoning mode never reloads weights.
 
 ### Reasoning control
 
-Chat presets pin `reasoning` explicitly instead of relying on the template default, because the two chat
-templates disagree about what that default is: `Qwen3.8-27B` thinks unless told not to, while the Unsloth
-`DeepSeek-V4-Flash-0731` template sets `thinking = false`. `--reasoning auto` sends no `enable_thinking`
-kwarg at all, so it inherits whatever the template chose — which is why DeepSeek pins `reasoning = on` to
-get the Think High behaviour its model card documents. `Qwen3.5-2B` pins `reasoning = off` instead, because
+Chat presets pin `reasoning` explicitly instead of relying on the template default. `--reasoning auto`
+sends no `enable_thinking` kwarg at all, so it inherits whatever the template chose — both `Qwen3.8-27B`
+and `Qwen3.8-Flash-Next` think unless told not to. `Qwen3.5-2B` pins `reasoning = off` instead, because
 Open WebUI drives it as the task model for titles, tags and query rewriting, which must never think.
 
 Per-request switches, in order of preference:
@@ -183,35 +205,61 @@ Per-request switches, in order of preference:
     `reasoning-effort = medium` and lets clients ask for more. `"none"` disables thinking outright, but
     only while the preset leaves `reasoning = auto` — a preset pinning `reasoning = on` ignores it and
     leaks raw `<think>` tags into `content`.
-  - `DeepSeek-V4-Flash-0731` takes `high` and `max`, each prepending an effort preamble to the system
-    prompt. Every other value — including `"none"` — is silently ignored and leaves plain thinking, so the
-    model has three real modes: non-think, Think High, Think Max. Effort is gated behind thinking, so it
-    does nothing while `enable_thinking` is false.
+  - `Qwen3.8-Flash-Next` takes the same `low`, `medium`, `xhigh` ladder as `Qwen3.8-27B`. `high` folds into
+    `xhigh`, and anything else makes the template raise, which surfaces as a 500. The preset leaves
+    `reasoning = auto` and pins `reasoning-effort = medium`.
 - `reasoning_budget_tokens: N` — caps the trace at `N` tokens. Only `N > 0` is honoured; `0` is ignored.
 
 The trace comes back in `message.reasoning_content`, streamed as `delta.reasoning_content`.
 
-`Qwen3.8-27B` also replays every historical `<think>` block into the prompt unless told not to — its
-template defaults `preserve_thinking` to true — so the preset sets `reasoning-preserve = off`. Note that
-`--reasoning-preserve` does not pass a kwarg of that name through: llama.cpp intercepts it and applies a
-dialect-normalizing layer (`jinja::caps_apply_preserve_reasoning`) that sets `preserve_thinking`,
-`clear_thinking`, `truncate_history_thinking` and `drop_thinking` together, so the one flag covers every
-vendor's spelling. Prefer it over hand-written `chat-template-kwargs`, which pins a single spelling and
-silently stops working if a future template renames the variable.
+`Qwen3.8-27B` and `Qwen3.8-Flash-Next` also replay every historical `<think>` block into the prompt unless
+told not to — both templates default `preserve_thinking` to true — so their presets set
+`reasoning-preserve = off`. `Qwen3.8-Flash-Next`'s model card argues the opposite (preserved traces help
+agent loops), so it can be raised per request via `chat_template_kwargs`. Note that `--reasoning-preserve`
+does not pass a kwarg of that name through: llama.cpp intercepts it and applies a dialect-normalizing layer
+(`jinja::caps_apply_preserve_reasoning`) that sets `preserve_thinking`, `clear_thinking`,
+`truncate_history_thinking` and `drop_thinking` together, so the one flag covers every vendor's spelling.
+Prefer it over hand-written `chat-template-kwargs`, which pins a single spelling and silently stops working
+if a future template renames the variable.
 
 Turning preservation off does not touch reasoning inside the current turn: the template keeps the
 `<think>` block of every assistant message after the last real user message, so a multi-step tool-calling
 chain retains its full reasoning. Only traces from turns that closed before the latest user message drop.
-
-`DeepSeek-V4-Flash-0731` needs no such flag, and would ignore it: its template reads none of those four
-variables. Its retention rule is hardcoded — `keep_reasoning = tools_present or (index > last_user_index)`
-— so as soon as a request carries tools, **every** historical `<think>` block is replayed, with no way to
-turn it off from the preset. Budget context accordingly on long agentic runs; the model card also asks for
-at least 384K context for Think Max, above the 262144 the preset sets.
+No template branch forces reasoning retention when tools are present, so no tool-call reasoning-content
+flag is needed.
 
 In Open WebUI, either type `none` into _Chat Controls → Advanced Params → reasoning_effort_, or add a
 Workspace Model over the same base model with the custom parameter `chat_template_kwargs` set to
 `{"enable_thinking": false}` — unknown parameters are forwarded to llama.cpp verbatim.
+
+### Language coverage
+
+`Qwen3.8-27B` is strong in the languages its post-training targets — English, Chinese, French, German —
+and measurably weaker in minor ones, Czech included. This is an upstream tradeoff in favour of general
+intelligence, coding, and long-running agentic capability, not a defect in this stack: the quantization
+(`UD-Q6_K_XL`), the `q8_0` KV cache, and the MTP drafter were each measured against the live cluster and
+none of them contributes.
+
+The competence is present but fragile. Greedy Czech output is clean and the model assigns 93–99.9% to the
+correct inflection at unambiguous positions, so it effectively never samples a wrong ending. What degrades
+is everything downstream of a free choice: at `temp = 1.0` roughly 22 tokens per 100 diverge from the greedy
+path against 12 at `temp = 0.6`, and in a heavily inflected language every divergence commits the rest of
+the clause to case, gender, number and aspect agreement that the model then has to satisfy. Broken concord
+chains, mistyped terminology, and foreign script leaking into the output are the visible result.
+
+What helps:
+
+- **A system prompt that establishes the model as a native speaker** of the target language, with perfect
+  command of it and an explicit instruction never to mix in other scripts.
+- **Lower reasoning effort when generating prose** — `chat_template_kwargs: { "reasoning_effort": "low" }`.
+  Deep reasoning buys nothing for writing and gives the answer more self-generated context to drift in.
+- **Lower temperature**, `0.6`–`0.7`, which roughly halves the divergence rate above.
+
+What does not help: forcing the model to _think_ in the target language. Its traces come back in English
+even when the prompt demands otherwise, and instructing it to reason in Czech does not improve the output.
+
+Set these per model rather than globally — a Workspace Model over the same base model (above) carries a
+system prompt and parameter overrides without touching the preset or reloading weights.
 
 ---
 

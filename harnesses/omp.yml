@@ -79,35 +79,30 @@ providers:
         thinking:
           mode: effort
           efforts: [medium]
-      - id: DeepSeek-V4-Flash-0731
-        name: DeepSeek-V4-Flash-0731
+      - id: Qwen3.8-Flash-Next
+        name: Qwen3.8-Flash-Next
         reasoning: true
-        input: [text]
+        input: [text, image]
+        imageInputDecoder: stb
         contextWindow: 262144
         maxTokens: 65536
-        # The built-in DeepSeek policy owns the ladder (low | medium | xhigh) and
-        # marks effort mandatory, which turns `off` into the lowest effort with
-        # thinking still on. Restating the ladder with `requiresEffort: false` is what
-        # makes `off` emit a real `enable_thinking: false`.
+        # Same template ladder as Qwen3.8-27B: low | medium | xhigh, with `high` folding
+        # into `xhigh` and anything else raising. The id starts with `Qwen3.8`, so OMP
+        # auto-routes the level onto `chat_template_kwargs.reasoning_effort` with no
+        # compat flag. `requiresEffort: false` is what makes `off` emit a real
+        # `enable_thinking: false` instead of the lowest effort with thinking still on.
         thinking:
           mode: effort
           efforts: [low, medium, xhigh]
           requiresEffort: false
         compat:
-          # DeepSeek-V4 exposes three modes: non-think, Think High, Think Max. Effort
-          # routing is auto-detected only for Qwen 3.8+ ids, so force it on here; the
-          # template reads the same `chat_template_kwargs.reasoning_effort` kwarg.
-          qwenTemplateReasoningEffort: true
-          # Only `high` and `max` inject an effort preamble - every other value is
-          # silently ignored (no exception, unlike Qwen3.8), leaving plain thinking. A
-          # model-level `thinking` block does not stick on this id (the built-in
-          # DeepSeek policy wins), so the ladder is fixed at low | medium | xhigh and
-          # the map is the only way to reach all three template modes.
-          reasoningEffortMap:
-            low: none
-            medium: high
-            xhigh: max
-          # With tools present the template keeps the reasoning of every assistant turn
-          # and always opens a `<think>` block, so a missing `reasoning_content` would
-          # replay empty ones.
-          requiresReasoningContentForToolCalls: true
+          # Same two-mode sampler the card documents for Qwen3.8-27B.
+          extraBody:
+            presence_penalty: 1.5
+            temperature: 0.7
+            top_p: 0.8
+          whenThinking:
+            extraBody:
+              presence_penalty: 0.0
+              temperature: 1.0
+              top_p: 0.95

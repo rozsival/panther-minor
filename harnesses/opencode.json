@@ -102,9 +102,9 @@
             }
           }
         },
-        "DeepSeek-V4-Flash-0731": {
-          "id": "DeepSeek-V4-Flash-0731",
-          "name": "DeepSeek V4 Flash 0731",
+        "Qwen3.8-Flash-Next": {
+          "id": "Qwen3.8-Flash-Next",
+          "name": "Qwen3.8 Flash Next",
           "reasoning": true,
           "limit": {
             "context": 262144,
@@ -112,33 +112,31 @@
           },
           "options": {
             "chat_template_kwargs": {
-              "enable_thinking": true,
-              "reasoning_effort": "none"
+              "enable_thinking": true
             }
           },
           "variants": {
             "none": {
               "chat_template_kwargs": {
-                "enable_thinking": false,
-                "reasoning_effort": "none"
+                "enable_thinking": false
               }
             },
             "thinking": {
               "chat_template_kwargs": {
                 "enable_thinking": true,
-                "reasoning_effort": "none"
+                "reasoning_effort": "low"
               }
             },
-            "high": {
+            "medium": {
               "chat_template_kwargs": {
                 "enable_thinking": true,
-                "reasoning_effort": "high"
+                "reasoning_effort": "medium"
               }
             },
-            "max": {
+            "xhigh": {
               "chat_template_kwargs": {
                 "enable_thinking": true,
-                "reasoning_effort": "max"
+                "reasoning_effort": "xhigh"
               }
             }
           }

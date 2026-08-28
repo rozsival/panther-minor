@@ -319,7 +319,8 @@ This keeps the small helper model untouched while making large-model handovers d
 
 Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
 is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `preset.ini` instead:
-`DeepSeek-V4-Flash-0731` moves most of its expert blocks to system RAM with `n-cpu-moe`.
+`Qwen3.8-Flash-Next` moves blocks 0-18's routed experts to system RAM with `n-cpu-moe = 19`. Its 26.82 GiB n-gram
+table is mmap'd host-side and never enters VRAM at all.
 
 ### Image generation VRAM
 

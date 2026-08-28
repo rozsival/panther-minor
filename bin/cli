@@ -798,7 +798,7 @@ cli_models_llm_load_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models llm load DeepSeek-V4-Flash-0731\n"
+    printf "  cli models llm load Qwen3.8-Flash-Next\n"
     echo
 
   fi
@@ -833,7 +833,7 @@ cli_models_llm_unload_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models llm unload DeepSeek-V4-Flash-0731\n"
+    printf "  cli models llm unload Qwen3.8-Flash-Next\n"
     echo
 
   fi

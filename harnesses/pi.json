@@ -57,19 +57,19 @@
           }
         },
         {
-          "id": "DeepSeek-V4-Flash-0731",
-          "name": "DeepSeek-V4-Flash-0731",
+          "id": "Qwen3.8-Flash-Next",
+          "name": "Qwen3.8-Flash-Next",
           "reasoning": true,
-          "input": ["text"],
+          "input": ["text", "image"],
           "contextWindow": 262144,
           "maxTokens": 65536,
           "thinkingLevelMap": {
-            "minimal": null,
-            "low": "none",
-            "medium": null,
-            "high": "high",
-            "xhigh": null,
-            "max": "max"
+            "minimal": "low",
+            "low": "low",
+            "medium": "medium",
+            "high": "xhigh",
+            "xhigh": "xhigh",
+            "max": "xhigh"
           },
           "compat": {
             "thinkingFormat": "chat-template",
