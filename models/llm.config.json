@@ -11,10 +11,6 @@
         {
           "repository": "unsloth/Qwen3.8-27B-GGUF",
           "file": "mmproj-F16.gguf"
-        },
-        {
-          "repository": "unsloth/Qwen3.8-27B-GGUF",
-          "file": "MTP/mtp-Qwen3.8-27B-Q4_0.gguf"
         }
       ]
     },
