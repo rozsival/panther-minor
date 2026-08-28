@@ -149,7 +149,14 @@ EOF
     panther_log_warn 'No amdgpu-dkms-firmware package; the GPU falls back to whatever linux-firmware ships.'
   fi
 
-  if [[ -n "$loaded_version" && -n "$built_version" && "$loaded_version" != "$built_version" ]]; then
+  # Prefix, not equality: the two sources spell the same driver differently.
+  # dkms reports '6.19.14-2377056.26.04' (upstream version plus build and distro
+  # tag) while modinfo reports '6.19.14.31400100' (upstream version plus the
+  # packaging number), so an equality test warned on every single run and made
+  # the one signal that matters - a driver upgraded but not yet rebooted into -
+  # indistinguishable from noise.
+  local built_driver="${built_version%%-*}"
+  if [[ -n "$loaded_version" && -n "$built_driver" && "$loaded_version" != "$built_driver"* ]]; then
     panther_log_warn "Loaded amdgpu ${loaded_version} differs from the ${built_version} module built for ${target_kernel}; the running driver stays stale until reboot."
   fi
 
