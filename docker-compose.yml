@@ -16,7 +16,7 @@ volumes:
 
 services:
   # -- llama.cpp --------------------------------------------------------------
-  # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 7 support
+  # OpenAI-compatible LLM inference, native RDNA 4 and ROCm 10 support
   llama-cpp:
     container_name: llama-cpp
     build:
@@ -134,7 +134,7 @@ services:
       - llama-manager
 
   # -- stable-diffusion.cpp ---------------------------------------------------
-  # OpenAI-compatible image generation (sd-server), native RDNA 4 and ROCm 7 support.
+  # OpenAI-compatible image generation (sd-server), native RDNA 4 and ROCm 10 support.
   # Pinned to a single GPU via HIP_VISIBLE_DEVICES so it does not contend with the LLMs.
   stable-diffusion-cpp:
     container_name: stable-diffusion-cpp

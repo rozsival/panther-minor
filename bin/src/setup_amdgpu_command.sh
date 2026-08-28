@@ -1,30 +1,56 @@
 panther_setup_amdgpu() {
   panther_prepare_setup_step 'Install AMD GPU kernel drivers and ROCm.'
 
-  # AMD ships one amdgpu-install package per Ubuntu release. 31.40.1 is the
-  # amdgpu driver + ROCm 7.14 bundle for Ubuntu 26.04 ('resolute'). The .deb only
-  # registers the amdgpu and ROCm apt repositories; amdgpu-install does the work.
-  local installer_version='31.40.1'
-  local installer_package='amdgpu-install_31.40.1.314001-1_all.deb'
+  # The two halves of the stack come from two repositories on separate release
+  # trains: the amdgpu kernel driver from repo.radeon.com/amdgpu, and ROCm from
+  # stable.repo.amd.com. Both are published per distro release, so the driver
+  # train, the Ubuntu codename and the ROCm repository's distro directory are
+  # pinned here and have to be reviewed as a set whenever the host's release
+  # changes.
+  local amdgpu_release='31.50'
+  local ubuntu_codename='resolute'
+  local rocm_release='10.0'
+  local rocm_distro='ubuntu2604'
 
-  # amdgpu-install appends this to the amdrocm meta package to pull the
-  # arch-specific runtime. It is pinned instead of using '--gfxversion=auto'
-  # because auto-detection aborts as soon as it sees more than one distinct gfx
-  # target, which a Ryzen iGPU alongside the discrete cards would trigger.
+  # Selects the arch-specific ROCm metapackage. Pinned instead of installing the
+  # target-agnostic 'amdrocm10.0', which depends on the metapackage of every gfx
+  # target AMD builds and would pull ~25 runtimes this host has no GPU for.
   local rocm_arch="${ROCM_ARCH:-gfx1201}"
-  local package
 
+  # amdgpu-install is deliberately not used any more. Its 31.50 bundle registers
+  # repo.radeon.com/rocmradeon/apt/26.14, which carries a 10.0.0~pre build of
+  # ROCm, while the package-manager path AMD documents for gfx1201 installs the
+  # released 10.0.0 from stable.repo.amd.com. Losing it also loses the
+  # '--usecase=rocm,graphics' selection, which on this headless host only ever
+  # pulled the empty amdgpu-core/amdgpu-lib/amdgpu-multimedia metapackages.
   panther_log_info 'Removing any previous AMD GPU & ROCm installation...'
 
-  # Purged one at a time: apt-get fails the whole transaction when a single name
-  # is unknown, and which of these exist depends on the ROCm version installed
-  # before (7.2 and older used 'rocm'/'rocm-core', 7.14 uses 'amdrocm').
-  for package in amdgpu-dkms amdrocm rocm rocm-core; do
-    apt-get autoremove -y "$package" || true
-  done
+  # Purged wholesale rather than by name: the metapackage names carry the ROCm
+  # release ('rocm' and 'rocm-core' up to 7.2, 'amdrocm7.14-gfx1201' after that,
+  # 'amdrocm10.0-gfx1201' now), so a hand-written list goes stale on the next
+  # upgrade and silently leaves the previous runtime installed beside the new
+  # one. Everything is reinstalled from the repositories registered below, so
+  # removing all of it is the point rather than a side effect.
+  local -a installed_packages=()
+  mapfile -t installed_packages < <(
+    dpkg-query -W -f='${db:Status-Status} ${Package}\n' 'amdgpu*' 'amdrocm*' 'rocm*' 2>/dev/null |
+      awk '$1 != "not-installed" { print $2 }' | sort -u
+  )
 
-  apt-get purge -y amdgpu-install || true
+  if [[ "${#installed_packages[@]}" -gt 0 ]]; then
+    apt-get purge -y "${installed_packages[@]}"
+  fi
+
   apt-get autoremove -y
+
+  # Repository lists and the o=repo.radeon.com pin that the purged
+  # amdgpu-install package owns. Removed by hand as well because a host that
+  # never had that package can still carry them from an earlier manual install,
+  # and a stale rocmradeon entry keeps offering the old ROCm beside the new one.
+  rm -f \
+    /etc/apt/preferences.d/repo-radeon-pin-600 \
+    /etc/apt/sources.list.d/amdgpu.list \
+    /etc/apt/sources.list.d/rocm.list
 
   # 'apt-get clean' empties the package cache but keeps the directories apt owns.
   # 'rm -rf /var/cache/apt/*' used to be here: it also deleted archives/partial/,
@@ -34,27 +60,54 @@ panther_setup_amdgpu() {
   apt-get clean
   apt-get update
 
-  panther_log_info "Installing AMD GPU & ROCm for ${rocm_arch}..."
+  panther_log_info 'Registering the AMD GPU driver and ROCm repositories...'
 
-  if [ ! -d ./temp ]; then
-    mkdir ./temp
-  fi
+  apt-get install -y ca-certificates curl gnupg
+  install -m 0755 -d /etc/apt/keyrings
 
-  wget "https://repo.radeon.com/amdgpu-install/${installer_version}/ubuntu/resolute/${installer_package}" -O "./temp/${installer_package}"
-  apt-get install -y "./temp/${installer_package}"
+  # Two separate signing keys: repo.radeon.com signs the driver repository with
+  # the ROCm key, stable.repo.amd.com signs ROCm 10 with a key of its own. Both
+  # are served armored, hence the dearmor; '--yes' because re-running the step
+  # would otherwise abort on the existing keyring.
+  curl -fsSL https://repo.radeon.com/rocm/rocm.gpg.key |
+    gpg --dearmor --yes -o /etc/apt/keyrings/rocm.gpg
+  curl -fsSL https://stable.repo.amd.com/rocm/gpg/packages.gpg |
+    gpg --dearmor --yes -o /etc/apt/keyrings/amdrocm.gpg
+  chmod a+r /etc/apt/keyrings/rocm.gpg /etc/apt/keyrings/amdrocm.gpg
+
+  tee /etc/apt/sources.list.d/amdgpu.sources <<EOF
+Types: deb
+URIs: https://repo.radeon.com/amdgpu/${amdgpu_release}/ubuntu
+Suites: ${ubuntu_codename}
+Components: main
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/rocm.gpg
+EOF
+
+  tee /etc/apt/sources.list.d/amdrocm-stable.sources <<EOF
+Types: deb
+URIs: https://stable.repo.amd.com/rocm/core/packages/${rocm_distro}/
+Suites: stable
+Components: main
+Architectures: amd64
+Signed-By: /etc/apt/keyrings/amdrocm.gpg
+EOF
+
   apt-get update
-  rm "./temp/${installer_package}"
+
+  panther_log_info "Installing AMD GPU driver ${amdgpu_release} & ROCm ${rocm_release} for ${rocm_arch}..."
+
+  # amdgpu-dkms depends on dkms and amdgpu-dkms-firmware, so neither is
+  # requested explicitly. The kernel headers DKMS builds against are not a
+  # dependency of it: they come from Ubuntu's linux-headers-generic, which
+  # linux-generic keeps in step with the installed kernels.
+  apt-get install -y amdgpu-dkms "amdrocm${rocm_release}-${rocm_arch}"
 
   usermod -a -G render,video "$PANTHER_ALLOWED_USER"
 
-  # 'rocm,graphics' is the mixed compute + graphics use case for this host.
-  # amdgpu-install pulls in amdgpu-dkms plus the matching linux-headers for every
-  # installed kernel on its own, so neither is requested explicitly above.
-  amdgpu-install -y --usecase=rocm,graphics --gfxversion="$rocm_arch"
-
-  # amdgpu-install builds the DKMS module for every installed kernel, so several
-  # builds is mechanically expected rather than a fault. What is not benign is
-  # what those extra kernels imply: an in-place release upgrade keeps the previous
+  # DKMS rebuilds the module for every installed kernel, so several builds is
+  # mechanically expected rather than a fault. What is not benign is what those
+  # extra kernels imply: an in-place release upgrade keeps the previous
   # release's kernels, and that residue is what silently cost throughput after the
   # 26.04 upgrade here - every build succeeded, the module loaded, nothing failed,
   # and only a clean install restored performance. None of that state is visible

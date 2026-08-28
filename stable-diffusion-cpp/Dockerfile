@@ -1,5 +1,5 @@
-# -- stable-diffusion.cpp build for AMD ROCm 7 and gfx1201 --------------------
-FROM rocm/dev-ubuntu-26.04:7.14.0-full
+# -- stable-diffusion.cpp build for AMD ROCm 10 and gfx1201 -------------------
+FROM rocm/dev-ubuntu-26.04:10.0.0-full
 
 ARG HOST_UID="1000"
 ARG HOST_GID="$HOST_UID"
@@ -51,7 +51,7 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
 
 # Register ROCm with the dynamic loader. The TheRock-built base image ships no
 # /etc/ld.so.conf.d entry for /opt/rocm/lib, unlike the deb-based
-# rocm/dev-ubuntu-24.04 images it replaces, and CMake deliberately emits no
+# rocm/dev-ubuntu-24.04 images it replaced, and CMake deliberately emits no
 # RUNPATH here because /opt/rocm/lib is one of HIP's implicit link directories.
 # Without this, sd-server aborts at startup on a missing libamdhip64/libhipblas.
 # Only /opt/rocm/lib is added: ROCm's bundled sysdeps sit in

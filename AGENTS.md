@@ -11,7 +11,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 ## Stack
 
-- **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 7, kernel params `amdgpu.mes=1 iommu=pt`
+- **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
@@ -20,7 +20,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 ## Critical Rules
 
 1. **Code Style** – Ultracite preset for Biome (use `pnpm run check` or `pnpm run fix` to check or auto-fix)
-2. **Custom ROCm builds only** — llama.cpp (`llama-cpp/Dockerfile`) for LLMs and stable-diffusion.cpp (`stable-diffusion-cpp/Dockerfile`) for image generation, both ROCm v7 with `gfx1201` support
+2. **Custom ROCm builds only** — llama.cpp (`llama-cpp/Dockerfile`) for LLMs and stable-diffusion.cpp (`stable-diffusion-cpp/Dockerfile`) for image generation, both ROCm v10 with `gfx1201` support
 3. **Package manager** — `apt-get` only in scripts and Dockerfiles (never `apt`): `apt` has no stable CLI interface and warns on every scripted call. Use `apt-get upgrade --with-new-pkgs` where `apt upgrade` was meant, and `apt-cache`/`apt-mark` for queries
 4. **Commits** — Conventional Commits v1.0.0, lowercase, no final punctuation, 100 chars max
 

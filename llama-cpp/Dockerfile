@@ -1,5 +1,5 @@
-# -- llama.cpp build for AMD ROCm 7 and gfx1201 -------------------------------
-FROM rocm/dev-ubuntu-26.04:7.14.0-full
+# -- llama.cpp build for AMD ROCm 10 and gfx1201 ------------------------------
+FROM rocm/dev-ubuntu-26.04:10.0.0-full
 
 ARG HOST_UID="1000"
 ARG HOST_GID="$HOST_UID"
@@ -10,7 +10,7 @@ ARG ROCM_ARCH="gfx1201"
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-# Install build dependencies. RCCL is not listed: ROCm 7.14 dropped the `rccl-dev`
+# Install build dependencies. RCCL is not listed: ROCm has shipped no `rccl-dev`
 # package, and the base image already ships the headers, library, and CMake config
 # under /opt/rocm that -DGGML_HIP_RCCL=ON needs.
 RUN apt-get update && \
@@ -54,7 +54,7 @@ RUN HIPCXX="$(hipconfig -l)/clang" HIP_PATH="$(hipconfig -R)" \
 
 # Register ROCm with the dynamic loader. The TheRock-built base image ships no
 # /etc/ld.so.conf.d entry for /opt/rocm/lib, unlike the deb-based
-# rocm/dev-ubuntu-24.04 images it replaces, and CMake deliberately emits no
+# rocm/dev-ubuntu-24.04 images it replaced, and CMake deliberately emits no
 # RUNPATH here because /opt/rocm/lib is one of HIP's implicit link directories.
 # Without this, llama-server aborts at startup with
 # 'librccl.so.1: cannot open shared object file'. Only /opt/rocm/lib is added:

@@ -226,19 +226,19 @@ See [Models](./models/README.md) for available models and their usage.
 
 ### Services
 
-| Service                  | Role                                                                            |
-| ------------------------ | ------------------------------------------------------------------------------- |
-| `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 7 support                  |
-| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling   |
-| `stable-diffusion-cpp`   | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 7 support |
-| `sd-manager`             | Activity-aware reverse proxy in front of `sd-server`                            |
-| `open-webui`             | Chat and image-generation interface                                             |
-| `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                   |
-| `prometheus`             | Time-series database for scraping and storing metrics                           |
-| `amd-gpu-exporter`       | AMD GPU metrics exporter                                                        |
-| `node-exporter`          | Host metrics exporter for CPU, RAM, disk, network, and temperature              |
-| `llama-metrics-exporter` | Prometheus exporter for `llama.cpp` metrics                                     |
-| `sd-metrics-exporter`    | Prometheus exporter for `stable-diffusion.cpp` metrics                          |
+| Service                  | Role                                                                             |
+| ------------------------ | -------------------------------------------------------------------------------- |
+| `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 10 support                  |
+| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling    |
+| `stable-diffusion-cpp`   | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 10 support |
+| `sd-manager`             | Activity-aware reverse proxy in front of `sd-server`                             |
+| `open-webui`             | Chat and image-generation interface                                              |
+| `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                    |
+| `prometheus`             | Time-series database for scraping and storing metrics                            |
+| `amd-gpu-exporter`       | AMD GPU metrics exporter                                                         |
+| `node-exporter`          | Host metrics exporter for CPU, RAM, disk, network, and temperature               |
+| `llama-metrics-exporter` | Prometheus exporter for `llama.cpp` metrics                                      |
+| `sd-metrics-exporter`    | Prometheus exporter for `stable-diffusion.cpp` metrics                           |
 
 > [!IMPORTANT]
 > Services are **not** accessible from the public internet. See [PORTS.md](PORTS.md) for network details and access
