@@ -27,13 +27,13 @@ Served by the local `llama.cpp` cluster with an OpenAI-compatible API.
 
 ### Supported models
 
-| Model                      | Base                              | Ctx  | Purpose                                                                        |
-| -------------------------- | --------------------------------- | ---- | ------------------------------------------------------------------------------ |
-| `Qwen3.8-27B` 💭 👀 ⚡️️     | `unsloth/Qwen3.8-27B-GGUF`        | 262K | Primary dense model, general reasoning to multimodal                           |
-| `Qwen3.6-35B-A3B` 💭 👀 ⚡️ | `unsloth/Qwen3.6-35B-A3B-GGUF`    | 262K | Versatile MoE, specialized multimodal reasoning + fast problem solving         |
-| `Qwen3.5-2B` 💭 👀️ ⚡️      | `unsloth/Qwen3.5-2B-GGUF`         | 33K  | Lightweight dense, fast inference, scaffolding, image-gen chats                |
-| `Qwen3-Embedding-0.6B` 🪶  | `Qwen/Qwen3-Embedding-0.6B-GGUF`  | 16K  | Lightweight embedding model, RAG pipelines only                                |
-| `Qwen3.8-Flash-Next` 💭 👀 | `unsloth/Qwen3.8-Flash-Next-GGUF` | 262K | Heavyweight sparse MoE (125B total, ~6B active), long agentic/coding/reasoning |
+| Model                         | Base                              | Ctx  | Purpose                                                                        |
+| ----------------------------- | --------------------------------- | ---- | ------------------------------------------------------------------------------ |
+| `Qwen3.8-27B` 💭 👀 ⚡️️        | `unsloth/Qwen3.8-27B-GGUF`        | 262K | Primary dense model, general reasoning to multimodal                           |
+| `Qwen3.6-35B-A3B` 💭 👀 ⚡️    | `unsloth/Qwen3.6-35B-A3B-GGUF`    | 262K | Versatile MoE, specialized multimodal reasoning + fast problem solving         |
+| `Qwen3.5-2B` 💭 👀️ ⚡️         | `unsloth/Qwen3.5-2B-GGUF`         | 33K  | Lightweight dense, fast inference, scaffolding, image-gen chats                |
+| `Qwen3-Embedding-0.6B` 🪶     | `Qwen/Qwen3-Embedding-0.6B-GGUF`  | 16K  | Lightweight embedding model, RAG pipelines only                                |
+| `Qwen3.8-Flash-Next` 💭 👀 ⚡️ | `unsloth/Qwen3.8-Flash-Next-GGUF` | 262K | Heavyweight sparse MoE (125B total, ~6B active), long agentic/coding/reasoning |
 
 Legend: 💭 hybrid reasoning (per-request, not per-preset) · 👀 multimodal (vision encoder enabled) · ⚡️
 speculative decoding (Multi Token Prediction) · 🪶 embedding-only (no text generation)
@@ -58,11 +58,14 @@ Most models fit VRAM whole; only `n-gpu-layers` matters. `Qwen3.8-Flash-Next` ne
 | Setting                | Value                            | Note                                                                                              |
 | ---------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------- |
 | n-gram table           | 26.82 GiB `IQ4_NL`, host-side    | single `per_layer_token_embd` tensor via `ggml_get_rows`, never VRAM (Gemma 3n technique)         |
-| `n-cpu-moe = 24`       | 40.9 GiB resident                | blocks 0-23 experts stay in RAM; decode streams ~0.70 GiB/token over PCIe (top-10 of 512 experts) |
+| `n-cpu-moe = 28`       | 35.15 GiB resident               | blocks 0-27 experts stay in RAM; decode streams ~0.81 GiB/token over PCIe (top-10 of 512 experts) |
 | `load-mode = none`     | ~60 GiB read in                  | mmap is slower for CPU tensor overrides; box has 176 GiB free                                     |
-| `tensor-split = 72,28` | —                                | balances heavy blocks, not layer count — see WARNING                                              |
+| `tensor-split = 78,22` | —                                | balances heavy blocks, not layer count — see WARNING                                              |
+| MTP head               | 2.58 GiB `shared-Q8_0` on GPU 1  | must sit with `output.weight`, whose tensor it borrows — see Speculative decoding                 |
 | KV @ 262144 ctx        | 3.19 GiB `q8_0` (6.00 `f16`)     | only 12/48 layers cache; +0.10 GiB indexer keys, +0.11 GiB DeltaNet                               |
-| Measured               | 571 t/s prefill, 18.6 t/s decode | 2222-token prompt, all 3 models resident (30.5/31.86 GiB)                                         |
+| VRAM, all 3 resident   | 29.53 / 30.29 of 31.86 GiB       | measured after the retune; solver predicted 29.48 / 30.40 — within 0.11 GiB on both cards         |
+| Measured, MTP on       | 44.4 t/s decode (82.9% accepted) | `bench` is greedy; 18.6 t/s at the pre-MTP `n-cpu-moe = 24` / `72,28`                             |
+| Measured, `temp = 1.0` | 23.6 t/s decode (59.6% accepted) | production sampling — **+27%**, not 2.39x. Benchmark at the sampler you actually serve            |
 
 > [!WARNING]
 > **`tensor-split` divides by layer count, not bytes.** `llama-model.cpp` assigns layer `il` to a device via
@@ -78,22 +81,41 @@ while resident (the manager only arbitrates _large_ models). `UD-IQ4_XS` (87.2 G
 
 ### Speculative decoding
 
-Every ⚡️ model uses an **MTP head** (one extra dense layer sharing the base model's embeddings, run in-graph);
-Unsloth ships one `Q4_0` quant per model (1.37 GB for Qwen3.8) — nothing to choose.
+Most ⚡️ models use an **MTP head** that is one extra dense layer sharing the base model's embeddings, run
+in-graph; Unsloth ships one `Q4_0` quant per model (1.37 GB for Qwen3.8) — nothing to choose.
 
-`Qwen3.8-Flash-Next` **has** a head (4B, one layer, 31 `mtp.*` tensors) but no ⚡️ badge: llama.cpp master
-doesn't implement it (the merged `qwen4exp` port declares no `NEXTN_*` tensors; open in
-[PR #27836](https://github.com/ggml-org/llama.cpp/pull/27836), which adds the draft head + a `--mtp` converter
-flag), and no published GGUF carries it — every quant, Unsloth's included, parses to zero `mtp.*`/`nextn.*`
-tensors (the head must live in-file; the merged reader's 32-byte alignment and exact `split.tensors.count`
-checks reject grafted community exports).
+`Qwen3.8-Flash-Next` now has one too, but on different terms. Its head is a **full MoE block** — 512 experts,
+2.49 GiB of the 2.58 GiB — not a dense layer, and it ships as a separate file under `MTP/` rather than inside
+the weights. Six variants; the stack uses **`mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf`**:
 
-Preset: `spec-type = none`, `spec-draft-n-max = 0`. Once #27836 merges and a GGUF ships the head: `spec-type =
-draft-mtp`, `spec-draft-n-max = 2` (a tester on this hardware — 2x R9700, gfx1201, ROCm — measured **+17%
-decode** at depth 2 with `ubatch-size 1024`, already set; depths 3-4 were **slower**; re-measure, don't trust
-it). Budget: head ~2.10 GiB + ~0.27 GiB draft KV at 262144 ctx; only 1.32/1.38 GiB free with all three resident,
-so `n-cpu-moe` → **26** (frees 2.93 GiB on GPU 0, +0.06 GiB/token host traffic) — worth it against +17% decode;
-freed room lands on GPU 0 (blocks 24-25), so placing the head on GPU 1 needs a `tensor-split` nudge too.
+- **`shared-`** carries no `token_embd`/`output.weight` and borrows the target's, saving 1.27 GiB. The loader
+  takes a raw pointer into the target's tensor map, so the head must be placed on whichever card holds
+  `output.weight` — the last slot of `tensor-split`, i.e. GPU 1. This is what forced the split retune.
+- **`Q8_0`** over `Q4_K_M`: 66.1% vs. 64.4% acceptance, and a draft step is dominated by the output
+  projection, which executes cheaper at 8 bits — `BF16` is both bigger and slower for the same reason.
+- Self-contained variants exist for builds without borrowing support; they cost 1.27 GiB for nothing here.
+
+> [!IMPORTANT]
+> **These heads do not run on mainline llama.cpp.** Upstream declares no `NEXTN_*` tensors for `qwen4exp`
+> (still true at `d08c787`), so it drops the head at conversion and silently ignores `spec-draft-model`. The
+> build is pinned to [unslothai/llama.cpp#144](https://github.com/unslothai/llama.cpp/pull/144) at commit
+> `586b15ef` — see [`.env.example`](../.env.example). Do **not** use that fork's prebuilt `*-mix-*` releases:
+> they are cut from a base predating the `qwen4exp` port and cannot load this model at all.
+
+Placement cost: 2.58 GiB head + ~0.07 GiB draft KV, against 1.32/1.38 GiB free. `n-cpu-moe` goes 24 → **28**
+and the split 72,28 → **78,22**, moving four blocks of experts to RAM to clear room on GPU 1 (+0.11 GiB/token
+host traffic, 0.70 → 0.81). The trade pays for itself many times over: a verify pass reads those experts
+**once** but settles ~2.5 tokens, so offloading hurts _less_ under speculation than without it — decode went
+18.6 → 23.6 t/s at production sampling despite the extra offload. Depth stays at **2**; on this exact hardware
+depths 3 and 4 measured _slower_ than no speculation at all, inverting the author's M3 Max results. Verify it
+is actually running (mainline would silently no-op) — `timings.draft_n` / `draft_n_accepted` per response, or:
+
+```
+draft acceptance = 0.66139 (325 accepted / 491 generated), mean len = 2.76
+```
+
+Skip MTP for concurrent serving: measured 0.81-0.87x at concurrency 8, since a busy model has no idle capacity
+for a draft to exploit. The win is at concurrency 1.
 
 #### Draft depth
 
