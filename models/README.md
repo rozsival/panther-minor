@@ -55,17 +55,17 @@ serving models through `llama-cpp/preset.ini`
 Most models fit VRAM whole; only `n-gpu-layers` matters. `Qwen3.8-Flash-Next` needs manual placement —
 `UD-Q4_K_XL` is 103.7 GiB vs. 2x 31.86 GiB VRAM.
 
-| Setting                | Value                           | Note                                                                                               |
-| ---------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
-| n-gram table           | 26.82 GiB `IQ4_NL`, host-side   | single `per_layer_token_embd` tensor via `ggml_get_rows`, never VRAM (Gemma 3n technique)          |
-| `n-cpu-moe = 28`       | 35.15 GiB resident              | blocks 0-27 experts stay in RAM; 26 measured no faster and 24 fails to load — see Throughput modes |
-| `load-mode = none`     | mmap, not a read-in             | `none` means "no special loading mode"; mmap stays on — 46 GiB of the process is file-backed       |
-| `tensor-split = 78,22` | —                               | balances heavy blocks, not layer count — see WARNING                                               |
-| MTP head               | 2.58 GiB `shared-Q8_0` on GPU 1 | must sit with `output.weight`, whose tensor it borrows — see Speculative decoding                  |
-| KV @ 262144 ctx        | 3.19 GiB `q8_0` (6.00 `f16`)    | only 12/48 layers cache; +0.10 GiB indexer keys, +0.11 GiB DeltaNet                                |
-| VRAM, all 3 resident   | 29.53 / 30.29 of 31.86 GiB      | measured after the retune; solver predicted 29.48 / 30.40 — within 0.11 GiB on both cards          |
-| Measured, MTP on       | 57.4 t/s greedy, ±2.6%          | median of 10 loads at `spec-draft-n-max = 3`; depth 2 scattered 38.8-64.3 — see Draft depth        |
-| Measured, `temp = 1.0` | unverified                      | the old 23.6 t/s predates the warm-up fix; re-baseline with `bench --loads 3` before quoting it    |
+| Setting                | Value                           | Note                                                                                                |
+| ---------------------- | ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| n-gram table           | 26.82 GiB `IQ4_NL`, host-side   | single `per_layer_token_embd` tensor via `ggml_get_rows`, never VRAM (Gemma 3n technique)           |
+| `n-cpu-moe = 28`       | 35.15 GiB resident              | blocks 0-27 experts stay in RAM; 26 measured no faster and 24 fails to load — see Throughput modes  |
+| `load-mode = none`     | mmap, not a read-in             | `none` means "no special loading mode"; mmap stays on — 46 GiB of the process is file-backed        |
+| `tensor-split = 78,22` | —                               | balances heavy blocks, not layer count — see WARNING                                                |
+| MTP head               | 2.58 GiB `shared-Q8_0` on GPU 1 | must sit with `output.weight`, whose tensor it borrows — see Speculative decoding                   |
+| KV @ 262144 ctx        | 3.19 GiB `q8_0` (6.00 `f16`)    | only 12/48 layers cache; +0.10 GiB indexer keys, +0.11 GiB DeltaNet                                 |
+| VRAM, all 3 resident   | 29.53 / 30.29 of 31.86 GiB      | measured after the retune; solver predicted 29.48 / 30.40 — within 0.11 GiB on both cards           |
+| Measured, greedy       | 43.8 t/s at depth 2             | `bench` is temp 0; depth 3 reaches 57.4 there but not in production — see Draft depth               |
+| Measured, `temp = 1.0` | 25.4 t/s (56-62% accepted)      | production sampling, 768 tokens, 3 loads; depth 3 is a wash here (25.2) — benchmark at your sampler |
 
 > [!WARNING]
 > **`tensor-split` divides by layer count, not bytes.** `llama-model.cpp` assigns layer `il` to a device via
@@ -86,20 +86,19 @@ Two properties of this model make single-shot numbers meaningless, so `bench` de
 
 - **Throughput ramps for ~7 requests** after a model becomes resident. One discarded warm-up measures the
   ramp, not the steady state — it under-reported this stack by 54% (44.4 vs. 68.4 t/s on the same config).
-- **Each `llama-server` process could settle into one of several discrete modes** spanning ~39-69 t/s at the
-  old `spec-draft-n-max = 2`. A mode is stable to within 1% for the life of the process and re-rolled on
-  every load, so one load could not resolve anything smaller than ~25%. **`spec-draft-n-max = 3` largely
-  suppresses this** — 12 of 13 loads landed in 56.7-58.2 t/s, with one outlier at 49.6. The variance lives
-  in the draft path, not the base model: two loads produced byte-identical output (same `md5`) at 47.3 vs.
-  56.4 t/s, differing only in how many drafts were wasted (761 vs. 640 proposals for the same 512 tokens).
+- **Each `llama-server` process can settle into one of several discrete modes** spanning ~39-69 t/s under
+  greedy benchmarking. A mode is stable to within 1% for the life of the process and re-rolled on every
+  load, so one load cannot resolve anything smaller than ~25%. The variance lives in the draft path, not
+  the base model: two loads produced byte-identical output (same `md5`) at 47.3 vs. 56.4 t/s, differing only
+  in how many drafts were wasted (761 vs. 640 proposals for the same 512 tokens). It is also largely a
+  **greedy-path** phenomenon — under production sampling both depths 2 and 3 held a ~7% band across loads.
   Ruled out as causes: page placement (48 GiB RSS / 46 GiB file-backed every load), disk paging (19 MiB of
   NVMe reads per run), CCD pinning (threads split ~50/50 on fast _and_ slow loads), VRAM placement
   (28/25 GiB, zero offload failures), GPU clocks (`sclk ≈ 2570`, `fclk ≈ 2047`, stable), `ignore_eos`, and
-  `load-mode`. Root cause unknown, so keep `--loads 3` for every comparison — depth 4 shows the full
-  scatter, so a new knob can reintroduce it.
+  `load-mode`. Root cause unknown, so keep `--loads 3` for every comparison.
 
-**Neither host CPU nor DRAM bandwidth is the binding constraint.** Measured at `spec-draft-n-max = 3` with
-`bench --loads 3`, all inside the noise band of the 57.3 t/s baseline: pinning 12 threads to the 12 physical
+**Neither host CPU nor DRAM bandwidth is the binding constraint.** Measured with `bench --loads 3`, all
+inside the noise band of the greedy baseline: pinning 12 threads to the 12 physical
 cores (`cpu-range = 0-11`, `cpu-strict = 1`) → 58.1; 11 threads → 57.9; **6 threads on one CCD → 56.5**;
 `poll = 0` → 57.8. Restricting generation to **2 pinned cores**, which caps host read bandwidth at ~17 GB/s
 (38% of the 44.8-46.2 GB/s this box achieves), costs only **-7.5%** (53.0 t/s). So a 2.6x cut in both host
@@ -141,8 +140,8 @@ Placement cost: 2.58 GiB head + ~0.07 GiB draft KV, against 1.32/1.38 GiB free. 
 and the split 72,28 → **78,22**, moving four blocks of experts to RAM to clear room on GPU 1. The trade is
 structurally sound: a verify pass reads those experts **once** but settles ~2.5 tokens, so offloading hurts
 _less_ under speculation than without it. The `18.6 → 23.6 t/s` that once justified it was measured with a
-single warm-up and one load, so it is **unverified**. Depth is **3**, re-measured over 10 fresh loads per
-depth — see Draft depth. Verify the head
+single warm-up and one load; production sampling now measures **25.4 t/s**. Depth stays at **2**, re-measured
+at both samplers — see Draft depth. Verify the head
 is actually running (mainline would silently no-op) — `timings.draft_n` / `draft_n_accepted` per response, or:
 
 ```
@@ -166,21 +165,22 @@ curl -s localhost:8000/metrics | grep spec_decode_num_accepted_tokens_per_pos_to
 Sampler-dependent: greedy accepts far more than the `temp = 1.0` these presets run — benchmark at production
 sampling or the optimum lands too high.
 
-Measured on `Qwen3.8-Flash-Next` with `bench --tokens 256 --warmups 8 --runs 2 --loads 10`, i.e. ten fresh
-`llama-server` processes per depth:
+Measured on `Qwen3.8-Flash-Next` twice — once with `bench` (greedy, `--tokens 256 --warmups 8 --runs 2
+--loads 10`), once at the **production sampler this preset serves** (`temp = 1.0`, `top-k 20`, `top-p 0.95`,
+768 tokens, 3 loads):
 
-| `spec-draft-n-max` | median       | per-load range | spread   |
-| ------------------ | ------------ | -------------- | -------- |
-| 2                  | 46.1 t/s     | 38.8-64.3      | 55%      |
-| **3**              | **57.4 t/s** | **56.7-58.2**  | **2.6%** |
-| 4                  | 57.5 t/s     | 31.6-58.0      | 46%      |
+| `spec-draft-n-max` | greedy median | greedy range | `temp = 1.0` median | drafts issued | accepted |
+| ------------------ | ------------- | ------------ | ------------------- | ------------- | -------- |
+| **2**              | 46.1 t/s      | 38.8-64.3    | **25.4 t/s**        | 2152          | 59%      |
+| 3                  | 57.4 t/s      | 56.7-58.2    | 25.2 t/s            | 2611          | 56%      |
+| 4                  | 57.5 t/s      | 31.6-58.0    | not measured        | —             | —        |
 
-Depth 3 is the setting, for two reasons: **+24% median** over depth 2, and it **largely suppresses the
-throughput-mode lottery** — all ten sweep loads landed within 2.6%, and a later confirmation run put 2 of 3
-loads there with one outlier at 49.6, where depths 2 and 4 scatter across the modes described in Throughput
-modes. Depth 4 matches the median but three of ten loads collapsed to 31-43 t/s. This reverses the earlier
-"depths 3 and 4 are slower than no speculation at all" finding, which came from a single-warm-up,
-single-load measurement. The logged baseline is `57.3 t/s` at 82.4% acceptance.
+**Depth stays at 2.** Depth 3's +24% is a greedy artifact that does not survive real sampling: it issues
+~20% more drafts at lower acceptance and the two cancel, leaving 25.2 vs. 25.4 t/s — a wash. The same held
+in real coding-harness use on `Qwen3.8-27B`, where depth 3 produced no observable gain. This is the
+cautionary case for the whole section: a 24% "win" that is entirely an artifact of the benchmark's sampler.
+Note also that the greedy mode lottery (38.8-64.3 at depth 2) does **not** appear under production sampling,
+where both depths held a ~7% band — so it, too, is largely a greedy-path phenomenon.
 
 ### GPU split mode
 

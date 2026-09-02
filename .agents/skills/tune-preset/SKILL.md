@@ -134,10 +134,14 @@ the checkpoint allows, and not a value you can pick from spec sheets. Measure it
   `temp`/`top-k`/`top-p`. Cross-check with a manual request at the preset's actual sampler settings
   before committing a depth change, and note in the commit which sampler you measured at.
 
-Depth 2 is the current value on every speculating preset in this repo (`Qwen3.8-27B`,
-`Qwen3.6-35B-A3B`, `Qwen3.5-2B` all run `spec-draft-n-max = 2`); depths 3-4 have been measured slower
-than no speculation at all on this hardware. Treat any depth as a hypothesis to re-measure, not a
-constant — acceptance is workload- and sampler-dependent.
+Depth 2 is the current value on every speculating preset in this repo. The worked example is worth
+internalising, because it is the trap this whole knob sets: on `Qwen3.8-Flash-Next`, depth 3 measured
+**57.4 vs. 46.1 t/s greedy** over ten loads per depth — a clean, repeatable, statistically solid +24%.
+At the preset's real sampler (`temp = 1.0`) the same comparison is **25.2 vs. 25.4 t/s**: a wash, because
+depth 3 issues ~20% more drafts at lower acceptance. Real coding-harness use on `Qwen3.8-27B` agreed with
+the production measurement, not the benchmark. A greedy-only win is not a win. Treat any depth as a
+hypothesis to re-measure at the sampler you serve, not a constant — acceptance is workload- and
+sampler-dependent.
 
 ## Log lines that mean something
 
