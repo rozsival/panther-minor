@@ -55,17 +55,17 @@ serving models through `llama-cpp/preset.ini`
 Most models fit VRAM whole; only `n-gpu-layers` matters. `Qwen3.8-Flash-Next` needs manual placement —
 `UD-Q4_K_XL` is 103.7 GiB vs. 2x 31.86 GiB VRAM.
 
-| Setting                | Value                            | Note                                                                                              |
-| ---------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------- |
-| n-gram table           | 26.82 GiB `IQ4_NL`, host-side    | single `per_layer_token_embd` tensor via `ggml_get_rows`, never VRAM (Gemma 3n technique)         |
-| `n-cpu-moe = 28`       | 35.15 GiB resident               | blocks 0-27 experts stay in RAM; decode streams ~0.81 GiB/token over PCIe (top-10 of 512 experts) |
-| `load-mode = none`     | ~60 GiB read in                  | mmap is slower for CPU tensor overrides; box has 176 GiB free                                     |
-| `tensor-split = 78,22` | —                                | balances heavy blocks, not layer count — see WARNING                                              |
-| MTP head               | 2.58 GiB `shared-Q8_0` on GPU 1  | must sit with `output.weight`, whose tensor it borrows — see Speculative decoding                 |
-| KV @ 262144 ctx        | 3.19 GiB `q8_0` (6.00 `f16`)     | only 12/48 layers cache; +0.10 GiB indexer keys, +0.11 GiB DeltaNet                               |
-| VRAM, all 3 resident   | 29.53 / 30.29 of 31.86 GiB       | measured after the retune; solver predicted 29.48 / 30.40 — within 0.11 GiB on both cards         |
-| Measured, MTP on       | 44.4 t/s decode (82.9% accepted) | `bench` is greedy; 18.6 t/s at the pre-MTP `n-cpu-moe = 24` / `72,28`                             |
-| Measured, `temp = 1.0` | 23.6 t/s decode (59.6% accepted) | production sampling — **+27%**, not 2.39x. Benchmark at the sampler you actually serve            |
+| Setting                | Value                           | Note                                                                                               |
+| ---------------------- | ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| n-gram table           | 26.82 GiB `IQ4_NL`, host-side   | single `per_layer_token_embd` tensor via `ggml_get_rows`, never VRAM (Gemma 3n technique)          |
+| `n-cpu-moe = 28`       | 35.15 GiB resident              | blocks 0-27 experts stay in RAM; 26 measured no faster and 24 fails to load — see Throughput modes |
+| `load-mode = none`     | mmap, not a read-in             | `none` means "no special loading mode"; mmap stays on — 46 GiB of the process is file-backed       |
+| `tensor-split = 78,22` | —                               | balances heavy blocks, not layer count — see WARNING                                               |
+| MTP head               | 2.58 GiB `shared-Q8_0` on GPU 1 | must sit with `output.weight`, whose tensor it borrows — see Speculative decoding                  |
+| KV @ 262144 ctx        | 3.19 GiB `q8_0` (6.00 `f16`)    | only 12/48 layers cache; +0.10 GiB indexer keys, +0.11 GiB DeltaNet                                |
+| VRAM, all 3 resident   | 29.53 / 30.29 of 31.86 GiB      | measured after the retune; solver predicted 29.48 / 30.40 — within 0.11 GiB on both cards          |
+| Measured, MTP on       | 57.4 t/s greedy, ±2.6%          | median of 10 loads at `spec-draft-n-max = 3`; depth 2 scattered 38.8-64.3 — see Draft depth        |
+| Measured, `temp = 1.0` | unverified                      | the old 23.6 t/s predates the warm-up fix; re-baseline with `bench --loads 3` before quoting it    |
 
 > [!WARNING]
 > **`tensor-split` divides by layer count, not bytes.** `llama-model.cpp` assigns layer `il` to a device via
@@ -78,6 +78,41 @@ GPU 1 stays lighter because `Qwen3-Embedding-0.6B` and `Qwen3.5-2B` pin `main-gp
 while resident (the manager only arbitrates _large_ models). `UD-IQ4_XS` (87.2 GiB) trades experts down
 (`IQ3_S`/`IQ4_NL` vs. `Q4_K`/`Q5_1`, ~3.9 vs. ~5.1 bits/weight) for more GPU headroom; `UD-Q5_K_XL` (147.4 GiB,
 50.66 GiB n-gram table) isn't practical.
+
+#### Throughput modes
+
+Two properties of this model make single-shot numbers meaningless, so `bench` defaults to
+`--warmups 8` and every preset comparison needs `--loads 3`:
+
+- **Throughput ramps for ~7 requests** after a model becomes resident. One discarded warm-up measures the
+  ramp, not the steady state — it under-reported this stack by 54% (44.4 vs. 68.4 t/s on the same config).
+- **Each `llama-server` process could settle into one of several discrete modes** spanning ~39-69 t/s at the
+  old `spec-draft-n-max = 2`. A mode is stable to within 1% for the life of the process and re-rolled on
+  every load, so one load could not resolve anything smaller than ~25%. **`spec-draft-n-max = 3` largely
+  suppresses this** — 12 of 13 loads landed in 56.7-58.2 t/s, with one outlier at 49.6. The variance lives
+  in the draft path, not the base model: two loads produced byte-identical output (same `md5`) at 47.3 vs.
+  56.4 t/s, differing only in how many drafts were wasted (761 vs. 640 proposals for the same 512 tokens).
+  Ruled out as causes: page placement (48 GiB RSS / 46 GiB file-backed every load), disk paging (19 MiB of
+  NVMe reads per run), CCD pinning (threads split ~50/50 on fast _and_ slow loads), VRAM placement
+  (28/25 GiB, zero offload failures), GPU clocks (`sclk ≈ 2570`, `fclk ≈ 2047`, stable), `ignore_eos`, and
+  `load-mode`. Root cause unknown, so keep `--loads 3` for every comparison — depth 4 shows the full
+  scatter, so a new knob can reintroduce it.
+
+**Neither host CPU nor DRAM bandwidth is the binding constraint.** Measured at `spec-draft-n-max = 3` with
+`bench --loads 3`, all inside the noise band of the 57.3 t/s baseline: pinning 12 threads to the 12 physical
+cores (`cpu-range = 0-11`, `cpu-strict = 1`) → 58.1; 11 threads → 57.9; **6 threads on one CCD → 56.5**;
+`poll = 0` → 57.8. Restricting generation to **2 pinned cores**, which caps host read bandwidth at ~17 GB/s
+(38% of the 44.8-46.2 GB/s this box achieves), costs only **-7.5%** (53.0 t/s). So a 2.6x cut in both host
+compute and bandwidth buys back 7.5%, implying a bandwidth elasticity near 0.1 — DDR5-3600 → 4400 (+23%
+peak) is worth ~1-2%, and there is no overthreading to fix. The GPUs idling at 30-36% / 14-24% busy while
+"11.8 of 12 cores are pegged" is ggml's spin-wait, not work: `--poll 0` and 6 threads prove the host side
+has roughly 2x headroom. The remaining limit is the serial draft-verify chain on the GPUs.
+
+Two consequences: EXPO/DRAM overclocking is not worth the boot risk on this box (4x48 GiB, 2DPC, dual-rank
+cannot train above the JEDEC 3600 fallback anyway), and `n-cpu-moe` can be _raised_ to free VRAM at little
+throughput cost if the sidekicks or image generation ever need the room. The `~0.81 GiB/token` above is
+derived, not measured, and overstates real traffic: at 57 t/s it would require more bandwidth than the
+machine has. H2D DMA measures 28.8 GB/s per card over Gen5 x16.
 
 ### Speculative decoding
 
@@ -103,11 +138,11 @@ the weights. Six variants; the stack uses **`mtp-Qwen3.8-Flash-Next-shared-Q8_0.
 > they are cut from a base predating the `qwen4exp` port and cannot load this model at all.
 
 Placement cost: 2.58 GiB head + ~0.07 GiB draft KV, against 1.32/1.38 GiB free. `n-cpu-moe` goes 24 → **28**
-and the split 72,28 → **78,22**, moving four blocks of experts to RAM to clear room on GPU 1 (+0.11 GiB/token
-host traffic, 0.70 → 0.81). The trade pays for itself many times over: a verify pass reads those experts
-**once** but settles ~2.5 tokens, so offloading hurts _less_ under speculation than without it — decode went
-18.6 → 23.6 t/s at production sampling despite the extra offload. Depth stays at **2**; on this exact hardware
-depths 3 and 4 measured _slower_ than no speculation at all, inverting the author's M3 Max results. Verify it
+and the split 72,28 → **78,22**, moving four blocks of experts to RAM to clear room on GPU 1. The trade is
+structurally sound: a verify pass reads those experts **once** but settles ~2.5 tokens, so offloading hurts
+_less_ under speculation than without it. The `18.6 → 23.6 t/s` that once justified it was measured with a
+single warm-up and one load, so it is **unverified**. Depth is **3**, re-measured over 10 fresh loads per
+depth — see Draft depth. Verify the head
 is actually running (mainline would silently no-op) — `timings.draft_n` / `draft_n_accepted` per response, or:
 
 ```
@@ -130,6 +165,22 @@ curl -s localhost:8000/metrics | grep spec_decode_num_accepted_tokens_per_pos_to
 
 Sampler-dependent: greedy accepts far more than the `temp = 1.0` these presets run — benchmark at production
 sampling or the optimum lands too high.
+
+Measured on `Qwen3.8-Flash-Next` with `bench --tokens 256 --warmups 8 --runs 2 --loads 10`, i.e. ten fresh
+`llama-server` processes per depth:
+
+| `spec-draft-n-max` | median       | per-load range | spread   |
+| ------------------ | ------------ | -------------- | -------- |
+| 2                  | 46.1 t/s     | 38.8-64.3      | 55%      |
+| **3**              | **57.4 t/s** | **56.7-58.2**  | **2.6%** |
+| 4                  | 57.5 t/s     | 31.6-58.0      | 46%      |
+
+Depth 3 is the setting, for two reasons: **+24% median** over depth 2, and it **largely suppresses the
+throughput-mode lottery** — all ten sweep loads landed within 2.6%, and a later confirmation run put 2 of 3
+loads there with one outlier at 49.6, where depths 2 and 4 scatter across the modes described in Throughput
+modes. Depth 4 matches the median but three of ten loads collapsed to 31-43 t/s. This reverses the earlier
+"depths 3 and 4 are slower than no speculation at all" finding, which came from a single-warm-up,
+single-load measurement. The logged baseline is `57.3 t/s` at 82.4% acceptance.
 
 ### GPU split mode
 

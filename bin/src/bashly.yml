@@ -257,7 +257,17 @@ commands:
               - long: --runs
                 short: -r
                 arg: count
-                help: Measured runs after the discarded warm-up (defaults to 3)
+                help: Measured runs per load, after the warm-ups (defaults to 3)
+                validate: integer
+              - long: --warmups
+                short: -w
+                arg: count
+                help: Discarded warm-up runs per load; throughput ramps for ~7 (defaults to 8)
+                validate: integer
+              - long: --loads
+                short: -L
+                arg: count
+                help: Fresh llama-cpp loads to measure; reports median of per-load medians (defaults to 1)
                 validate: integer
               - long: --log-path
                 short: -l
@@ -265,7 +275,7 @@ commands:
                 help: File to append the baseline to (defaults to models/bench.log)
             examples:
               - cli models llm bench Qwen3.8-27B
-              - cli models llm bench --runs 5 --tokens 512 Qwen3.8-27B
+              - cli models llm bench --loads 3 --tokens 512 Qwen3.8-Flash-Next
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 

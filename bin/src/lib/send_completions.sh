@@ -77,7 +77,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models llm bench\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && awk -F\'[][]\' \'NF==3{print $2}\' llama-cpp/preset.ini) --help --log-path --runs --tokens -h -l -n -r")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && awk -F\'[][]\' \'NF==3{print $2}\' llama-cpp/preset.ini) --help --loads --log-path --runs --tokens --warmups -L -h -l -n -r -w")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy setup-cron\'*)'

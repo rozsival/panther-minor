@@ -42,3 +42,27 @@ panther_assert_loadable_llm() {
   loadable_models="$(panther_loadable_llms | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
   panther_log_error "Unknown model '$model'. Loadable models: $loadable_models"
 }
+# Asks llama-manager to make a model resident. Prints nothing and returns 0 on success; on failure
+# prints a human-readable reason and returns 1, so callers decide between warning and exiting.
+panther_llm_request_load() {
+  local model="$1"
+  local response http_code body
+
+  if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
+    -H 'Content-Type: application/json' \
+    --insecure \
+    -d "{\"model\": \"$model\"}")"; then
+    printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
+    return 1
+  fi
+
+  http_code="${response: -3}"
+  body="${response%???}"
+
+  if [[ "$http_code" == '200' ]]; then
+    return 0
+  fi
+
+  printf 'HTTP %s: %s\n' "$http_code" "$(jq -r '.error.message // tostring' <<<"$body" 2>/dev/null | head -1)"
+  return 1
+}

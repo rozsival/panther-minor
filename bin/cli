@@ -861,7 +861,17 @@ cli_models_llm_bench_usage() {
 
     # :flag.usage
     printf "  %s\n" "--runs, -r COUNT"
-    printf "    Measured runs after the discarded warm-up (defaults to 3)\n"
+    printf "    Measured runs per load, after the warm-ups (defaults to 3)\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--warmups, -w COUNT"
+    printf "    Discarded warm-up runs per load; throughput ramps for ~7 (defaults to 8)\n"
+    echo
+
+    # :flag.usage
+    printf "  %s\n" "--loads, -L COUNT"
+    printf "    Fresh llama-cpp loads to measure; reports median of per-load medians\n    (defaults to 1)\n"
     echo
 
     # :flag.usage
@@ -885,7 +895,7 @@ cli_models_llm_bench_usage() {
     # :command.usage_examples
     printf "%s\n" "Examples:"
     printf "  cli models llm bench Qwen3.8-27B\n"
-    printf "  cli models llm bench --runs 5 --tokens 512 Qwen3.8-27B\n"
+    printf "  cli models llm bench --loads 3 --tokens 512 Qwen3.8-Flash-Next\n"
     echo
 
   fi
@@ -1615,6 +1625,22 @@ panther_compose() {
 panther_services() {
   panther_compose config | yq '.services | keys[]'
 }
+# Blocks until a service reports healthy. Compose reports an empty string for services without a
+# health check, so callers only use this for services that declare one.
+panther_await_service_health() {
+  local service="$1"
+  local timeout="${2:-300}"
+  local waited=0 status
+
+  while ((waited < timeout)); do
+    status="$(panther_compose ps --format '{{.Health}}' "$service" 2>/dev/null | head -1)"
+    [[ "$status" == 'healthy' ]] && return 0
+    sleep 3
+    waited=$((waited + 3))
+  done
+
+  return 1
+}
 panther_logs_service() {
   local service="$1"
   local -a compose_args=(logs --timestamps)
@@ -1729,6 +1755,30 @@ panther_assert_loadable_llm() {
   local loadable_models
   loadable_models="$(panther_loadable_llms | tr '\n' ',' | sed 's/,$//; s/,/, /g')"
   panther_log_error "Unknown model '$model'. Loadable models: $loadable_models"
+}
+# Asks llama-manager to make a model resident. Prints nothing and returns 0 on success; on failure
+# prints a human-readable reason and returns 1, so callers decide between warning and exiting.
+panther_llm_request_load() {
+  local model="$1"
+  local response http_code body
+
+  if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
+    -H 'Content-Type: application/json' \
+    --insecure \
+    -d "{\"model\": \"$model\"}")"; then
+    printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
+    return 1
+  fi
+
+  http_code="${response: -3}"
+  body="${response%???}"
+
+  if [[ "$http_code" == '200' ]]; then
+    return 0
+  fi
+
+  printf 'HTTP %s: %s\n' "$http_code" "$(jq -r '.error.message // tostring' <<<"$body" 2>/dev/null | head -1)"
+  return 1
 }
 
 # src/lib/logging.sh
@@ -1920,7 +1970,7 @@ send_completions() {
   echo $'      ;;'
   echo $''
   echo $'    \'models llm bench\'*)'
-  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && awk -F\'[][]\' \'NF==3{print $2}\' llama-cpp/preset.ini) --help --log-path --runs --tokens -h -l -n -r")" -- "$cur")'
+  echo $'      while read -r; do COMPREPLY+=("$REPLY"); done < <(compgen -W "$(_cli_completions_filter "$(cd "$(git rev-parse --show-toplevel)" && awk -F\'[][]\' \'NF==3{print $2}\' llama-cpp/preset.ini) --help --loads --log-path --runs --tokens --warmups -L -h -l -n -r -w")" -- "$cur")'
   echo $'      ;;'
   echo $''
   echo $'    \'proxy setup-cron\'*)'
@@ -3452,24 +3502,11 @@ cli_models_llm_load_command() {
     local model="${args[model]}"
     panther_assert_loadable_llm "$model"
 
-    # Make POST request to llama-manager to load the model (via HTTPS as external client)
-    local response
-    if ! response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/load" \
-      -H "Content-Type: application/json" \
-      --insecure \
-      -d "{\"model\": \"$model\"}"); then
-      panther_log_error "Cannot reach llama-manager at https://localhost:8000. Is the cluster running?"
-    fi
-
-    local http_code="${response: -3}"
-    local body="${response%???}"
-
-    if [[ "$http_code" == "200" ]]; then
+    local failure
+    if failure="$(panther_llm_request_load "$model")"; then
       panther_log_success "Model '$model' loaded successfully."
-    elif [[ "$http_code" == "400" ]]; then
-      panther_log_error "Failed to load model '$model'. Error: $(echo "$body" | jq -r '.error.message')"
     else
-      panther_log_error "Failed to load model '$model'. HTTP status: $http_code. Response: $(echo "$body" | jq -r '.error.message')"
+      panther_log_error "Failed to load model '$model'. $failure"
     fi
   }
 
@@ -3518,13 +3555,17 @@ cli_models_llm_bench_command() {
     local model="${args[model]}"
     panther_assert_loadable_llm "$model"
 
-    local tokens runs log_path
+    local tokens runs warmups loads log_path
     tokens="$(panther_resolve_option '--tokens' PANTHER_BENCH_TOKENS '256')"
     runs="$(panther_resolve_option '--runs' PANTHER_BENCH_RUNS '3')"
+    warmups="$(panther_resolve_option '--warmups' PANTHER_BENCH_WARMUPS '8')"
+    loads="$(panther_resolve_option '--loads' PANTHER_BENCH_LOADS '1')"
     log_path="$(panther_resolve_option '--log-path' PANTHER_BENCH_LOG_PATH "$PANTHER_REPO_ROOT/models/bench.log")"
 
     [[ "$tokens" -gt 0 ]] || panther_log_error '--tokens must be greater than zero.'
     [[ "$runs" -gt 0 ]] || panther_log_error '--runs must be greater than zero.'
+    [[ "$warmups" -ge 0 ]] || panther_log_error '--warmups cannot be negative.'
+    [[ "$loads" -gt 0 ]] || panther_log_error '--loads must be greater than zero.'
 
     # A benchmark is only worth keeping if two invocations months apart are
     # comparable, so every degree of freedom is nailed down: a fixed prompt, a
@@ -3549,43 +3590,77 @@ cli_models_llm_bench_command() {
       stream: false
     }')"
 
-    panther_log_info "Benchmarking '$model': ${runs} run(s) of ${tokens} tokens after one discarded warm-up."
+    # Throughput ramps for roughly seven requests after a model becomes resident, so a single
+    # discarded warm-up measures the ramp rather than the steady state: 8 warm-ups converge, 1 warm-up
+    # under-reported this stack by 54%. Separately, each llama-server process settles into one of a few
+    # discrete throughput modes that vary up to 1.45x between loads while being stable to within 1%
+    # inside a load, so a single load cannot resolve anything smaller than ~25%. --loads > 1 restarts
+    # llama-cpp between loads and reports the median of the per-load medians.
+    local median_filter
+    median_filter='def median: sort | if length == 0 then null elif length % 2 == 1 then .[length / 2 | floor] else (.[length / 2 - 1] + .[length / 2]) / 2 end;'
 
-    local -a samples=()
-    local run response timings
-    for ((run = 0; run <= runs; run++)); do
-      if [[ "$run" -eq 0 ]]; then
-        panther_log_info 'Warm-up run (discarded); loads the model when it is not already resident.'
-      else
-        panther_log_info "Run ${run}/${runs}..."
-      fi
-
-      # The OpenAI-compatible path is deliberate: manager.js:499 only arbitrates
-      # and preflights models for '/v1/chat/completions' and '/v1/completions'.
-      # llama.cpp's native '/completion' would proxy through unclassified, so the
-      # requested model might never be made resident.
+    panther_bench_sample() {
+      local response timings
       if ! response="$(curl -sS --insecure --max-time 900 -X POST 'https://localhost:8000/v1/chat/completions' \
         -H 'Content-Type: application/json' \
         -d "$request")"; then
         panther_log_error 'Cannot reach llama-manager at https://localhost:8000. Is the cluster running?'
       fi
 
+      # The OpenAI-compatible path is deliberate: manager.js:499 only arbitrates
+      # and preflights models for '/v1/chat/completions' and '/v1/completions'.
+      # llama.cpp's native '/completion' would proxy through unclassified, so the
+      # requested model might never be made resident.
       timings="$(jq -c '.timings // empty' <<<"$response" || true)"
       if [[ -z "$timings" ]]; then
         panther_log_error "No timings in response: $(jq -r '.error.message // tostring' <<<"$response" 2>/dev/null | head -1)"
       fi
 
-      if [[ "$run" -gt 0 ]]; then
-        samples+=("$timings")
+      printf '%s\n' "$timings"
+    }
+
+    panther_log_info "Benchmarking '$model': ${loads} load(s) x ${runs} run(s) of ${tokens} tokens after ${warmups} discarded warm-up(s)."
+
+    local -a samples=() load_medians=()
+    local load run failure load_median
+    for ((load = 1; load <= loads; load++)); do
+      if ((load > 1)); then
+        panther_log_info "Restarting llama-cpp for load ${load}/${loads}; a fresh process re-rolls its throughput mode."
+        panther_compose restart llama-cpp >/dev/null 2>&1 || panther_log_error 'Could not restart llama-cpp.'
+        panther_await_service_health llama-cpp 300 || panther_log_error 'llama-cpp did not report healthy after the restart.'
       fi
+
+      if ! failure="$(panther_llm_request_load "$model")"; then
+        panther_log_error "Failed to load model '$model'. $failure"
+      fi
+
+      for ((run = 1; run <= warmups; run++)); do
+        panther_log_info "Load ${load}/${loads} warm-up ${run}/${warmups} (discarded)..."
+        panther_bench_sample >/dev/null
+      done
+
+      local -a load_samples=()
+      local timings
+      for ((run = 1; run <= runs; run++)); do
+        panther_log_info "Load ${load}/${loads} run ${run}/${runs}..."
+        timings="$(panther_bench_sample)"
+        load_samples+=("$timings")
+        samples+=("$timings")
+      done
+
+      load_median="$(printf '%s\n' "${load_samples[@]}" | jq -s "$median_filter"' ([.[] | .predicted_per_second] | median)')"
+      load_medians+=("$load_median")
+      panther_log_info "Load ${load}/${loads} median decode $(jq -rn --argjson v "$load_median" '$v * 10 | round / 10') tok/s."
     done
 
-    # Median, not mean: one scheduling hiccup should not move the baseline.
+    # Median, not mean: one scheduling hiccup should not move the baseline. With several loads the
+    # median is taken over the per-load medians, so one unlucky mode cannot claim to be the machine.
     local summary
-    summary="$(printf '%s\n' "${samples[@]}" | jq -s '
-      def median: sort | if length % 2 == 1 then .[length / 2 | floor] else (.[length / 2 - 1] + .[length / 2]) / 2 end;
+    summary="$(printf '%s\n' "${samples[@]}" | jq -s --argjson medians "$(printf '%s\n' "${load_medians[@]}" | jq -s '.')" "$median_filter"'
       {
-        decode: ([.[] | .predicted_per_second] | median),
+        decode: ($medians | median),
+        spread: (if ($medians | length) > 1 then $medians else [.[] | .predicted_per_second] end
+                 | (max - min) / (. | median) * 100),
         prefill: ([.[] | .prompt_per_second] | median),
         prompt_n: (.[0].prompt_n // 0),
         cached: ([.[] | .cache_n // 0] | add),
@@ -3593,9 +3668,10 @@ cli_models_llm_bench_command() {
         draft_accepted: ([.[] | .draft_n_accepted // 0] | add)
       }')"
 
-    local decode prefill accept prompt_n cached
+    local decode prefill accept prompt_n cached spread
     decode="$(jq -r '.decode * 10 | round / 10' <<<"$summary")"
     prefill="$(jq -r '.prefill * 10 | round / 10' <<<"$summary")"
+    spread="$(jq -r '.spread | round' <<<"$summary")"
     accept="$(jq -r 'if .draft_n > 0 then ((.draft_accepted / .draft_n * 1000 | round / 10 | tostring) + "%") else "n/a" end' <<<"$summary")"
     prompt_n="$(jq -r '.prompt_n' <<<"$summary")"
     cached="$(jq -r '.cached' <<<"$summary")"
@@ -3625,15 +3701,27 @@ cli_models_llm_bench_command() {
       previous="$(awk -F'\t' -v m="$model" '$2 == m { line = $0 } END { print line }' "$log_path" || true)"
     else
       mkdir -p "$(dirname "$log_path")" || panther_log_error "Cannot create $(dirname "$log_path")."
-      printf 'timestamp\tmodel\ttokens\truns\tdecode_tps\tprefill_tps\tdraft_accept\tkernel\tllama_ref\timage\n' >"$log_path"
+      printf 'timestamp\tmodel\ttokens\truns\tdecode_tps\tprefill_tps\tdraft_accept\tkernel\tllama_ref\timage\twarmups\tloads\tspread_pct\n' >"$log_path"
     fi
 
-    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
       "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$model" "$tokens" "$runs" \
-      "$decode" "$prefill" "$accept" "$kernel" "$llama_ref" "$image_id" >>"$log_path"
+      "$decode" "$prefill" "$accept" "$kernel" "$llama_ref" "$image_id" \
+      "$warmups" "$loads" "$spread" >>"$log_path"
 
     panther_log_success "decode ${decode} tok/s | prefill ${prefill} tok/s (${prompt_n} tokens) | draft accepted ${accept}"
     panther_log_info "kernel ${kernel} | llama.cpp ${llama_ref} | image ${image_id}"
+
+    # A spread this wide means the number above is one draw from a distribution, not a measurement.
+    if [[ "$spread" -ge 10 ]]; then
+      if [[ "$loads" -gt 1 ]]; then
+        panther_log_warn "Per-load medians spread ${spread}%; this stack has discrete throughput modes, so treat differences below that as unresolved."
+      else
+        panther_log_warn "Run spread ${spread}%; re-run with --loads 3 to separate a real change from the load-to-load mode lottery."
+      fi
+    elif [[ "$loads" -eq 1 ]]; then
+      panther_log_info 'Single load measured; --loads 3 is the minimum that survives the mode lottery when comparing presets.'
+    fi
 
     if [[ -n "$previous" ]]; then
       local previous_decode previous_stamp previous_ref delta regressed
@@ -6204,6 +6292,34 @@ cli_models_llm_bench_parse_requirements() {
         ;;
 
       # :flag.case
+      --warmups | -w)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--warmups']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--warmups requires an argument: --warmups, -w COUNT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
+      --loads | -L)
+
+        # :flag.case_arg
+        if [[ -n ${2+x} ]]; then
+          args['--loads']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--loads requires an argument: --loads, -L COUNT" >&2
+          exit 1
+        fi
+        ;;
+
+      # :flag.case
       --log-path | -l)
 
         # :flag.case_arg
@@ -6270,6 +6386,24 @@ cli_models_llm_bench_parse_requirements() {
     validation_output="$(validate_integer "${args['--runs']:-}")"
     if [[ -n "${validation_output}" ]]; then
       printf "validation error in %s:\n%s\n" "--runs, -r COUNT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--warmups'] ]]; then
+    validation_output="$(validate_integer "${args['--warmups']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--warmups, -w COUNT" "$validation_output" >&2
+      exit 1
+    fi
+  fi
+
+  # :flag.validations
+  if [[ -v args['--loads'] ]]; then
+    validation_output="$(validate_integer "${args['--loads']:-}")"
+    if [[ -n "${validation_output}" ]]; then
+      printf "validation error in %s:\n%s\n" "--loads, -L COUNT" "$validation_output" >&2
       exit 1
     fi
   fi

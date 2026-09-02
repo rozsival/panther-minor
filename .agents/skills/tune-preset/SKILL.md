@@ -17,35 +17,48 @@ behind any number.
 
 1. **Baseline before changing anything**:
    ```bash
-   ./bin/cli models llm bench <preset>
+   ./bin/cli models llm bench <preset> --loads 3
    ```
    This pins every variable that would otherwise drift: a fixed 24-sentence prompt, `seed = 42`,
    `temperature = 0` (greedy), `cache_prompt = false` (prefill is measured, not replayed from the slot
-   cache), and `ignore_eos = true` (exactly `--tokens` are predicted, default 256, 3 runs + 1 discarded
-   warm-up, median of the runs). Each line appended to `models/bench.log` also carries the host kernel
-   (`uname -r`), the llama.cpp commit inside the container, and the image ID — so a later regression is
-   attributable to one of those four things moving, not a guess.
-2. **Change exactly ONE knob.** Never combine `n-cpu-moe` + `tensor-split` + `spec-draft-n-max` in one
+   cache), and `ignore_eos = true` (exactly `--tokens` are predicted, default 256, 3 runs after 8
+   discarded warm-ups, median of the runs). Each line appended to `models/bench.log` also carries the host
+   kernel (`uname -r`), the llama.cpp commit inside the container, and the image ID — so a later regression
+   is attributable to one of those four things moving, not a guess.
+2. **Always pass `--loads 3` when comparing presets.** `llama-server` settles into one of a few discrete
+   throughput modes per process — on `Qwen3.8-Flash-Next` they span 47.5-69 t/s, stable to within 1% inside
+   a load and re-rolled on every load. One load therefore cannot resolve anything smaller than ~25%, and a
+   single-load "win" is usually a lucky mode. `--loads 3` restarts `llama-cpp` between loads and reports the
+   median of the per-load medians; the run also prints the spread, which is the resolution floor for that
+   comparison. Never keep a change whose delta is inside the reported spread.
+3. **Change exactly ONE knob.** Never combine `n-cpu-moe` + `tensor-split` + `spec-draft-n-max` in one
    edit — if throughput moves you won't know which change did it, and if it OOMs you won't know which
    change to revert.
-3. **Reload weights, then re-bench**:
+4. **Reload weights, then re-bench**:
    ```bash
    ./bin/cli models llm unload <preset>
    ./bin/cli models llm load <preset>
-   ./bin/cli models llm bench <preset>
+   ./bin/cli models llm bench <preset> --loads 3
    ```
    Presets map 1:1 to models — `load`/`unload` take the **preset** name from `llama-cpp/preset.ini`,
    `download`/`remove` take the **model** name from `models/llm.config.json`. Reasoning mode
    (`chat_template_kwargs.enable_thinking`, `reasoning_effort`) is a per-request switch, not a preset
    field — never reload weights just to change it.
-4. **Keep or revert.** Compare the new `models/bench.log` line against the previous one for that preset
-   (decode tok/s, prefill tok/s, draft acceptance). If it regressed or only moved within noise, edit
+5. **Keep or revert.** Compare the new `models/bench.log` line against the previous one for that preset
+   (decode tok/s, prefill tok/s, draft acceptance). If it regressed or only moved within the spread, edit
    `llama-cpp/preset.ini` back and re-bench to confirm the revert lands where the baseline was.
 
 > [!WARNING]
-> A bench run that used `cache_prompt`-warm state or a different `--tokens`/`--runs` value is not
-> comparable to the baseline. Keep the invocation identical (or pass matching `--tokens`/`--runs`
-> explicitly) across every iteration you intend to compare.
+> A bench run that used `cache_prompt`-warm state or a different `--tokens`/`--runs`/`--warmups`/`--loads`
+> value is not comparable to the baseline. Keep the invocation identical (or pass matching flags
+> explicitly) across every iteration you intend to compare. Entries in `models/bench.log` written before
+> the `warmups`/`loads`/`spread_pct` columns existed were taken with a single warm-up on one load and
+> under-report steady state by up to 54% — do not compare against them.
+
+> [!IMPORTANT]
+> **`llama-cpp/preset.ini` is bind-mounted as a single file**, so Docker mounts its inode. `sed -i` and
+> `cp` replace the inode and the container keeps reading the old file — every edit must be written in
+> place (`cat new > llama-cpp/preset.ini`).
 
 ## The knobs
 
