@@ -107,6 +107,12 @@ peak) is worth ~1-2%, and there is no overthreading to fix. The GPUs idling at 3
 "11.8 of 12 cores are pegged" is ggml's spin-wait, not work: `--poll 0` and 6 threads prove the host side
 has roughly 2x headroom. The remaining limit is the serial draft-verify chain on the GPUs.
 
+The decisive test isolates DRAM contention from core contention: with generation on CCD0 and a 6-thread
+memory streamer on CCD1 — separate cores, separate L3, sharing only the memory controller — a co-runner
+consuming essentially all remaining bandwidth cost decode **0.4%** (25.0 → 24.9 t/s at production
+sampling). Contention inflates both effective latency and available bandwidth far more than a frequency
+bump would recover, so this rules out a DRAM upgrade on both axes at once.
+
 Two consequences: EXPO/DRAM overclocking is not worth the boot risk on this box (4x48 GiB, 2DPC, dual-rank
 cannot train above the JEDEC 3600 fallback anyway), and `n-cpu-moe` can be _raised_ to free VRAM at little
 throughput cost if the sidekicks or image generation ever need the room. The `~0.81 GiB/token` above is
