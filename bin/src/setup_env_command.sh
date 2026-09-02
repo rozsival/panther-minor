@@ -14,6 +14,9 @@ panther_setup_env() {
   panther_log_info "Syncing VIDEO_GID and RENDER_GID in $PANTHER_ENV_FILE from host groups..."
   panther_sync_env_gpu_gids "$PANTHER_ENV_FILE"
 
+  panther_log_info "Syncing BIND_ADDR in $PANTHER_ENV_FILE from the Tailscale address..."
+  panther_sync_env_bind_addr "$PANTHER_ENV_FILE"
+
   panther_log_success 'Env vars ready.'
 }
 

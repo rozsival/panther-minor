@@ -4,6 +4,14 @@ import { isLargeModelId, normalizeModelsPayload } from './models.js';
 const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
+// Bound on proxied streams, counted as socket *inactivity*: a cold model load
+// or long prefill streams no bytes from llama-server for minutes (this build
+// has no SSE keepalives), so it sits at the same 900s ceiling nginx uses in
+// front of the manager. Without a real timeout a wedged llama-server holds the
+// proxied socket open forever, which pins the manager as active and disables
+// idle unload. UPSTREAM_TIMEOUT_SECONDS bounds only the manager's own
+// control-plane fetches (/models, /models/unload), never proxied traffic.
+const PROXY_TIMEOUT_SECONDS = Number.parseFloat(process.env.PROXY_TIMEOUT_SECONDS ?? '900');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
 const IDLE_UNLOAD_RETRY_SECONDS = Number.parseFloat(process.env.IDLE_UNLOAD_RETRY_SECONDS ?? '15');
 
@@ -400,7 +408,7 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
       method: req.method,
       path: req.url,
       port: Number(upstreamBase.port) || 80,
-      timeout: UPSTREAM_TIMEOUT_SECONDS * 1000,
+      timeout: PROXY_TIMEOUT_SECONDS * 1000,
     },
     (proxyRes) => {
       res.writeHead(proxyRes.statusCode, stripHopByHopHeaders(proxyRes.headers));
@@ -415,6 +423,24 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
       proxyRes.on('error', finishTrackedRequest);
     }
   );
+
+  // 'timeout' fires after the socket goes quiet for PROXY_TIMEOUT_SECONDS in
+  // either direction. The option alone only emits the event; destroying the
+  // request here is what actually ends it. The 'error' handler below then
+  // releases the reservation and activity tracking, and answers the client
+  // with 502 if no bytes of the response started. Without this listener a
+  // wedged llama-server would hold the request open forever, pinning the
+  // manager as active and blocking idle VRAM unload indefinitely.
+  proxyReq.on('timeout', () => {
+    log('warn', 'proxy_upstream_timeout', { path: req.url, timeoutSeconds: PROXY_TIMEOUT_SECONDS });
+    // Headers already streamed: the response is dead mid-body, so end the
+    // client connection too rather than leave it hanging. When nothing
+    // started, leave 502 to the error handler below.
+    if (res.headersSent) {
+      res.destroy();
+    }
+    proxyReq.destroy(new Error('upstream_timeout'));
+  });
 
   if (bodyBuffer) {
     proxyReq.end(bodyBuffer);
@@ -580,6 +606,7 @@ export function startServer() {
       idleUnloadRetrySeconds: IDLE_UNLOAD_RETRY_SECONDS,
       listen: `0.0.0.0:${PORT}`,
       logLevel: LOG_LEVEL,
+      proxyTimeoutSeconds: PROXY_TIMEOUT_SECONDS,
       timeoutSeconds: UPSTREAM_TIMEOUT_SECONDS,
       upstream: LLAMA_SERVER_URL,
     });

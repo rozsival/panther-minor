@@ -8,12 +8,28 @@ How Panther Minor exposes services while keeping AI and monitoring endpoints off
 > Panther Minor is designed so that **AI and monitoring services are reachable through Tailscale, but blocked from the
 > public internet**.
 
-| Layer     | Behavior                                                              |
-| --------- | --------------------------------------------------------------------- |
-| Docker    | Binds services to `0.0.0.0` inside the host                           |
-| UFW       | Blocks service ports from the public internet                         |
-| Tailscale | Provides secure access through VPN kernel routing                     |
-| Result    | Services stay reachable for trusted clients, but not internet-exposed |
+| Layer     | Behavior                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------- |
+| Docker    | Publishes the proxy's ports on `127.0.0.1` and `BIND_ADDR` (this node's Tailscale IP) — never `0.0.0.0` |
+| UFW       | Blocks host-local service ports on the `INPUT` path                                                     |
+| Tailscale | Provides secure access through VPN kernel routing                                                       |
+| Result    | Services stay reachable for trusted clients, but not internet-exposed                                   |
+
+> [!NOTE]
+> Why the bind address, not a firewall rule: Docker publishes ports with `nat/PREROUTING`
+> DNAT, so packets reaching a container are _forwarded_, not delivered locally — they
+> never traverse the `INPUT` chain UFW manages, and `ufw deny 8000` cannot block a
+> published port (moby/moby#17496). A published port scoped to an address is enforced by
+> the DNAT rule itself, so the exposure does not exist in the first place.
+>
+> `proxy` is the only service that publishes ports; everything else uses `expose:` and is
+> reachable only inside the `ai` network. `BIND_ADDR` is mandatory: unset, the stack
+> refuses to start rather than silently falling back to `0.0.0.0`. `setup env` fills it
+> from `tailscale ip -4` — re-run `sudo ./bin/cli setup env` after `sudo tailscale up`.
+>
+> Consequence worth knowing: `cluster start` requires Tailscale to be up, because the
+> proxy cannot bind an address that does not exist yet. That is the intended failure
+> direction — a broken tunnel stops the stack instead of exposing it.
 
 ## 🌐 Port exposure
 
@@ -70,8 +86,9 @@ curl -k https://localhost:8000/v1/models
 
 ## 🛠️ Where port behavior is defined
 
-| File                 | Responsibility                                |
-| -------------------- | --------------------------------------------- |
-| `docker-compose.yml` | Service definitions and published ports       |
-| `bin/src/bashly.yml` | CLI surface and setup command contract        |
-| `bin/src/*.sh`       | Setup logic, firewall rules, and SSH defaults |
+| File                 | Responsibility                                                    |
+| -------------------- | ----------------------------------------------------------------- |
+| `docker-compose.yml` | Service definitions and address-scoped published ports            |
+| `.env`               | `BIND_ADDR` — the address published ports are scoped to           |
+| `bin/src/bashly.yml` | CLI surface and setup command contract                            |
+| `bin/src/*.sh`       | Setup logic, `BIND_ADDR` resolution, firewall rules, SSH defaults |

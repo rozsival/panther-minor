@@ -77,6 +77,10 @@ services:
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'
       LOG_LEVEL: info
       PORT: 8000
+      # Inactivity ceiling for proxied inference streams (cold loads stream no
+      # bytes for minutes); matches proxy_read_timeout in proxy/nginx.conf.
+      PROXY_TIMEOUT_SECONDS: 900
+      # Control-plane bound only: /models and /models/unload fetches.
       UPSTREAM_TIMEOUT_SECONDS: 4
     volumes:
       - './llama-cpp/manager.js:/app/main.js:ro'
@@ -398,13 +402,31 @@ services:
     container_name: proxy
     image: nginx:1.31.4-trixie
     restart: unless-stopped
+    # The only service that publishes ports, and the whole internet-facing
+    # surface of the stack. Each port is published twice: on loopback (SSH
+    # tunnels, host-local curl) and on this node's Tailscale address.
+    #
+    # Docker's published-port DNAT rules match the bound address, so an
+    # address-scoped publish is what keeps these services off the public
+    # internet. A firewall rule cannot do it: DNAT'd packets are forwarded to
+    # the container and never traverse the INPUT chain UFW manages
+    # (moby/moby#17496).
+    #
+    # BIND_ADDR is mandatory on purpose. Unset, the stack refuses to start
+    # (loud, fixable) instead of falling back to 0.0.0.0 (silent exposure).
     ports:
-      - '3000:3000'
-      - '4200:4200'
-      - '8000:8000'
-      - '8001:8001'
-      - '8080:8080'
-      - '9090:9090'
+      - '127.0.0.1:3000:3000'
+      - '${BIND_ADDR:?run "sudo ./bin/cli setup env" after "sudo tailscale up" to set BIND_ADDR}:3000:3000'
+      - '127.0.0.1:4200:4200'
+      - '${BIND_ADDR}:4200:4200'
+      - '127.0.0.1:8000:8000'
+      - '${BIND_ADDR}:8000:8000'
+      - '127.0.0.1:8001:8001'
+      - '${BIND_ADDR}:8001:8001'
+      - '127.0.0.1:8080:8080'
+      - '${BIND_ADDR}:8080:8080'
+      - '127.0.0.1:9090:9090'
+      - '${BIND_ADDR}:9090:9090'
     volumes:
       - 'proxy-logs:/var/log/nginx'
       - './proxy/nginx.conf:/etc/nginx/nginx.conf:ro'

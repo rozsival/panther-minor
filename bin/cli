@@ -2194,6 +2194,30 @@ panther_sync_env_gpu_gids() {
   panther_upsert_env_key "$env_file" VIDEO_GID "$video_gid"
   panther_upsert_env_key "$env_file" RENDER_GID "$render_gid"
 }
+panther_sync_env_bind_addr() {
+  local env_file="$1"
+  [[ -f "$env_file" ]] || panther_log_error "Missing env file: $env_file"
+
+  # Resolved from Tailscale, not from a flag: this address is what scopes every
+  # published port away from the public internet, and the node already owns
+  # exactly one correct value for it.
+  local bind_addr=''
+  if command -v tailscale >/dev/null 2>&1; then
+    bind_addr="$(tailscale ip -4 2>/dev/null | head -1 || true)"
+  fi
+
+  if [[ -z "$bind_addr" ]]; then
+    # 'setup all' installs Tailscale but cannot authenticate it (that needs a
+    # browser), so an unresolvable address here is the expected first-run
+    # state, not an error. The cluster refuses to start until it is set, so
+    # this cannot silently degrade into publishing on 0.0.0.0.
+    panther_log_warn 'No Tailscale IPv4 address yet; BIND_ADDR left unset.'
+    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/cli setup env'."
+    return 0
+  fi
+
+  panther_upsert_env_key "$env_file" BIND_ADDR "$bind_addr"
+}
 panther_prepare_setup_step() {
   local message="$1"
   panther_resolve_setup_context
@@ -3289,6 +3313,9 @@ cli_setup_env_command() {
 
     panther_log_info "Syncing VIDEO_GID and RENDER_GID in $PANTHER_ENV_FILE from host groups..."
     panther_sync_env_gpu_gids "$PANTHER_ENV_FILE"
+
+    panther_log_info "Syncing BIND_ADDR in $PANTHER_ENV_FILE from the Tailscale address..."
+    panther_sync_env_bind_addr "$PANTHER_ENV_FILE"
 
     panther_log_success 'Env vars ready.'
   }

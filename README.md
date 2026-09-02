@@ -161,6 +161,18 @@ Follow the browser link to complete authentication. Once connected, access the s
 ssh -p 2222 <user>@<server-name>
 ```
 
+Then record the node's Tailscale address in `.env`, which is what scopes every published port
+away from the public internet:
+
+```bash
+sudo ./bin/cli setup env
+```
+
+> [!IMPORTANT]
+> `setup all` runs before Tailscale is authenticated, so `BIND_ADDR` is empty until this step.
+> The cluster refuses to start with an empty `BIND_ADDR` rather than publishing its ports on
+> `0.0.0.0`. See [Port Configuration](./PORTS.md) for the reasoning.
+
 > [!TIP]
 > It is usually best to
 > [disable key expiry](https://login.tailscale.com/admin/machines)
