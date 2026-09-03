@@ -65,10 +65,16 @@ flowchart LR
 | ----------- | ----------------------------------------------------- |
 | Motherboard | X870E with 2x PCIe Gen5 x16 slots                     |
 | CPU         | AMD Ryzen 9 or newer, **12 cores recommended**        |
-| Memory      | **128 GB DDR5 or more**                               |
+| Memory      | **96 GB DDR5 or more**, in **two DIMMs**              |
 | GPUs        | **2x AMD Radeon Pro RDNA 4** with **32 GB VRAM each** |
 | Storage     | NVMe SSD, **1 TB or more**, Gen4 or newer             |
 | PSU         | **1300W or more** with 2x 12VHPWR connectors          |
+
+> [!NOTE]
+> Use **two DIMMs, one per channel**. Filling all four slots forces AM5 down to the JEDEC 3600 MT/s fallback
+> regardless of EXPO, and adding modules later downclocks the pair already installed. DRAM speed measured no
+> effect on MoE inference here, so size for **capacity**: spare RAM becomes page cache for the GGUF corpus
+> and shortens cold model loads.
 
 ### BIOS
 
@@ -76,7 +82,7 @@ flowchart LR
 - Resize BAR enabled
 - IOMMU enabled
 - iGPU disabled
-- PCIe slots set to Gen5 and x8/x8 mode
+- PCIe slots set to Gen5 (both slots train at x16)
 - `M2_1` slot set to Gen4 for the NVMe SSD
 
 > [!NOTE]
@@ -289,7 +295,7 @@ switching, per-model sampling defaults, and GPU assignment are all handled by th
 ```
 
 Open WebUI needs no changes when switching — leave its image model field at `default`. See
-[Text-to-image models](./models/README.md#-text-to-image-models-t2i) for the full command reference, and
+[Text-to-image models](./models/README.md#-text-to-image-models-t2iconfigjson) for the full command reference, and
 [Recommended workflows](./models/README.md#-recommended-workflows) for how to combine image generation with LLM chats
 without VRAM contention.
 
