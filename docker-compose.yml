@@ -400,7 +400,7 @@ services:
   # -- Nginx proxy ------------------------------------------------------------
   proxy:
     container_name: proxy
-    image: nginx:1.31.4-trixie
+    image: nginx:1.31.5-trixie
     restart: unless-stopped
     # The only service that publishes ports, and the whole internet-facing
     # surface of the stack. Each port is published twice: on loopback (SSH
