@@ -143,8 +143,8 @@ importers:
         specifier: 6.0.3
         version: 6.0.3
       ultracite:
-        specifier: 7.10.8
-        version: 7.10.8
+        specifier: 7.11.0
+        version: 7.11.0(@biomejs/biome@2.5.12)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.6)
 
 packages:
 
@@ -1131,16 +1131,28 @@ packages:
   ufo@1.6.4:
     resolution: {integrity: sha512-JFNbkD1Svwe0KvGi8GOeLcP4kAWQ609twvCdcHxq1oSL8svv39ZuSvajcD8B+5D0eL4+s1Is2D/O6KN3qcTeRA==}
 
-  ultracite@7.10.8:
-    resolution: {integrity: sha512-oSPLhcMMX7BtfPtDvs5KrPMQxOr2kitBK4jsCbGAj/F863GJO000bLaKrT5ElpAKyuL+LgnvdsGzCh/dlWMC7Q==}
+  ultracite@7.11.0:
+    resolution: {integrity: sha512-HJByeIoO4Lhcing1k2sabI7BCHRqeMztXGYZm4Zcir7NXvidXLwDgLNZgSR4w3oPKPgx7CRTqzJitt/oPR34NA==}
     hasBin: true
     peerDependencies:
-      oxfmt: '>=0.1.0'
+      '@biomejs/biome': ^2.5.0
+      eslint: ^10.0.0
+      oxfmt: '>=0.40.0'
       oxlint: ^1.79.0
+      prettier: ^3.0.0
+      stylelint: ^17.0.0
     peerDependenciesMeta:
+      '@biomejs/biome':
+        optional: true
+      eslint:
+        optional: true
       oxfmt:
         optional: true
       oxlint:
+        optional: true
+      prettier:
+        optional: true
+      stylelint:
         optional: true
 
   undici-types@7.18.2:
@@ -1200,8 +1212,8 @@ packages:
     resolution: {integrity: sha512-xYqdZFUK/VYazNl/oCDYN+3WloWQwMfZxBoiNt6qNyk+xfOdi598muWE42rNZFp1kNOiqW936q5RhUdnpqElSg==}
     engines: {node: '>=18'}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.5.4:
+    resolution: {integrity: sha512-sC95tT5iHHH9gtpj6A81kh+NEaRAUFN+qlUPDUbRfOMvNf5QCBqsb3WgvnpVtK5Y+4UfA6KqufotuTvMGiTlsA==}
 
 snapshots:
 
@@ -2143,7 +2155,7 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  ultracite@7.10.8:
+  ultracite@7.11.0(@biomejs/biome@2.5.12)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.6):
     dependencies:
       '@clack/prompts': 1.7.0
       cli-truncate: 6.1.1
@@ -2158,9 +2170,14 @@ snapshots:
       magicast: 0.5.4
       nypm: 0.6.9
       resolve.exports: 2.0.3
+      semver: 7.8.5
       string-width: 8.2.2
       yaml: 2.9.0
-      zod: 4.4.3
+      zod: 4.5.4
+    optionalDependencies:
+      '@biomejs/biome': 2.5.12
+      eslint: 10.10.0(jiti@2.6.1)
+      prettier: 3.9.6
 
   undici-types@7.18.2: {}
 
@@ -2209,4 +2226,4 @@ snapshots:
 
   yoctocolors@2.2.0: {}
 
-  zod@4.4.3: {}
+  zod@4.5.4: {}
