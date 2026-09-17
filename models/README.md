@@ -118,10 +118,12 @@ the machine.
 marginal accepted token stops paying for its draft-and-sample cycle — and it is **sampler-dependent**: greedy
 accepts far more than the `temp = 1.0` these presets serve. Depth stays at **2**.
 
-Compare depths **structurally**, not on tok/s: acceptance swings 35-75% between otherwise identical loads, so
+Compare depths **structurally**, not on tok/s: acceptance swings 35-75% between otherwise identical runs, so
 tok/s needs impractically many samples to separate neighbouring depths (depth 2 vs 3 differs by 1.8 t/s
-against σ = 1.7). Per-pass cost and tokens-per-pass are far tighter and decide it outright — depth 3 costs
-**+19.8%** per pass to settle **+9.9%** more tokens, a net loss, and depth 4 collapses acceptance to 35%.
+against σ = 1.7). Per-pass cost and tokens-per-pass are far tighter — over 6 runs on one load each, depth 3
+cost **+19.8%** per pass to settle only **+9.9%** more tokens. Read that as indicative rather than decisive:
+one load per arm sits inside the per-process mode spread described above, and an earlier 3-load comparison put
+depth 2 vs 3 at a wash. Depth 4 is unambiguous — acceptance collapses to 35%.
 Always measure at the sampler you serve — the
 [`tune-preset` skill](../.agents/skills/tune-preset/SKILL.md) has the worked example and the metrics endpoint.
 
