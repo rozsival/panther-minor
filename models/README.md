@@ -78,12 +78,15 @@ only the slope term is bandwidth-exposed: +20% DRAM bandwidth is capped at **≤
 the two physical memory experiments came back flat.
 
 > [!WARNING]
-> **Benchmark at the context length you work at.** Short-prompt numbers flatter these models badly. On
-> `Qwen3.8-Flash-Next`, per-pass cost grows ~1.1 ms per 1K of context — 97 ms at 1.3K to 142 ms at 42K
-> (**+46%**) — and MTP acceptance roughly halves over the same span (70% → 33%). The two compound: **23.4 t/s
-> at 1K becomes ~15.7 t/s at 42K**, the regime a coding harness actually runs in. Prefill holds at 360-510
-> t/s, so a 42K prompt is ~100 s before the first token. The per-pass half is solid; the acceptance half was
-> measured on synthetic filler and wants re-checking on real source files.
+> **Benchmark at the context length you work at.** Short-prompt numbers flatter these models badly. For
+> `Qwen3.8-Flash-Next`, a plain (`spec-type = none`) token costs 54.6 ms at 1K of context, 69.4 ms at 40K and
+> 81.8 ms at 85K — near-linear at **~0.35 ms per 1K**, measured at batch 1 so no acceptance effect is mixed
+> in. MTP acceptance decays over the same span independently (70% → 45% → 34%, with a per-line nonce so
+> `--cache-reuse` cannot match KV chunks between runs). The two compound: **23.4 t/s at 1K, 16.4 at 40K, 13.6
+> at 85K**. Prefill runs 360-510 t/s, so a 40K prompt is ~100 s before the first token.
+>
+> MTP still pays at every length, but its margin narrows as acceptance falls — **+30% at 1K, +13.5% at 40K,
+> +11.5% at 85K** — so depth and drafter decisions made at short context do not transfer upward.
 
 ### Speculative decoding
 
