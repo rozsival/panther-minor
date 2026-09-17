@@ -82,7 +82,7 @@ flowchart LR
 - Resize BAR enabled
 - IOMMU enabled
 - iGPU disabled
-- PCIe slots set to Gen5 (both slots train at x16)
+- PCIe slots set to Gen5 (the CPU bifurcates its x16 into x8/x8, so each card trains at Gen5 x8)
 - `M2_1` slot set to Gen4 for the NVMe SSD
 
 > [!NOTE]

@@ -68,6 +68,23 @@ live in the [`tune-preset` skill](../.agents/skills/tune-preset/SKILL.md).
 > bandwidth cost 0.4%, and halving DIMM count for a higher rated clock changed nothing. Faster RAM does not
 > pay, and `n-cpu-moe` can be _raised_ to free VRAM cheaply. Flips for a dense model resident in RAM.
 
+Sweeping one placement knob at a time yields a linear cost model — for `Qwen3.8-Flash-Next`,
+`ms/pass = 54.0 + 1.60 * n-cpu-moe` (R² = 0.975). The **slope** is just bytes — 1.60 ms/block is what those
+experts cost at the DRAM ceiling this box actually reaches (45.3 GiB/s, measured; a single core already gets
+37.3 GiB/s), so there is no per-block handoff overhead hiding in it. The **intercept** is only the fit
+extrapolated to `n-cpu-moe = 0`; it is not the same quantity as a bare pass at the deployed placement (which
+still streams 28 blocks), so don't read the two as cross-confirming. What matters for procurement is that
+only the slope term is bandwidth-exposed: +20% DRAM bandwidth is capped at **≤7.5%** end to end, which is why
+the two physical memory experiments came back flat.
+
+> [!WARNING]
+> **Benchmark at the context length you work at.** Short-prompt numbers flatter these models badly. On
+> `Qwen3.8-Flash-Next`, per-pass cost grows ~1.1 ms per 1K of context — 97 ms at 1.3K to 142 ms at 42K
+> (**+46%**) — and MTP acceptance roughly halves over the same span (70% → 33%). The two compound: **23.4 t/s
+> at 1K becomes ~15.7 t/s at 42K**, the regime a coding harness actually runs in. Prefill holds at 360-510
+> t/s, so a 42K prompt is ~100 s before the first token. The per-pass half is solid; the acceptance half was
+> measured on synthetic filler and wants re-checking on real source files.
+
 ### Speculative decoding
 
 Most ⚡️ models use an **MTP head**: one extra dense layer sharing the base model's embeddings, run in-graph,
@@ -80,6 +97,14 @@ for it is structurally sound: a verify pass reads them **once** but settles ~2.5
 _less_ under speculation than without it. Skip MTP for concurrent serving (0.81-0.87x at concurrency 8), and
 confirm the head actually runs via `timings.draft_n` / `draft_n_accepted`.
 
+Priced in isolation on `Qwen3.8-Flash-Next` by flipping `spec-type` between `draft-mtp` and `none` in one
+session, the head is worth **+30.6%** at the production sampler — 54.6 → 42.0 ms/token, or 18.3 → 23.9 t/s. In
+per-pass terms a speculative pass costs ~39 ms more than a plain token (93.9 vs 54.6) and returns ~1.25 extra
+tokens. Splitting that 39 ms between the two draft forwards and the wider verify batch requires a model rather
+than a measurement, so treat any finer breakdown as estimated. Worth noting: a spec-off pass is strikingly
+repeatable (σ ≈ 0.1 ms/token), so nearly all run-to-run spread in speculative throughput is acceptance, not
+the machine.
+
 > [!IMPORTANT]
 > **These heads do not run on mainline llama.cpp.** Upstream declares no `NEXTN_*` tensors for `qwen4exp`
 > (still true at `d08c787`), so it drops the head at conversion and silently ignores `spec-draft-model`. The
@@ -91,8 +116,13 @@ confirm the head actually runs via `timings.draft_n` / `draft_n_accepted`.
 
 `spec-draft-n-max` sets tokens proposed per round. Acceptance decays geometrically, so the optimum is where the
 marginal accepted token stops paying for its draft-and-sample cycle — and it is **sampler-dependent**: greedy
-accepts far more than the `temp = 1.0` these presets serve. Depth stays at **2**; depth 3's greedy +24% was a
-wash at production sampling. Always measure at the sampler you serve — the
+accepts far more than the `temp = 1.0` these presets serve. Depth stays at **2**.
+
+Compare depths **structurally**, not on tok/s: acceptance swings 35-75% between otherwise identical loads, so
+tok/s needs impractically many samples to separate neighbouring depths (depth 2 vs 3 differs by 1.8 t/s
+against σ = 1.7). Per-pass cost and tokens-per-pass are far tighter and decide it outright — depth 3 costs
+**+19.8%** per pass to settle **+9.9%** more tokens, a net loss, and depth 4 collapses acceptance to 35%.
+Always measure at the sampler you serve — the
 [`tune-preset` skill](../.agents/skills/tune-preset/SKILL.md) has the worked example and the metrics endpoint.
 
 ### GPU split mode
