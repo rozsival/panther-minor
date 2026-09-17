@@ -79,13 +79,14 @@ the two physical memory experiments came back flat.
 
 > [!WARNING]
 > **Benchmark at the context length you work at.** Short-prompt numbers flatter these models badly. For
-> `Qwen3.8-Flash-Next`, a plain (`spec-type = none`) token costs 54.6 ms at 1K of context, 69.4 ms at 40K and
-> 81.8 ms at 85K — near-linear at **~0.35 ms per 1K**, measured at batch 1 so no acceptance effect is mixed
-> in. MTP acceptance decays over the same span independently (70% → 45% → 34%, with a per-line nonce so
-> `--cache-reuse` cannot match KV chunks between runs). The two compound: **23.4 t/s at 1K, 16.4 at 40K, 13.6
-> at 85K**. Prefill runs 360-510 t/s, so a 40K prompt is ~100 s before the first token.
+> `Qwen3.8-Flash-Next`, a plain (`spec-type = none`) token costs 54.6 ms at a 50-token prompt, 69.4 ms at 40K
+> and 81.8 ms at 85K — near-linear at **~0.35 ms per 1K**, measured at batch 1 so no acceptance effect is
+> mixed in. MTP acceptance decays over the same span independently (70% → 45% → 34%, with a per-line nonce so
+> `--cache-reuse` cannot match KV chunks between runs). The two compound: **23.4 t/s short, 16.4 at 40K, 13.6
+> at 85K**. Prefill on uncacheable prompts runs 343 t/s at 40K and 265 t/s at 85K, so first token lands ~2 min
+> and ~5 min in respectively.
 >
-> MTP still pays at every length, but its margin narrows as acceptance falls — **+30% at 1K, +13.5% at 40K,
+> MTP still pays at every length, but its margin narrows as acceptance falls — **+30% short, +13.5% at 40K,
 > +11.5% at 85K** — so depth and drafter decisions made at short context do not transfer upward.
 
 ### Speculative decoding
@@ -126,7 +127,8 @@ tok/s needs impractically many samples to separate neighbouring depths (depth 2 
 against σ = 1.7). Per-pass cost and tokens-per-pass are far tighter — over 6 runs on one load each, depth 3
 cost **+19.8%** per pass to settle only **+9.9%** more tokens. Read that as indicative rather than decisive:
 one load per arm sits inside the per-process mode spread described above, and an earlier 3-load comparison put
-depth 2 vs 3 at a wash. Depth 4 is unambiguous — acceptance collapses to 35%.
+depth 2 vs 3 at a wash. Depth 4 was also a single-load result (−7% t/s) but sat at the bottom of the observed
+acceptance range.
 Always measure at the sampler you serve — the
 [`tune-preset` skill](../.agents/skills/tune-preset/SKILL.md) has the worked example and the metrics endpoint.
 
