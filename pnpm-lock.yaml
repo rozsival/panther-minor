@@ -188,20 +188,20 @@ importers:
         specifier: 2.1.14
         version: 2.1.14
       prettier:
-        specifier: 3.9.7
-        version: 3.9.7
+        specifier: 3.9.8
+        version: 3.9.8
       prettier-plugin-packagejson:
         specifier: 3.0.2
-        version: 3.0.2(prettier@3.9.7)
+        version: 3.0.2(prettier@3.9.8)
       prettier-plugin-toml:
         specifier: 2.0.6
-        version: 2.0.6(prettier@3.9.7)
+        version: 2.0.6(prettier@3.9.8)
       typescript:
         specifier: 6.0.3
         version: 6.0.3
       ultracite:
         specifier: 7.12.0
-        version: 7.12.0(@biomejs/biome@2.5.14)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.7)
+        version: 7.12.0(@biomejs/biome@2.5.14)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.8)
 
 packages:
 
@@ -1065,8 +1065,8 @@ packages:
     peerDependencies:
       prettier: ^3.0.3
 
-  prettier@3.9.7:
-    resolution: {integrity: sha512-T3mF5P7HFzZVLDQuCUNtJj6WK1pcpLMweMNUVwGb01bLNkH9AkKxtZvmInw8K6bnn2O3d6/5RHl6zSHiBAD0Og==}
+  prettier@3.9.8:
+    resolution: {integrity: sha512-WRFq3Wn3WId7LLROfMLdH7xaFr2jR62wU8nLO6rQUOLOxNZUviyJQs1M0iIhLexSFy+L+w0ch66wtoO2jRjG0A==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -2101,18 +2101,18 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-packagejson@3.0.2(prettier@3.9.7):
+  prettier-plugin-packagejson@3.0.2(prettier@3.9.8):
     dependencies:
       sort-package-json: 3.7.1
     optionalDependencies:
-      prettier: 3.9.7
+      prettier: 3.9.8
 
-  prettier-plugin-toml@2.0.6(prettier@3.9.7):
+  prettier-plugin-toml@2.0.6(prettier@3.9.8):
     dependencies:
       '@taplo/lib': 0.5.0
-      prettier: 3.9.7
+      prettier: 3.9.8
 
-  prettier@3.9.7: {}
+  prettier@3.9.8: {}
 
   pretty-ms@9.3.0:
     dependencies:
@@ -2212,7 +2212,7 @@ snapshots:
 
   ufo@1.6.4: {}
 
-  ultracite@7.12.0(@biomejs/biome@2.5.14)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.7):
+  ultracite@7.12.0(@biomejs/biome@2.5.14)(eslint@10.10.0(jiti@2.6.1))(prettier@3.9.8):
     dependencies:
       '@clack/prompts': 1.7.0
       cli-truncate: 6.1.1
@@ -2234,7 +2234,7 @@ snapshots:
     optionalDependencies:
       '@biomejs/biome': 2.5.14
       eslint: 10.10.0(jiti@2.6.1)
-      prettier: 3.9.7
+      prettier: 3.9.8
 
   undici-types@7.18.2: {}
 
