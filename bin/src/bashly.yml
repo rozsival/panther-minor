@@ -327,8 +327,8 @@ commands:
                 short: -e
                 help: Dedicate the image GPU(s) to sd-server by moving the LLMs off them (restarts llama.cpp; undo with unload)
             examples:
-              - cli models t2i load Qwen-Image-2512
-              - cli models t2i load --exclusive Qwen-Image-2512
+              - cli models t2i load Qwen-Image-2.1
+              - cli models t2i load --exclusive Qwen-Image-2.1
             completions:
               - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 

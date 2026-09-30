@@ -27,33 +27,31 @@
       ]
     },
     {
-      "name": "Qwen-Image-2512",
+      "name": "Qwen-Image-2.1",
       "components": [
         {
           "role": "diffusion",
-          "repository": "unsloth/Qwen-Image-2512-GGUF",
-          "file": "qwen-image-2512-Q8_0.gguf"
+          "repository": "unsloth/Qwen-Image-2.1-GGUF",
+          "file": "qwen-image-2.1-Q8_0.gguf"
         },
         {
           "role": "llm",
-          "repository": "unsloth/Qwen2.5-VL-7B-Instruct-GGUF",
-          "file": "Qwen2.5-VL-7B-Instruct-UD-Q4_K_XL.gguf"
+          "repository": "unsloth/Qwen3-VL-8B-Instruct-GGUF",
+          "file": "Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf"
         },
         {
           "role": "vae",
-          "repository": "Comfy-Org/Qwen-Image_ComfyUI",
-          "file": "split_files/vae/qwen_image_vae.safetensors"
+          "repository": "unsloth/Qwen-Image-2.1-FP8",
+          "file": "vae/qwen_image_2.1_vae_bf16.safetensors"
         }
       ],
       "args": [
         "--cfg-scale",
-        "2.5",
-        "--flow-shift",
-        "3",
+        "6.0",
         "--sampling-method",
         "euler",
         "--steps",
-        "40",
+        "20",
         "-v"
       ]
     }
