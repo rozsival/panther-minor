@@ -189,10 +189,10 @@ native-speaker system prompt forbidding script mixing, per model via a Workspace
 Served by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
 OpenAI-compatible image API on port `8001`.
 
-| Model             | Base                           | Notes                                                                                              |
-| ----------------- | ------------------------------ | -------------------------------------------------------------------------------------------------- |
-| `Ideogram-4`      | `leejet/ideogram-4-GGUF`       | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE                 |
-| `Qwen-Image-2512` | `unsloth/Qwen-Image-2512-GGUF` | Photorealistic generation and strong text rendering (Q4_0); Qwen2.5-VL-7B encoder + Qwen-Image VAE |
+| Model            | Base                          | Notes                                                                                                             |
+| ---------------- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `Ideogram-4`     | `leejet/ideogram-4-GGUF`      | Strong prompt adherence and text rendering; uses a Qwen3-VL-8B encoder + Flux2 VAE                                |
+| `Qwen-Image-2.1` | `unsloth/Qwen-Image-2.1-GGUF` | 7B photorealistic generation, native transparency (RGBA) and text rendering (Q8_0); Qwen3-VL-8B encoder + own VAE |
 
 > [!IMPORTANT]
 > Ideogram 4 requires JSON prompts and will most likely fail on a pure text prompt — see its
@@ -204,9 +204,10 @@ OpenAI-compatible image API on port `8001`.
 
 Models are defined in `t2i.config.json` (schema in `t2i.schema.json`). **`components`** are the weight files a
 model needs (diffusion, optional unconditional diffusion, LLM text encoder, VAE), and models list only what
-they use — Ideogram 4 has a separate unconditional diffusion model, Qwen-Image doesn't. **`args`** _(optional)_
-carries extra `sd-server` flags for per-model sampling defaults (e.g. `--flow-shift` for Qwen-Image); `load`
-writes them to `SD_CPP_MODEL_ARGS` in `.env`, so tuning switches with the model.
+they use — Ideogram 4 has a separate unconditional diffusion model, Qwen-Image doesn't. Both share the same
+Qwen3-VL-8B encoder file, so it is downloaded once and `remove` keeps it while the other model needs it.
+**`args`** _(optional)_ carries extra `sd-server` flags for per-model sampling defaults (e.g. `--cfg-scale` and
+`--steps` for Qwen-Image); `load` writes them to `SD_CPP_MODEL_ARGS` in `.env`, so tuning switches with the model.
 
 ### Management
 
@@ -236,7 +237,34 @@ reload lazily — switch modes per session, not per image. All four variables li
 ## 🧭 Recommended workflows
 
 LLMs and image generation share the same GPUs, so running heavyweight models of both kinds at once contends
-for VRAM and can OOM. Pick the workflow that matches your session.
+for VRAM. `sd-server` always runs on `SD_VISIBLE_DEVICES` (GPU 1), which also hosts the pinned
+`Qwen3-Embedding-0.6B` and `Qwen3.5-2B` (~5.8 GiB together). Pick the workflow that matches your session.
+
+### Image model footprint
+
+Measured on GPU 1 at 1024×1024 (Open WebUI's `IMAGE_SIZE`), weights offloaded to RAM between generations:
+
+| Image model               | Weights (RAM) | Peak VRAM, GPU to itself | Generation |
+| ------------------------- | ------------: | -----------------------: | ---------: |
+| `Qwen-Image-2.1` (Q8_0)   |      12.1 GiB |                  8.6 GiB |       77 s |
+| `Ideogram-4` (Q4_0)       |      15.0 GiB |                 10.7 GiB |       88 s |
+| `Qwen-Image-2512` (Q8_0)¹ |      25.0 GiB |                 21.3 GiB |      196 s |
+
+¹ Replaced by `Qwen-Image-2.1`; kept for comparison (40 steps against 2.1's 20, weights summed from its
+files). The other weights are `sd-server`'s own totals.
+
+When the image GPU has less free VRAM than the peak, `sd-server` degrades instead of failing: it streams the
+diffusion weights in segments and tiles the VAE decode. At ~2 GiB free it cannot fit a segment and returns
+HTTP 500 at once; the LLMs keep serving. Measured with the pinned small models resident:
+
+| Large chat model     | GPU 1 used before image | `Qwen-Image-2.1`           | `Ideogram-4`                |
+| -------------------- | ----------------------: | -------------------------- | --------------------------- |
+| `Qwen3.8-27B`        |                25.3 GiB | ✅ 85 s (segmented, tiled) | ✅ 111 s (segmented, tiled) |
+| `Qwen3.6-35B-A3B`    |                30.2 GiB | ❌ HTTP 500                | ❌ HTTP 500                 |
+| `Qwen3.8-Flash-Next` |                31.8 GiB | ❌ HTTP 500                | ❌ (less room than 35B-A3B) |
+
+Load the chat model **before** generating, as the everyday flow does anyway: a large LLM loaded while
+`sd-server` holds its peak finds that VRAM taken.
 
 ### Everyday: chat with occasional images (no GPU switching)
 
@@ -244,15 +272,16 @@ Load an image model once (`./bin/cli models t2i load <model>`) and leave GPU ass
 reassignment, no restarts, no cleanup, and `stable-diffusion.cpp` holds VRAM only while producing an image.
 The chat model's only role is **authoring the prompt**, so match it to the loaded image model:
 
-| Loaded image model | Prompting                                  | Recommended chat model  | Why                                                                                 |
-| ------------------ | ------------------------------------------ | ----------------------- | ----------------------------------------------------------------------------------- |
-| `Qwen-Image-2512`  | Plain text                                 | `Qwen3.5-2B`            | Relaying a plain prompt needs no capacity, and Qwen-Image is the VRAM-heavy stack   |
-| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.8-27B` or larger | Small models can't drive the JSON-prompt skill; Ideogram 4's stack is light on VRAM |
+| Loaded image model | Prompting                                  | Recommended chat model        | Why                                                                                     |
+| ------------------ | ------------------------------------------ | ----------------------------- | --------------------------------------------------------------------------------------- |
+| `Qwen-Image-2.1`   | Plain text                                 | `Qwen3.5-2B` to `Qwen3.8-27B` | Any co-resident model can write a plain prompt; a larger one writes richer descriptions |
+| `Ideogram-4`       | Structured JSON (`ideogram4-prompt` skill) | `Qwen3.8-27B`                 | Small models can't drive the JSON-prompt skill; larger ones leave the image GPU no room |
 
 ### Heavy image sessions: dedicate a GPU
 
-For many images, or a pairing the shared GPUs cannot fit — most notably **Qwen-Image next to a heavyweight
-LLM (27B+)** — give image generation a GPU of its own. Use it when in doubt; see
+For many images, or a pairing the shared GPUs cannot fit — **`Qwen3.6-35B-A3B` or `Qwen3.8-Flash-Next` next to
+any image model** — give image generation a GPU of its own. Next to `Qwen3.8-27B` it also avoids segmented
+streaming and tiling, which cost +10% (`Qwen-Image-2.1`) to +26% (`Ideogram-4`) per image. See
 [GPU assignment](#gpu-assignment) for the mechanics.
 
 ```bash

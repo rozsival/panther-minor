@@ -1068,8 +1068,8 @@ cli_models_t2i_load_usage() {
 
     # :command.usage_examples
     printf "%s\n" "Examples:"
-    printf "  cli models t2i load Qwen-Image-2512\n"
-    printf "  cli models t2i load --exclusive Qwen-Image-2512\n"
+    printf "  cli models t2i load Qwen-Image-2.1\n"
+    printf "  cli models t2i load --exclusive Qwen-Image-2.1\n"
     echo
 
   fi

@@ -284,14 +284,14 @@ Panther Minor also serves local **text-to-image** generation through
 [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
 **OpenAI-compatible image API** (`POST /v1/images/generations`). Two models are available:
 [Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF) (default) and
-[Qwen-Image 2512](https://huggingface.co/unsloth/Qwen-Image-2512-GGUF).
+[Qwen-Image 2.1](https://huggingface.co/unsloth/Qwen-Image-2.1-GGUF).
 
 `sd-server` loads exactly **one** model per process, so only one text-to-image model is ever resident. Downloading,
 switching, per-model sampling defaults, and GPU assignment are all handled by the CLI:
 
 ```bash
-./bin/cli models t2i download Ideogram-4  # or Qwen-Image-2512
-./bin/cli models t2i load Qwen-Image-2512 # switch the served model (recreates sd-server)
+./bin/cli models t2i download Ideogram-4  # or Qwen-Image-2.1
+./bin/cli models t2i load Qwen-Image-2.1  # switch the served model (recreates sd-server)
 ```
 
 Open WebUI needs no changes when switching — leave its image model field at `default`. See
@@ -343,9 +343,10 @@ table is read host-side and never enters VRAM at all.
 ### Image generation VRAM
 
 `sd-server` offloads its weights to RAM between generations (`--offload-to-cpu`), so it only holds VRAM while actually
-producing an image — idle image-generation VRAM frees itself. For heavy image sessions, `models t2i load --exclusive`
-dedicates a GPU to image generation and `models t2i unload` gives it back to the LLMs — see
-[Recommended workflows](./models/README.md#-recommended-workflows) and
+producing an image — idle image-generation VRAM frees itself. Short on VRAM, it streams weights in segments and tiles
+the VAE decode, so either image model shares the GPUs with `Qwen3.8-27B`; larger LLMs leave too little. For those, or
+heavy image sessions, `models t2i load --exclusive` dedicates a GPU to image generation and `models t2i unload` gives
+it back to the LLMs — see [Recommended workflows](./models/README.md#-recommended-workflows) and
 [GPU assignment](./models/README.md#gpu-assignment). `sd-manager` records image activity and exposes a
 `sd_metrics_exporter_idle` gauge for visibility in Grafana.
 
