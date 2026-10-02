@@ -31,7 +31,7 @@
     "@types/node": "24.19.1",
     "eslint": "10.11.0",
     "is-ci": "4.1.0",
-    "lefthook": "2.1.15",
+    "lefthook": "2.1.16",
     "prettier": "3.9.9",
     "prettier-plugin-packagejson": "3.0.2",
     "prettier-plugin-toml": "3.0.2",
