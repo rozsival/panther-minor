@@ -4,14 +4,14 @@ This directory contains the Panther Minor command-line interface, powered by [Ba
 
 ## 📍 At a glance
 
-| Audience           | Use this                                             |
-| ------------------ | ---------------------------------------------------- |
-| CLI users          | Run `./bin/cli` from the project root                |
-| CLI maintainers    | Edit authored sources in `./cli/*`                   |
-| Generated artifact | `./bin/cli` is build output, not the source of truth |
+| Audience           | Use this                                                       |
+| ------------------ | -------------------------------------------------------------- |
+| CLI users          | Run `./bin/panther-minor` from the project root                |
+| CLI maintainers    | Edit authored sources in `./cli/*`                             |
+| Generated artifact | `./bin/panther-minor` is build output, not the source of truth |
 
 > [!IMPORTANT]
-> Do **not** edit `./bin/cli` directly. Update the authored Bashly sources and regenerate it instead.
+> Do **not** edit `./bin/panther-minor` directly. Update the authored Bashly sources and regenerate it instead.
 
 ## 🗂️ Command groups
 
@@ -28,8 +28,8 @@ This directory contains the Panther Minor command-line interface, powered by [Ba
 Inspect available commands with:
 
 ```bash
-./bin/cli --help
-./bin/cli <command> --help
+./bin/panther-minor --help
+./bin/panther-minor <command> --help
 ```
 
 Load shell completions with:
@@ -72,14 +72,14 @@ pnpm run build:cli
 - `models download` supports `HF_TOKEN`
 - `logs <service>` streams logs, `logs <service> --tail` prints the latest `100` lines once, and
   `logs <service> --tail <n>` prints the latest `<n>` lines once
-- `./bin/cli completions [bash|zsh]` prints the shell completion script (default `bash`) for
-  `eval "$(./bin/cli completions)"`; completions are generated natively by Bashly 2 (`completions: full` in
+- `./bin/panther-minor completions [bash|zsh]` prints the shell completion script (default `bash`) for
+  `eval "$(./bin/panther-minor completions)"`; completions are generated natively by Bashly 2 (`completions: full` in
   `./bashly-settings.yml`)
 - Per-argument completions live on the arg in `./cli/bashly.yml` as `completions: { static | dynamic | options }`
 
 ## ✅ Validate after changes
 
 ```bash
-bash -n ./bin/cli
-./bin/cli --help
+bash -n ./bin/panther-minor
+./bin/panther-minor --help
 ```

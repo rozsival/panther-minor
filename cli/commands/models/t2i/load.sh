@@ -19,7 +19,7 @@ panther_t2i_load() {
 
   cache_dir="$(panther_hf_cache_dir)"
   if [[ ! -f "$cache_dir/$diffusion" ]]; then
-    panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/cli models t2i download $model' first."
+    panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/panther-minor models t2i download $model' first."
   fi
 
   # sd-server loads exactly one model per process, so pointing the single
@@ -43,7 +43,7 @@ panther_t2i_load() {
     panther_log_info "Loading text-to-image model '$model' and dedicating GPU(s) to image generation..."
     panther_compose up --detach --force-recreate --no-deps llama-cpp stable-diffusion-cpp
 
-    panther_log_success "Text-to-image model '$model' loaded on its dedicated GPU(s). The LLMs were moved off; run './bin/cli models t2i unload' to give the GPU(s) back."
+    panther_log_success "Text-to-image model '$model' loaded on its dedicated GPU(s). The LLMs were moved off; run './bin/panther-minor models t2i unload' to give the GPU(s) back."
     return 0
   fi
 

@@ -1,4 +1,4 @@
-# bashly (https://bashly.dev) builds bin/cli from cli/. Edit cli/, then run
+# bashly (https://bashly.dev) builds bin/panther-minor from cli/. Edit cli/, then run
 # `pnpm run build:cli` (`bashly generate` from the repo root) and commit both:
 # the generated script is what the workstation runs.
 source_dir: cli

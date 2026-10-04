@@ -1,19 +1,19 @@
 ---
 name: cli-command
 description: >
-  Add, edit, or regenerate subcommands and flags on the Bashly-powered `./bin/cli`. Use when the user
-  says "add a CLI command", "add a flag to ./bin/cli", "change the CLI", "regenerate the CLI", or "add a
+  Add, edit, or regenerate subcommands and flags on the Bashly-powered `./bin/panther-minor`. Use when the user
+  says "add a CLI command", "add a flag to ./bin/panther-minor", "change the CLI", "regenerate the CLI", or "add a
   bashly subcommand".
 ---
 
-You are the CLI maintainer for the Panther Minor Bashly CLI. `./bin/cli` is powered by
+You are the CLI maintainer for the Panther Minor Bashly CLI. `./bin/panther-minor` is powered by
 [Bashly](https://bashly.dev/) and built from authored sources under `cli/`. Follow this workflow
 precisely — see `bin/README.md` for the human-facing summary of the same rules.
 
 ## The one rule that matters
 
 > [!IMPORTANT]
-> Never edit `./bin/cli` directly. It is a generated artifact — **roughly 10k lines**, including the
+> Never edit `./bin/panther-minor` directly. It is a generated artifact — **roughly 10k lines**, including the
 > inlined Bashly completion engine — built from `cli/*` by `bashly generate`. Reading it burns tens of
 > thousands of tokens for no benefit, and any hand
 > edit is silently discarded the next time someone runs `pnpm run build:cli`. Edit the authored sources
@@ -75,10 +75,10 @@ writing a new one.
    project's `build:cli` script intentionally omits `--force`.
 5. **Validate the result:**
    ```bash
-   bash -n ./bin/cli
-   ./bin/cli --help
-   ./bin/cli <group> --help
-   ./bin/cli <group> <subgroup> <cmd> --help
+   bash -n ./bin/panther-minor
+   ./bin/panther-minor --help
+   ./bin/panther-minor <group> --help
+   ./bin/panther-minor <group> <subgroup> <cmd> --help
    ```
    Then actually invoke the new/changed command (with real or representative arguments) and confirm the
    output and exit code are correct.
@@ -97,13 +97,13 @@ writing a new one.
 <path>` explicitly (`cli/lib/core.sh`); Docker Compose reads `.env` itself and needs no help from
   the CLI.
 - **Completions** are generated natively by Bashly 2 (`completions: full` in `bashly-settings.yml`; no
-  `send_completions.sh` lib file) and exposed by `./bin/cli completions [bash|zsh]`
+  `send_completions.sh` lib file) and exposed by `./bin/panther-minor completions [bash|zsh]`
   (`cli/commands/completions.sh`), loaded with `source .bashrc`. Dynamic per-arg completions (e.g.
   listing model names) go on the **arg or flag**, never the command, as `completions: { dynamic: [...] }`
   — each entry is a plain shell command (no `$()` wrapper) printing one candidate per line, run in a
   subshell. See the `models llm download` `model` arg for the pattern
   (`jq -r '.models.[] | .name' models/llm.config.json`). Literal suggestions use `static:`; file/dir
-  completion uses `options: [files|directories]`. Smoke-test with `./bin/cli __complete <words...> ""`.
+  completion uses `options: [files|directories]`. Smoke-test with `./bin/panther-minor __complete <words...> ""`.
 
 ## Checklist: what else to update when the command tree changes
 
@@ -113,15 +113,15 @@ writing a new one.
   the CLI surface.
 - Shell completions — regenerated automatically by `pnpm run build:cli`;
   no separate manual step, but re-run `source .bashrc` in your own shell to pick them up locally.
-- Any wizard/skill that shells out to `./bin/cli` (e.g. `.agents/skills/add-model/SKILL.md`) — check
+- Any wizard/skill that shells out to `./bin/panther-minor` (e.g. `.agents/skills/add-model/SKILL.md`) — check
   whether it references the exact subcommand or flag name you changed.
 
 ## Error handling
 
-- **`./bin/cli` behaves differently than `cli/` suggests it should.** The generated artifact is out
-  of sync with its sources. Run `pnpm run build:cli` and re-test; never hand-patch `./bin/cli` to paper
+- **`./bin/panther-minor` behaves differently than `cli/` suggests it should.** The generated artifact is out
+  of sync with its sources. Run `pnpm run build:cli` and re-test; never hand-patch `./bin/panther-minor` to paper
   over the mismatch.
-- **`bash -n ./bin/cli` reports a syntax error.** The line number is inside the generated file, but the
+- **`bash -n ./bin/panther-minor` reports a syntax error.** The line number is inside the generated file, but the
   bug is almost always in the authored `cli/commands/**/*.sh` or `cli/lib/*.sh` file that was
   spliced in at that point — find the corresponding authored file and fix it there, then regenerate.
 - **A validator "fails silently" (bad input is accepted, or a good input is rejected with no clear

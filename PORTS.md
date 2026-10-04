@@ -25,7 +25,7 @@ How Panther Minor exposes services while keeping AI and monitoring endpoints off
 > `proxy` is the only service that publishes ports; everything else uses `expose:` and is
 > reachable only inside the `ai` network. `BIND_ADDR` is mandatory: unset, the stack
 > refuses to start rather than silently falling back to `0.0.0.0`. `setup env` fills it
-> from `tailscale ip -4` — re-run `sudo ./bin/cli setup env` after `sudo tailscale up`.
+> from `tailscale ip -4` — re-run `sudo ./bin/panther-minor setup env` after `sudo tailscale up`.
 >
 > Consequence worth knowing: `cluster start` requires Tailscale to be up, because the
 > proxy cannot bind an address that does not exist yet. That is the intended failure

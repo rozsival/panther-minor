@@ -28,8 +28,8 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 - `README.md` — setup instructions, architecture overview, service access details
 - `PORTS.md` — detailed port configuration and access methods
-- `bin/README.md` — overview of the `./bin/cli` command tree (strictly follow rules there for CLI changes)
-- `models/README.md` — overview for LLMs (`./bin/cli models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`) and text-to-image models (`./bin/cli models t2i *`, `models/t2i.config.json`)
+- `bin/README.md` — overview of the `./bin/panther-minor` command tree (strictly follow rules there for CLI changes)
+- `models/README.md` — overview for LLMs (`./bin/panther-minor models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`) and text-to-image models (`./bin/panther-minor models t2i *`, `models/t2i.config.json`)
 - `docker-compose.yml` — service definitions with health checks
 - `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models and arbitrates large-model switches before proxying inference
 - `llama-cpp/models.js` — shared model helpers, including normalization and the static list of model IDs treated as large by the manager

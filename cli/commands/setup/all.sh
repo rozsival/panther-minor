@@ -3,7 +3,7 @@
 # Every step in dependency order: init prepares the disk and clock, packages and
 # brew install tooling, docker/tailscale/ssh/ufw/fail2ban bring the platform up,
 # amdgpu and grub the GPU, then per-user config. These are the same functions
-# './bin/cli setup <step>' dispatches to, so each step has one implementation.
+# './bin/panther-minor setup <step>' dispatches to, so each step has one implementation.
 panther_setup_all() {
   local step
 

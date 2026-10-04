@@ -127,7 +127,7 @@ panther_sync_env_bind_addr() {
     # state, not an error. The cluster refuses to start until it is set, so
     # this cannot silently degrade into publishing on 0.0.0.0.
     panther_log_warn 'No Tailscale IPv4 address yet; BIND_ADDR left unset.'
-    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/cli setup env'."
+    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/panther-minor setup env'."
     return 0
   fi
 

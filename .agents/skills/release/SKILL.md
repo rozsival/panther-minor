@@ -37,10 +37,10 @@ Update the version in **every file that carries it**. As of this writing those a
 | `models/t2i.config.json` | `"version": "X.Y.Z"`                               |
 | `README.md`              | `git checkout vX.Y.Z` in the "Quick Start" section |
 
-`bin/cli` also carries the version, at `declare -g version="X.Y.Z"`. It is **not** in that table on
+`bin/panther-minor` also carries the version, at `declare -g version="X.Y.Z"`. It is **not** in that table on
 purpose.
 
-> **Never read or edit `bin/cli` during a release.** It is a large generated bashly artifact (see
+> **Never read or edit `bin/panther-minor` during a release.** It is a large generated bashly artifact (see
 > `.agents/skills/cli-command/SKILL.md`) — reading it costs tens of thousands of tokens and has caused a release to fail mid-run. Its version line
 > comes from `cli/bashly.yml` and is rewritten by `pnpm run build:cli` below. Bump the source, not
 > the artifact.
@@ -65,10 +65,10 @@ read **only the matching line range** (e.g. `README.md:110-120`), never the whol
    ```bash
    pnpm run build:cli
    ```
-3. **Verify no stale version remains** — grep for the **old** version across the repo (now that `bin/cli`
+3. **Verify no stale version remains** — grep for the **old** version across the repo (now that `bin/panther-minor`
    is regenerated too). It must return nothing except intentional history (e.g. `CHANGELOG`):
    ```bash
-   grep -rn "<OLD_VERSION>" --include=*.json --include=*.yml --include=*.ini --include=*.md --include=cli . \
+   grep -rn "<OLD_VERSION>" --include=*.json --include=*.yml --include=*.ini --include=*.md --include=panther-minor . \
      | grep -vE "node_modules|/\.git/|pnpm-lock|CHANGELOG"
    ```
    If anything unexpected prints, update it before continuing.

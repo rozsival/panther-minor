@@ -162,7 +162,7 @@ services:
       - '${RENDER_GID}'
     environment:
       HIP_VISIBLE_DEVICES: '${SD_VISIBLE_DEVICES}'
-      # Active text-to-image model, managed by `./bin/cli models t2i load`.
+      # Active text-to-image model, managed by `./bin/panther-minor models t2i load`.
       # sd-server loads exactly one model, so only one is ever resident. These
       # come straight from .env with no fallback, so .env is the single source
       # of truth: a missing value surfaces as a compose warning instead of a
@@ -417,7 +417,7 @@ services:
     # (loud, fixable) instead of falling back to 0.0.0.0 (silent exposure).
     ports:
       - '127.0.0.1:3000:3000'
-      - '${BIND_ADDR:?run "sudo ./bin/cli setup env" after "sudo tailscale up" to set BIND_ADDR}:3000:3000'
+      - '${BIND_ADDR:?run "sudo ./bin/panther-minor setup env" after "sudo tailscale up" to set BIND_ADDR}:3000:3000'
       - '127.0.0.1:4200:4200'
       - '${BIND_ADDR}:4200:4200'
       - '127.0.0.1:8000:8000'

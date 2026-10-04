@@ -11,13 +11,13 @@ version_command() {
   echo "$version"
 }
 
-cli_usage() {
-  printf "cli - 🐆 Panther Minor CLI\n\n"
+panther_minor_usage() {
+  printf "panther-minor - 🐆 Panther Minor CLI\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli COMMAND\n"
-  printf "  cli [COMMAND] --help | -h\n"
-  printf "  cli --version | -v\n"
+  printf "  panther-minor COMMAND\n"
+  printf "  panther-minor [COMMAND] --help | -h\n"
+  printf "  panther-minor --version | -v\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -44,12 +44,12 @@ cli_usage() {
   fi
 }
 
-cli_setup_usage() {
-  printf "cli setup - Configure the Panther Minor host\n\n"
+panther_minor_setup_usage() {
+  printf "panther-minor setup - Configure the Panther Minor host\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup [COMMAND]\n"
-  printf "  cli setup [COMMAND] --help | -h\n"
+  printf "  panther-minor setup [COMMAND]\n"
+  printf "  panther-minor setup [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -80,12 +80,12 @@ cli_setup_usage() {
   fi
 }
 
-cli_setup_all_usage() {
-  printf "cli setup all - Run the full workstation setup\n\n"
+panther_minor_setup_all_usage() {
+  printf "panther-minor setup all - Run the full workstation setup\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup [all] [OPTIONS]\n"
-  printf "  cli setup all --help | -h\n"
+  printf "  panther-minor setup [all] [OPTIONS]\n"
+  printf "  panther-minor setup all --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -141,12 +141,12 @@ cli_setup_all_usage() {
   fi
 }
 
-cli_setup_init_usage() {
-  printf "cli setup init - Extend storage and set timezone\n\n"
+panther_minor_setup_init_usage() {
+  printf "panther-minor setup init - Extend storage and set timezone\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup init [OPTIONS]\n"
-  printf "  cli setup init --help | -h\n"
+  printf "  panther-minor setup init [OPTIONS]\n"
+  printf "  panther-minor setup init --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -178,12 +178,12 @@ cli_setup_init_usage() {
   fi
 }
 
-cli_setup_packages_usage() {
-  printf "cli setup packages - Install essential packages\n\n"
+panther_minor_setup_packages_usage() {
+  printf "panther-minor setup packages - Install essential packages\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup packages\n"
-  printf "  cli setup packages --help | -h\n"
+  printf "  panther-minor setup packages\n"
+  printf "  panther-minor setup packages --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -197,12 +197,12 @@ cli_setup_packages_usage() {
   fi
 }
 
-cli_setup_brew_usage() {
-  printf "cli setup brew - Install Homebrew, llmfit, and Hugging Face CLI\n\n"
+panther_minor_setup_brew_usage() {
+  printf "panther-minor setup brew - Install Homebrew, llmfit, and Hugging Face CLI\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup brew [OPTIONS]\n"
-  printf "  cli setup brew --help | -h\n"
+  printf "  panther-minor setup brew [OPTIONS]\n"
+  printf "  panther-minor setup brew --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -226,12 +226,12 @@ cli_setup_brew_usage() {
   fi
 }
 
-cli_setup_docker_usage() {
-  printf "cli setup docker - Install Docker and add the selected user to the docker group\n\n"
+panther_minor_setup_docker_usage() {
+  printf "panther-minor setup docker - Install Docker and add the selected user to the docker group\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup docker [OPTIONS]\n"
-  printf "  cli setup docker --help | -h\n"
+  printf "  panther-minor setup docker [OPTIONS]\n"
+  printf "  panther-minor setup docker --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -255,12 +255,12 @@ cli_setup_docker_usage() {
   fi
 }
 
-cli_setup_tailscale_usage() {
-  printf "cli setup tailscale - Install Tailscale\n\n"
+panther_minor_setup_tailscale_usage() {
+  printf "panther-minor setup tailscale - Install Tailscale\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup tailscale\n"
-  printf "  cli setup tailscale --help | -h\n"
+  printf "  panther-minor setup tailscale\n"
+  printf "  panther-minor setup tailscale --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -274,12 +274,12 @@ cli_setup_tailscale_usage() {
   fi
 }
 
-cli_setup_ssh_usage() {
-  printf "cli setup ssh - Harden SSH configuration\n\n"
+panther_minor_setup_ssh_usage() {
+  printf "panther-minor setup ssh - Harden SSH configuration\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup ssh [OPTIONS]\n"
-  printf "  cli setup ssh --help | -h\n"
+  printf "  panther-minor setup ssh [OPTIONS]\n"
+  printf "  panther-minor setup ssh --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -311,12 +311,12 @@ cli_setup_ssh_usage() {
   fi
 }
 
-cli_setup_ufw_usage() {
-  printf "cli setup ufw - Configure the firewall\n\n"
+panther_minor_setup_ufw_usage() {
+  printf "panther-minor setup ufw - Configure the firewall\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup ufw [OPTIONS]\n"
-  printf "  cli setup ufw --help | -h\n"
+  printf "  panther-minor setup ufw [OPTIONS]\n"
+  printf "  panther-minor setup ufw --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -340,12 +340,12 @@ cli_setup_ufw_usage() {
   fi
 }
 
-cli_setup_fail2ban_usage() {
-  printf "cli setup fail2ban - Install and configure fail2ban\n\n"
+panther_minor_setup_fail2ban_usage() {
+  printf "panther-minor setup fail2ban - Install and configure fail2ban\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup fail2ban [OPTIONS]\n"
-  printf "  cli setup fail2ban --help | -h\n"
+  printf "  panther-minor setup fail2ban [OPTIONS]\n"
+  printf "  panther-minor setup fail2ban --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -369,12 +369,12 @@ cli_setup_fail2ban_usage() {
   fi
 }
 
-cli_setup_amdgpu_usage() {
-  printf "cli setup amdgpu - Install AMD GPU drivers and ROCm\n\n"
+panther_minor_setup_amdgpu_usage() {
+  printf "panther-minor setup amdgpu - Install AMD GPU drivers and ROCm\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup amdgpu\n"
-  printf "  cli setup amdgpu --help | -h\n"
+  printf "  panther-minor setup amdgpu\n"
+  printf "  panther-minor setup amdgpu --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -388,12 +388,12 @@ cli_setup_amdgpu_usage() {
   fi
 }
 
-cli_setup_grub_usage() {
-  printf "cli setup grub - Update GRUB kernel parameters\n\n"
+panther_minor_setup_grub_usage() {
+  printf "panther-minor setup grub - Update GRUB kernel parameters\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup grub\n"
-  printf "  cli setup grub --help | -h\n"
+  printf "  panther-minor setup grub\n"
+  printf "  panther-minor setup grub --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -407,12 +407,12 @@ cli_setup_grub_usage() {
   fi
 }
 
-cli_setup_git_usage() {
-  printf "cli setup git - Configure Git defaults for the selected user\n\n"
+panther_minor_setup_git_usage() {
+  printf "panther-minor setup git - Configure Git defaults for the selected user\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup git [OPTIONS]\n"
-  printf "  cli setup git --help | -h\n"
+  printf "  panther-minor setup git [OPTIONS]\n"
+  printf "  panther-minor setup git --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -444,12 +444,12 @@ cli_setup_git_usage() {
   fi
 }
 
-cli_setup_shell_usage() {
-  printf "cli setup shell - Install Starship and configure shell access for the selected user\n\n"
+panther_minor_setup_shell_usage() {
+  printf "panther-minor setup shell - Install Starship and configure shell access for the selected user\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup shell [OPTIONS]\n"
-  printf "  cli setup shell --help | -h\n"
+  printf "  panther-minor setup shell [OPTIONS]\n"
+  printf "  panther-minor setup shell --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -473,12 +473,12 @@ cli_setup_shell_usage() {
   fi
 }
 
-cli_setup_env_usage() {
-  printf "cli setup env - Create .env and sync GPU group IDs\n\n"
+panther_minor_setup_env_usage() {
+  printf "panther-minor setup env - Create .env and sync GPU group IDs\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli setup env [OPTIONS]\n"
-  printf "  cli setup env --help | -h\n"
+  printf "  panther-minor setup env [OPTIONS]\n"
+  printf "  panther-minor setup env --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -502,12 +502,12 @@ cli_setup_env_usage() {
   fi
 }
 
-cli_models_usage() {
-  printf "cli models - Manage Panther Minor model files\n\n"
+panther_minor_models_usage() {
+  printf "panther-minor models - Manage Panther Minor model files\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models COMMAND\n"
-  printf "  cli models [COMMAND] --help | -h\n"
+  printf "  panther-minor models COMMAND\n"
+  printf "  panther-minor models [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -527,12 +527,12 @@ cli_models_usage() {
   fi
 }
 
-cli_models_llm_usage() {
-  printf "cli models llm - Manage large language models\n\n"
+panther_minor_models_llm_usage() {
+  printf "panther-minor models llm - Manage large language models\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm COMMAND\n"
-  printf "  cli models llm [COMMAND] --help | -h\n"
+  printf "  panther-minor models llm COMMAND\n"
+  printf "  panther-minor models llm [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -555,12 +555,12 @@ cli_models_llm_usage() {
   fi
 }
 
-cli_models_llm_download_usage() {
-  printf "cli models llm download - Download a supported LLM into the local Hugging Face cache\n\n"
+panther_minor_models_llm_download_usage() {
+  printf "panther-minor models llm download - Download a supported LLM into the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm download MODEL [OPTIONS]\n"
-  printf "  cli models llm download --help | -h\n"
+  printf "  panther-minor models llm download MODEL [OPTIONS]\n"
+  printf "  panther-minor models llm download --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -588,19 +588,19 @@ cli_models_llm_download_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models llm download Qwen3.5-35B-A3B\n"
-    printf "  HF_TOKEN=token cli models llm download Qwen3.5-35B-A3B\n"
+    printf "  panther-minor models llm download Qwen3.5-35B-A3B\n"
+    printf "  HF_TOKEN=token panther-minor models llm download Qwen3.5-35B-A3B\n"
     echo
 
   fi
 }
 
-cli_models_llm_list_usage() {
-  printf "cli models llm list - List supported LLMs\n\n"
+panther_minor_models_llm_list_usage() {
+  printf "panther-minor models llm list - List supported LLMs\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm list\n"
-  printf "  cli models llm list --help | -h\n"
+  printf "  panther-minor models llm list\n"
+  printf "  panther-minor models llm list --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -614,12 +614,12 @@ cli_models_llm_list_usage() {
   fi
 }
 
-cli_models_llm_remove_usage() {
-  printf "cli models llm remove - Remove a downloaded LLM from the local Hugging Face cache\n\n"
+panther_minor_models_llm_remove_usage() {
+  printf "panther-minor models llm remove - Remove a downloaded LLM from the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm remove MODEL\n"
-  printf "  cli models llm remove --help | -h\n"
+  printf "  panther-minor models llm remove MODEL\n"
+  printf "  panther-minor models llm remove --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -639,12 +639,12 @@ cli_models_llm_remove_usage() {
   fi
 }
 
-cli_models_llm_load_usage() {
-  printf "cli models llm load - Load an LLM into the llama.cpp server\n\n"
+panther_minor_models_llm_load_usage() {
+  printf "panther-minor models llm load - Load an LLM into the llama.cpp server\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm load MODEL\n"
-  printf "  cli models llm load --help | -h\n"
+  printf "  panther-minor models llm load MODEL\n"
+  printf "  panther-minor models llm load --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -662,18 +662,18 @@ cli_models_llm_load_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models llm load Qwen3.8-Flash-Next\n"
+    printf "  panther-minor models llm load Qwen3.8-Flash-Next\n"
     echo
 
   fi
 }
 
-cli_models_llm_unload_usage() {
-  printf "cli models llm unload - Unload an LLM from the llama.cpp server\n\n"
+panther_minor_models_llm_unload_usage() {
+  printf "panther-minor models llm unload - Unload an LLM from the llama.cpp server\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm unload MODEL\n"
-  printf "  cli models llm unload --help | -h\n"
+  printf "  panther-minor models llm unload MODEL\n"
+  printf "  panther-minor models llm unload --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -691,18 +691,18 @@ cli_models_llm_unload_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models llm unload Qwen3.8-Flash-Next\n"
+    printf "  panther-minor models llm unload Qwen3.8-Flash-Next\n"
     echo
 
   fi
 }
 
-cli_models_llm_bench_usage() {
-  printf "cli models llm bench - Measure decode and prefill throughput and append it to the baseline log\n\n"
+panther_minor_models_llm_bench_usage() {
+  printf "panther-minor models llm bench - Measure decode and prefill throughput and append it to the baseline log\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models llm bench MODEL [OPTIONS]\n"
-  printf "  cli models llm bench --help | -h\n"
+  printf "  panther-minor models llm bench MODEL [OPTIONS]\n"
+  printf "  panther-minor models llm bench --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -740,19 +740,19 @@ cli_models_llm_bench_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models llm bench Qwen3.8-27B\n"
-    printf "  cli models llm bench --loads 3 --tokens 512 Qwen3.8-Flash-Next\n"
+    printf "  panther-minor models llm bench Qwen3.8-27B\n"
+    printf "  panther-minor models llm bench --loads 3 --tokens 512 Qwen3.8-Flash-Next\n"
     echo
 
   fi
 }
 
-cli_models_t2i_usage() {
-  printf "cli models t2i - Manage text-to-image models\n\n"
+panther_minor_models_t2i_usage() {
+  printf "panther-minor models t2i - Manage text-to-image models\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i COMMAND\n"
-  printf "  cli models t2i [COMMAND] --help | -h\n"
+  printf "  panther-minor models t2i COMMAND\n"
+  printf "  panther-minor models t2i [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -774,12 +774,12 @@ cli_models_t2i_usage() {
   fi
 }
 
-cli_models_t2i_download_usage() {
-  printf "cli models t2i download - Download a supported text-to-image model into the local Hugging Face cache\n\n"
+panther_minor_models_t2i_download_usage() {
+  printf "panther-minor models t2i download - Download a supported text-to-image model into the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i download MODEL [OPTIONS]\n"
-  printf "  cli models t2i download --help | -h\n"
+  printf "  panther-minor models t2i download MODEL [OPTIONS]\n"
+  printf "  panther-minor models t2i download --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -807,19 +807,19 @@ cli_models_t2i_download_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models t2i download Ideogram-4\n"
-    printf "  HF_TOKEN=token cli models t2i download Ideogram-4\n"
+    printf "  panther-minor models t2i download Ideogram-4\n"
+    printf "  HF_TOKEN=token panther-minor models t2i download Ideogram-4\n"
     echo
 
   fi
 }
 
-cli_models_t2i_list_usage() {
-  printf "cli models t2i list - List supported text-to-image models\n\n"
+panther_minor_models_t2i_list_usage() {
+  printf "panther-minor models t2i list - List supported text-to-image models\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i list\n"
-  printf "  cli models t2i list --help | -h\n"
+  printf "  panther-minor models t2i list\n"
+  printf "  panther-minor models t2i list --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -833,12 +833,12 @@ cli_models_t2i_list_usage() {
   fi
 }
 
-cli_models_t2i_remove_usage() {
-  printf "cli models t2i remove - Remove a downloaded text-to-image model from the local Hugging Face cache\n\n"
+panther_minor_models_t2i_remove_usage() {
+  printf "panther-minor models t2i remove - Remove a downloaded text-to-image model from the local Hugging Face cache\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i remove MODEL\n"
-  printf "  cli models t2i remove --help | -h\n"
+  printf "  panther-minor models t2i remove MODEL\n"
+  printf "  panther-minor models t2i remove --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -858,12 +858,12 @@ cli_models_t2i_remove_usage() {
   fi
 }
 
-cli_models_t2i_load_usage() {
-  printf "cli models t2i load - Load a text-to-image model into sd-server (replaces the currently loaded one)\n\n"
+panther_minor_models_t2i_load_usage() {
+  printf "panther-minor models t2i load - Load a text-to-image model into sd-server (replaces the currently loaded one)\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i load MODEL [OPTIONS]\n"
-  printf "  cli models t2i load --help | -h\n"
+  printf "  panther-minor models t2i load MODEL [OPTIONS]\n"
+  printf "  panther-minor models t2i load --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -885,19 +885,19 @@ cli_models_t2i_load_usage() {
     echo
 
     printf "%s\n" "Examples:"
-    printf "  cli models t2i load Qwen-Image-2.1\n"
-    printf "  cli models t2i load --exclusive Qwen-Image-2.1\n"
+    printf "  panther-minor models t2i load Qwen-Image-2.1\n"
+    printf "  panther-minor models t2i load --exclusive Qwen-Image-2.1\n"
     echo
 
   fi
 }
 
-cli_models_t2i_unload_usage() {
-  printf "cli models t2i unload - Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)\n\n"
+panther_minor_models_t2i_unload_usage() {
+  printf "panther-minor models t2i unload - Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models t2i unload\n"
-  printf "  cli models t2i unload --help | -h\n"
+  printf "  panther-minor models t2i unload\n"
+  printf "  panther-minor models t2i unload --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -911,12 +911,12 @@ cli_models_t2i_unload_usage() {
   fi
 }
 
-cli_models_prune_usage() {
-  printf "cli models prune - Delete cached model files no config references anymore\n\n"
+panther_minor_models_prune_usage() {
+  printf "panther-minor models prune - Delete cached model files no config references anymore\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli models prune\n"
-  printf "  cli models prune --help | -h\n"
+  printf "  panther-minor models prune\n"
+  printf "  panther-minor models prune --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -930,12 +930,12 @@ cli_models_prune_usage() {
   fi
 }
 
-cli_proxy_usage() {
-  printf "cli proxy - Manage proxy SSL and certificate automation\n\n"
+panther_minor_proxy_usage() {
+  printf "panther-minor proxy - Manage proxy SSL and certificate automation\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli proxy COMMAND\n"
-  printf "  cli proxy [COMMAND] --help | -h\n"
+  printf "  panther-minor proxy COMMAND\n"
+  printf "  panther-minor proxy [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -955,12 +955,12 @@ cli_proxy_usage() {
   fi
 }
 
-cli_proxy_certbot_usage() {
-  printf "cli proxy certbot - Issue and install the proxy certificate with acme-dns\n\n"
+panther_minor_proxy_certbot_usage() {
+  printf "panther-minor proxy certbot - Issue and install the proxy certificate with acme-dns\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli proxy certbot [OPTIONS]\n"
-  printf "  cli proxy certbot --help | -h\n"
+  printf "  panther-minor proxy certbot [OPTIONS]\n"
+  printf "  panther-minor proxy certbot --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -986,12 +986,12 @@ cli_proxy_certbot_usage() {
   fi
 }
 
-cli_proxy_renew_ssl_usage() {
-  printf "cli proxy renew-ssl - Renew existing proxy certificates and reload nginx\n\n"
+panther_minor_proxy_renew_ssl_usage() {
+  printf "panther-minor proxy renew-ssl - Renew existing proxy certificates and reload nginx\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli proxy renew-ssl\n"
-  printf "  cli proxy renew-ssl --help | -h\n"
+  printf "  panther-minor proxy renew-ssl\n"
+  printf "  panther-minor proxy renew-ssl --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1005,12 +1005,12 @@ cli_proxy_renew_ssl_usage() {
   fi
 }
 
-cli_proxy_setup_cron_usage() {
-  printf "cli proxy setup-cron - Install a cron entry that renews proxy certificates daily\n\n"
+panther_minor_proxy_setup_cron_usage() {
+  printf "panther-minor proxy setup-cron - Install a cron entry that renews proxy certificates daily\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli proxy setup-cron [OPTIONS]\n"
-  printf "  cli proxy setup-cron --help | -h\n"
+  printf "  panther-minor proxy setup-cron [OPTIONS]\n"
+  printf "  panther-minor proxy setup-cron --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1036,12 +1036,12 @@ cli_proxy_setup_cron_usage() {
   fi
 }
 
-cli_cluster_usage() {
-  printf "cli cluster - Manage the Panther Minor Docker Compose cluster\n\n"
+panther_minor_cluster_usage() {
+  printf "panther-minor cluster - Manage the Panther Minor Docker Compose cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster COMMAND\n"
-  printf "  cli cluster [COMMAND] --help | -h\n"
+  printf "  panther-minor cluster COMMAND\n"
+  printf "  panther-minor cluster [COMMAND] --help | -h\n"
   echo
 
   printf "%s\n" "Commands:"
@@ -1064,12 +1064,12 @@ cli_cluster_usage() {
   fi
 }
 
-cli_cluster_start_usage() {
-  printf "cli cluster start - Start the cluster\n\n"
+panther_minor_cluster_start_usage() {
+  printf "panther-minor cluster start - Start the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster start [SERVICE...] [OPTIONS]\n"
-  printf "  cli cluster start --help | -h\n"
+  printf "  panther-minor cluster start [SERVICE...] [OPTIONS]\n"
+  printf "  panther-minor cluster start --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1093,12 +1093,12 @@ cli_cluster_start_usage() {
   fi
 }
 
-cli_cluster_status_usage() {
-  printf "cli cluster status - Show the status of cluster containers\n\n"
+panther_minor_cluster_status_usage() {
+  printf "panther-minor cluster status - Show the status of cluster containers\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster status\n"
-  printf "  cli cluster status --help | -h\n"
+  printf "  panther-minor cluster status\n"
+  printf "  panther-minor cluster status --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1112,12 +1112,12 @@ cli_cluster_status_usage() {
   fi
 }
 
-cli_cluster_stop_usage() {
-  printf "cli cluster stop - Stop the cluster\n\n"
+panther_minor_cluster_stop_usage() {
+  printf "panther-minor cluster stop - Stop the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster stop [SERVICE...] [OPTIONS]\n"
-  printf "  cli cluster stop --help | -h\n"
+  printf "  panther-minor cluster stop [SERVICE...] [OPTIONS]\n"
+  printf "  panther-minor cluster stop --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1141,12 +1141,12 @@ cli_cluster_stop_usage() {
   fi
 }
 
-cli_cluster_cleanup_usage() {
-  printf "cli cluster cleanup - Remove cluster containers, volumes, images, and orphans\n\n"
+panther_minor_cluster_cleanup_usage() {
+  printf "panther-minor cluster cleanup - Remove cluster containers, volumes, images, and orphans\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster cleanup\n"
-  printf "  cli cluster cleanup --help | -h\n"
+  printf "  panther-minor cluster cleanup\n"
+  printf "  panther-minor cluster cleanup --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1160,12 +1160,12 @@ cli_cluster_cleanup_usage() {
   fi
 }
 
-cli_cluster_restart_usage() {
-  printf "cli cluster restart - Restart the cluster\n\n"
+panther_minor_cluster_restart_usage() {
+  printf "panther-minor cluster restart - Restart the cluster\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster restart [SERVICE...] [OPTIONS]\n"
-  printf "  cli cluster restart --help | -h\n"
+  printf "  panther-minor cluster restart [SERVICE...] [OPTIONS]\n"
+  printf "  panther-minor cluster restart --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1193,12 +1193,12 @@ cli_cluster_restart_usage() {
   fi
 }
 
-cli_cluster_build_usage() {
-  printf "cli cluster build - Build cluster images\n\n"
+panther_minor_cluster_build_usage() {
+  printf "panther-minor cluster build - Build cluster images\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli cluster build [SERVICE...] [OPTIONS]\n"
-  printf "  cli cluster build --help | -h\n"
+  printf "  panther-minor cluster build [SERVICE...] [OPTIONS]\n"
+  printf "  panther-minor cluster build --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1222,12 +1222,12 @@ cli_cluster_build_usage() {
   fi
 }
 
-cli_logs_usage() {
-  printf "cli logs - Stream logs by default or show a one-time tail for cluster services\n\n"
+panther_minor_logs_usage() {
+  printf "panther-minor logs - Stream logs by default or show a one-time tail for cluster services\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli logs SERVICE [OPTIONS]\n"
-  printf "  cli logs --help | -h\n"
+  printf "  panther-minor logs SERVICE [OPTIONS]\n"
+  printf "  panther-minor logs --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1251,12 +1251,12 @@ cli_logs_usage() {
   fi
 }
 
-cli_update_usage() {
-  printf "cli update - Update the repository from upstream\n\n"
+panther_minor_update_usage() {
+  printf "panther-minor update - Update the repository from upstream\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli update\n"
-  printf "  cli update --help | -h\n"
+  printf "  panther-minor update\n"
+  printf "  panther-minor update --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1270,12 +1270,12 @@ cli_update_usage() {
   fi
 }
 
-cli_completions_usage() {
-  printf "cli completions - Print the shell completion script for eval\n\n"
+panther_minor_completions_usage() {
+  printf "panther-minor completions - Print the shell completion script for eval\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  cli completions [SHELL]\n"
-  printf "  cli completions --help | -h\n"
+  printf "  panther-minor completions [SHELL]\n"
+  printf "  panther-minor completions --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -1727,7 +1727,7 @@ panther_sync_env_bind_addr() {
     # state, not an error. The cluster refuses to start until it is set, so
     # this cannot silently degrade into publishing on 0.0.0.0.
     panther_log_warn 'No Tailscale IPv4 address yet; BIND_ADDR left unset.'
-    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/cli setup env'."
+    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/panther-minor setup env'."
     return 0
   fi
 
@@ -1907,14 +1907,14 @@ validate_supported_t2i() {
   echo "must be one of: $supported_models"
 }
 
-cli_setup_all_command() {
+panther_minor_setup_all_command() {
 
   #!/usr/bin/env bash
 
   # Every step in dependency order: init prepares the disk and clock, packages and
   # brew install tooling, docker/tailscale/ssh/ufw/fail2ban bring the platform up,
   # amdgpu and grub the GPU, then per-user config. These are the same functions
-  # './bin/cli setup <step>' dispatches to, so each step has one implementation.
+  # './bin/panther-minor setup <step>' dispatches to, so each step has one implementation.
   panther_setup_all() {
     local step
 
@@ -1989,7 +1989,7 @@ cli_setup_all_command() {
 
 }
 
-cli_setup_init_command() {
+panther_minor_setup_init_command() {
 
   panther_setup_init() {
     panther_prepare_setup_step 'Extend LVM logical volume to full disk capacity.'
@@ -2022,7 +2022,7 @@ cli_setup_init_command() {
 
 }
 
-cli_setup_packages_command() {
+panther_minor_setup_packages_command() {
 
   panther_setup_packages() {
     panther_prepare_setup_step 'Install essential packages.'
@@ -2057,7 +2057,7 @@ cli_setup_packages_command() {
 
 }
 
-cli_setup_brew_command() {
+panther_minor_setup_brew_command() {
 
   panther_setup_brew() {
     panther_prepare_setup_step 'Install Homebrew and LLMFit.'
@@ -2116,7 +2116,7 @@ cli_setup_brew_command() {
 
 }
 
-cli_setup_docker_command() {
+panther_minor_setup_docker_command() {
 
   panther_setup_docker() {
     panther_prepare_setup_step 'Install Docker and Docker Compose.'
@@ -2158,7 +2158,7 @@ EOF
 
 }
 
-cli_setup_tailscale_command() {
+panther_minor_setup_tailscale_command() {
 
   panther_setup_tailscale() {
     panther_prepare_setup_step 'Install Tailscale.'
@@ -2222,7 +2222,7 @@ EOF
 
 }
 
-cli_setup_ssh_command() {
+panther_minor_setup_ssh_command() {
 
   # Puts back everything the hardening step moved or overwrote: the drop-ins it
   # emptied out of PANTHER_SSHD_CONFIG_DIR, then the pre-change sshd_config if a
@@ -2387,7 +2387,7 @@ AUGEOF
 
 }
 
-cli_setup_ufw_command() {
+panther_minor_setup_ufw_command() {
 
   panther_setup_ufw() {
     panther_prepare_setup_step 'Configure UFW firewall (reset and re-apply rules).'
@@ -2410,7 +2410,7 @@ cli_setup_ufw_command() {
 
 }
 
-cli_setup_fail2ban_command() {
+panther_minor_setup_fail2ban_command() {
 
   panther_setup_fail2ban() {
     panther_prepare_setup_step 'Install and configure fail2ban.'
@@ -2453,7 +2453,7 @@ EOF
 
 }
 
-cli_setup_amdgpu_command() {
+panther_minor_setup_amdgpu_command() {
 
   panther_setup_amdgpu() {
     panther_prepare_setup_step 'Install AMD GPU kernel drivers and ROCm.'
@@ -2644,7 +2644,7 @@ EOF
 
 }
 
-cli_setup_grub_command() {
+panther_minor_setup_grub_command() {
 
   panther_setup_grub() {
     panther_prepare_setup_step 'Update GRUB kernel parameters.'
@@ -2729,7 +2729,7 @@ AUGEOF
 
 }
 
-cli_setup_git_command() {
+panther_minor_setup_git_command() {
 
   panther_setup_git() {
     # Resolved before the message below expands it: see setup/ssh.sh.
@@ -2748,7 +2748,7 @@ cli_setup_git_command() {
 
 }
 
-cli_setup_shell_command() {
+panther_minor_setup_shell_command() {
 
   panther_setup_shell() {
     # Resolved before the message below expands it: see setup/ssh.sh.
@@ -2771,7 +2771,7 @@ cli_setup_shell_command() {
 
 }
 
-cli_setup_env_command() {
+panther_minor_setup_env_command() {
 
   panther_setup_env() {
     panther_prepare_setup_step 'Set up env vars and sync GPU group IDs.'
@@ -2799,7 +2799,7 @@ cli_setup_env_command() {
 
 }
 
-cli_models_llm_download_command() {
+panther_minor_models_llm_download_command() {
 
   panther_llm_download() {
     local model="${args[model]}"
@@ -2851,7 +2851,7 @@ cli_models_llm_download_command() {
 
 }
 
-cli_models_llm_list_command() {
+panther_minor_models_llm_list_command() {
 
   panther_llm_list() {
     echo '🐆 Supported LLMs:'
@@ -2864,7 +2864,7 @@ cli_models_llm_list_command() {
 
 }
 
-cli_models_llm_remove_command() {
+panther_minor_models_llm_remove_command() {
 
   panther_llm_remove() {
     local model="${args[model]}"
@@ -2913,7 +2913,7 @@ cli_models_llm_remove_command() {
 
 }
 
-cli_models_llm_load_command() {
+panther_minor_models_llm_load_command() {
 
   panther_llm_load() {
     local model="${args[model]}"
@@ -2931,7 +2931,7 @@ cli_models_llm_load_command() {
 
 }
 
-cli_models_llm_unload_command() {
+panther_minor_models_llm_unload_command() {
 
   panther_llm_unload() {
     local model="${args[model]}"
@@ -2962,7 +2962,7 @@ cli_models_llm_unload_command() {
 
 }
 
-cli_models_llm_bench_command() {
+panther_minor_models_llm_bench_command() {
 
   panther_llm_bench() {
     local model="${args[model]}"
@@ -3158,7 +3158,7 @@ cli_models_llm_bench_command() {
 
 }
 
-cli_models_t2i_download_command() {
+panther_minor_models_t2i_download_command() {
 
   panther_t2i_download() {
     local model="${args[model]}"
@@ -3202,7 +3202,7 @@ cli_models_t2i_download_command() {
 
 }
 
-cli_models_t2i_list_command() {
+panther_minor_models_t2i_list_command() {
 
   panther_t2i_list() {
     echo '🐆 Supported text-to-image models:'
@@ -3215,7 +3215,7 @@ cli_models_t2i_list_command() {
 
 }
 
-cli_models_t2i_remove_command() {
+panther_minor_models_t2i_remove_command() {
 
   panther_t2i_remove() {
     local model="${args[model]}"
@@ -3261,7 +3261,7 @@ cli_models_t2i_remove_command() {
 
 }
 
-cli_models_t2i_load_command() {
+panther_minor_models_t2i_load_command() {
 
   panther_t2i_load() {
     local model="${args[model]}"
@@ -3284,7 +3284,7 @@ cli_models_t2i_load_command() {
 
     cache_dir="$(panther_hf_cache_dir)"
     if [[ ! -f "$cache_dir/$diffusion" ]]; then
-      panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/cli models t2i download $model' first."
+      panther_log_error "Text-to-image model '$model' is not downloaded. Run './bin/panther-minor models t2i download $model' first."
     fi
 
     # sd-server loads exactly one model per process, so pointing the single
@@ -3308,7 +3308,7 @@ cli_models_t2i_load_command() {
       panther_log_info "Loading text-to-image model '$model' and dedicating GPU(s) to image generation..."
       panther_compose up --detach --force-recreate --no-deps llama-cpp stable-diffusion-cpp
 
-      panther_log_success "Text-to-image model '$model' loaded on its dedicated GPU(s). The LLMs were moved off; run './bin/cli models t2i unload' to give the GPU(s) back."
+      panther_log_success "Text-to-image model '$model' loaded on its dedicated GPU(s). The LLMs were moved off; run './bin/panther-minor models t2i unload' to give the GPU(s) back."
       return 0
     fi
 
@@ -3322,7 +3322,7 @@ cli_models_t2i_load_command() {
 
 }
 
-cli_models_t2i_unload_command() {
+panther_minor_models_t2i_unload_command() {
 
   panther_t2i_unload() {
     panther_load_dotenv "$PANTHER_ENV_FILE"
@@ -3348,7 +3348,7 @@ cli_models_t2i_unload_command() {
 
 }
 
-cli_models_prune_command() {
+panther_minor_models_prune_command() {
 
   panther_models_prune() {
     panther_prune_orphans
@@ -3358,7 +3358,7 @@ cli_models_prune_command() {
 
 }
 
-cli_proxy_certbot_command() {
+panther_minor_proxy_certbot_command() {
 
   panther_proxy_certbot() {
     local domain="${args[--domain]}"
@@ -3510,7 +3510,7 @@ cli_proxy_certbot_command() {
 
 }
 
-cli_proxy_renew_ssl_command() {
+panther_minor_proxy_renew_ssl_command() {
 
   panther_proxy_renew_ssl() {
     local current_owner="$(id -u):$(id -g)"
@@ -3530,7 +3530,7 @@ cli_proxy_renew_ssl_command() {
 
 }
 
-cli_proxy_setup_cron_command() {
+panther_minor_proxy_setup_cron_command() {
 
   panther_proxy_setup_cron() {
     local schedule target_user log_path
@@ -3582,7 +3582,7 @@ cli_proxy_setup_cron_command() {
 
 }
 
-cli_cluster_start_command() {
+panther_minor_cluster_start_command() {
 
   panther_cluster_start() {
     local -a compose_args=(up)
@@ -3618,7 +3618,7 @@ cli_cluster_start_command() {
 
 }
 
-cli_cluster_status_command() {
+panther_minor_cluster_status_command() {
 
   panther_cluster_status() {
     cluster_status=$(panther_compose ps --format json)
@@ -3631,7 +3631,7 @@ cli_cluster_status_command() {
 
 }
 
-cli_cluster_stop_command() {
+panther_minor_cluster_stop_command() {
 
   panther_cluster_stop() {
     local -a compose_args=(down)
@@ -3668,7 +3668,7 @@ cli_cluster_stop_command() {
 
 }
 
-cli_cluster_cleanup_command() {
+panther_minor_cluster_cleanup_command() {
 
   panther_cluster_cleanup() {
     panther_log_info 'Cleaning up cluster containers, volumes, images, and orphans...'
@@ -3680,7 +3680,7 @@ cli_cluster_cleanup_command() {
 
 }
 
-cli_cluster_restart_command() {
+panther_minor_cluster_restart_command() {
 
   panther_cluster_restart() {
     local -a compose_down_args=(down)
@@ -3734,7 +3734,7 @@ cli_cluster_restart_command() {
 
 }
 
-cli_cluster_build_command() {
+panther_minor_cluster_build_command() {
 
   panther_cluster_build() {
     local -a compose_args=(build)
@@ -3770,7 +3770,7 @@ cli_cluster_build_command() {
 
 }
 
-cli_logs_command() {
+panther_minor_logs_command() {
 
   panther_logs() {
     # shellcheck disable=SC2154
@@ -3781,7 +3781,7 @@ cli_logs_command() {
 
 }
 
-cli_update_command() {
+panther_minor_update_command() {
 
   panther_update() {
     panther_log_info 'Fetching latest changes from upstream...'
@@ -3801,7 +3801,7 @@ cli_update_command() {
 
 }
 
-cli_completions_command() {
+panther_minor_completions_command() {
 
   send_completions "${args[shell]}"
 
@@ -3820,7 +3820,7 @@ parse_requirements() {
 
       --help | -h)
         long_usage=yes
-        cli_usage
+        panther_minor_usage
         exit
         ;;
 
@@ -3839,54 +3839,54 @@ parse_requirements() {
     setup)
       action="setup"
       shift
-      cli_setup_parse_requirements "$@"
+      panther_minor_setup_parse_requirements "$@"
       shift $#
       ;;
 
     models)
       action="models"
       shift
-      cli_models_parse_requirements "$@"
+      panther_minor_models_parse_requirements "$@"
       shift $#
       ;;
 
     proxy)
       action="proxy"
       shift
-      cli_proxy_parse_requirements "$@"
+      panther_minor_proxy_parse_requirements "$@"
       shift $#
       ;;
 
     cluster)
       action="cluster"
       shift
-      cli_cluster_parse_requirements "$@"
+      panther_minor_cluster_parse_requirements "$@"
       shift $#
       ;;
 
     logs)
       action="logs"
       shift
-      cli_logs_parse_requirements "$@"
+      panther_minor_logs_parse_requirements "$@"
       shift $#
       ;;
 
     update)
       action="update"
       shift
-      cli_update_parse_requirements "$@"
+      panther_minor_update_parse_requirements "$@"
       shift $#
       ;;
 
     completions)
       action="completions"
       shift
-      cli_completions_parse_requirements "$@"
+      panther_minor_completions_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_usage >&2
+      panther_minor_usage >&2
       exit 1
       ;;
 
@@ -3930,7 +3930,7 @@ parse_requirements() {
 
 }
 
-cli_setup_parse_requirements() {
+panther_minor_setup_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -3938,7 +3938,7 @@ cli_setup_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_usage
+        panther_minor_setup_usage
         exit
         ;;
 
@@ -3956,104 +3956,104 @@ cli_setup_parse_requirements() {
     all)
       action="all"
       shift
-      cli_setup_all_parse_requirements "$@"
+      panther_minor_setup_all_parse_requirements "$@"
       shift $#
       ;;
 
     init)
       action="init"
       shift
-      cli_setup_init_parse_requirements "$@"
+      panther_minor_setup_init_parse_requirements "$@"
       shift $#
       ;;
 
     packages)
       action="packages"
       shift
-      cli_setup_packages_parse_requirements "$@"
+      panther_minor_setup_packages_parse_requirements "$@"
       shift $#
       ;;
 
     brew)
       action="brew"
       shift
-      cli_setup_brew_parse_requirements "$@"
+      panther_minor_setup_brew_parse_requirements "$@"
       shift $#
       ;;
 
     docker)
       action="docker"
       shift
-      cli_setup_docker_parse_requirements "$@"
+      panther_minor_setup_docker_parse_requirements "$@"
       shift $#
       ;;
 
     tailscale)
       action="tailscale"
       shift
-      cli_setup_tailscale_parse_requirements "$@"
+      panther_minor_setup_tailscale_parse_requirements "$@"
       shift $#
       ;;
 
     ssh)
       action="ssh"
       shift
-      cli_setup_ssh_parse_requirements "$@"
+      panther_minor_setup_ssh_parse_requirements "$@"
       shift $#
       ;;
 
     ufw)
       action="ufw"
       shift
-      cli_setup_ufw_parse_requirements "$@"
+      panther_minor_setup_ufw_parse_requirements "$@"
       shift $#
       ;;
 
     fail2ban)
       action="fail2ban"
       shift
-      cli_setup_fail2ban_parse_requirements "$@"
+      panther_minor_setup_fail2ban_parse_requirements "$@"
       shift $#
       ;;
 
     amdgpu)
       action="amdgpu"
       shift
-      cli_setup_amdgpu_parse_requirements "$@"
+      panther_minor_setup_amdgpu_parse_requirements "$@"
       shift $#
       ;;
 
     grub)
       action="grub"
       shift
-      cli_setup_grub_parse_requirements "$@"
+      panther_minor_setup_grub_parse_requirements "$@"
       shift $#
       ;;
 
     git)
       action="git"
       shift
-      cli_setup_git_parse_requirements "$@"
+      panther_minor_setup_git_parse_requirements "$@"
       shift $#
       ;;
 
     shell)
       action="shell"
       shift
-      cli_setup_shell_parse_requirements "$@"
+      panther_minor_setup_shell_parse_requirements "$@"
       shift $#
       ;;
 
     env)
       action="env"
       shift
-      cli_setup_env_parse_requirements "$@"
+      panther_minor_setup_env_parse_requirements "$@"
       shift $#
       ;;
 
     *)
       action="all"
-      cli_setup_all_parse_requirements "$@"
+      panther_minor_setup_all_parse_requirements "$@"
       shift $#
       ;;
 
@@ -4092,7 +4092,7 @@ cli_setup_parse_requirements() {
 
 }
 
-cli_setup_all_parse_requirements() {
+panther_minor_setup_all_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4100,7 +4100,7 @@ cli_setup_all_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_all_usage
+        panther_minor_setup_all_usage
         exit
         ;;
 
@@ -4222,7 +4222,7 @@ cli_setup_all_parse_requirements() {
 
 }
 
-cli_setup_init_parse_requirements() {
+panther_minor_setup_init_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4230,7 +4230,7 @@ cli_setup_init_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_init_usage
+        panther_minor_setup_init_usage
         exit
         ;;
 
@@ -4300,7 +4300,7 @@ cli_setup_init_parse_requirements() {
 
 }
 
-cli_setup_packages_parse_requirements() {
+panther_minor_setup_packages_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4308,7 +4308,7 @@ cli_setup_packages_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_packages_usage
+        panther_minor_setup_packages_usage
         exit
         ;;
 
@@ -4354,7 +4354,7 @@ cli_setup_packages_parse_requirements() {
 
 }
 
-cli_setup_brew_parse_requirements() {
+panther_minor_setup_brew_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4362,7 +4362,7 @@ cli_setup_brew_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_brew_usage
+        panther_minor_setup_brew_usage
         exit
         ;;
 
@@ -4420,7 +4420,7 @@ cli_setup_brew_parse_requirements() {
 
 }
 
-cli_setup_docker_parse_requirements() {
+panther_minor_setup_docker_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4428,7 +4428,7 @@ cli_setup_docker_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_docker_usage
+        panther_minor_setup_docker_usage
         exit
         ;;
 
@@ -4486,7 +4486,7 @@ cli_setup_docker_parse_requirements() {
 
 }
 
-cli_setup_tailscale_parse_requirements() {
+panther_minor_setup_tailscale_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4494,7 +4494,7 @@ cli_setup_tailscale_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_tailscale_usage
+        panther_minor_setup_tailscale_usage
         exit
         ;;
 
@@ -4540,7 +4540,7 @@ cli_setup_tailscale_parse_requirements() {
 
 }
 
-cli_setup_ssh_parse_requirements() {
+panther_minor_setup_ssh_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4548,7 +4548,7 @@ cli_setup_ssh_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_ssh_usage
+        panther_minor_setup_ssh_usage
         exit
         ;;
 
@@ -4634,7 +4634,7 @@ cli_setup_ssh_parse_requirements() {
 
 }
 
-cli_setup_ufw_parse_requirements() {
+panther_minor_setup_ufw_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4642,7 +4642,7 @@ cli_setup_ufw_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_ufw_usage
+        panther_minor_setup_ufw_usage
         exit
         ;;
 
@@ -4716,7 +4716,7 @@ cli_setup_ufw_parse_requirements() {
 
 }
 
-cli_setup_fail2ban_parse_requirements() {
+panther_minor_setup_fail2ban_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4724,7 +4724,7 @@ cli_setup_fail2ban_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_fail2ban_usage
+        panther_minor_setup_fail2ban_usage
         exit
         ;;
 
@@ -4798,7 +4798,7 @@ cli_setup_fail2ban_parse_requirements() {
 
 }
 
-cli_setup_amdgpu_parse_requirements() {
+panther_minor_setup_amdgpu_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4806,7 +4806,7 @@ cli_setup_amdgpu_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_amdgpu_usage
+        panther_minor_setup_amdgpu_usage
         exit
         ;;
 
@@ -4852,7 +4852,7 @@ cli_setup_amdgpu_parse_requirements() {
 
 }
 
-cli_setup_grub_parse_requirements() {
+panther_minor_setup_grub_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4860,7 +4860,7 @@ cli_setup_grub_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_grub_usage
+        panther_minor_setup_grub_usage
         exit
         ;;
 
@@ -4906,7 +4906,7 @@ cli_setup_grub_parse_requirements() {
 
 }
 
-cli_setup_git_parse_requirements() {
+panther_minor_setup_git_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4914,7 +4914,7 @@ cli_setup_git_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_git_usage
+        panther_minor_setup_git_usage
         exit
         ;;
 
@@ -4984,7 +4984,7 @@ cli_setup_git_parse_requirements() {
 
 }
 
-cli_setup_shell_parse_requirements() {
+panther_minor_setup_shell_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4992,7 +4992,7 @@ cli_setup_shell_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_shell_usage
+        panther_minor_setup_shell_usage
         exit
         ;;
 
@@ -5050,7 +5050,7 @@ cli_setup_shell_parse_requirements() {
 
 }
 
-cli_setup_env_parse_requirements() {
+panther_minor_setup_env_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5058,7 +5058,7 @@ cli_setup_env_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_setup_env_usage
+        panther_minor_setup_env_usage
         exit
         ;;
 
@@ -5116,7 +5116,7 @@ cli_setup_env_parse_requirements() {
 
 }
 
-cli_models_parse_requirements() {
+panther_minor_models_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5124,7 +5124,7 @@ cli_models_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_usage
+        panther_minor_models_usage
         exit
         ;;
 
@@ -5143,26 +5143,26 @@ cli_models_parse_requirements() {
     llm)
       action="llm"
       shift
-      cli_models_llm_parse_requirements "$@"
+      panther_minor_models_llm_parse_requirements "$@"
       shift $#
       ;;
 
     t2i)
       action="t2i"
       shift
-      cli_models_t2i_parse_requirements "$@"
+      panther_minor_models_t2i_parse_requirements "$@"
       shift $#
       ;;
 
     prune)
       action="prune"
       shift
-      cli_models_prune_parse_requirements "$@"
+      panther_minor_models_prune_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_models_usage >&2
+      panther_minor_models_usage >&2
       exit 1
       ;;
 
@@ -5206,7 +5206,7 @@ cli_models_parse_requirements() {
 
 }
 
-cli_models_llm_parse_requirements() {
+panther_minor_models_llm_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5214,7 +5214,7 @@ cli_models_llm_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_usage
+        panther_minor_models_llm_usage
         exit
         ;;
 
@@ -5233,47 +5233,47 @@ cli_models_llm_parse_requirements() {
     download)
       action="download"
       shift
-      cli_models_llm_download_parse_requirements "$@"
+      panther_minor_models_llm_download_parse_requirements "$@"
       shift $#
       ;;
 
     list)
       action="list"
       shift
-      cli_models_llm_list_parse_requirements "$@"
+      panther_minor_models_llm_list_parse_requirements "$@"
       shift $#
       ;;
 
     remove)
       action="remove"
       shift
-      cli_models_llm_remove_parse_requirements "$@"
+      panther_minor_models_llm_remove_parse_requirements "$@"
       shift $#
       ;;
 
     load)
       action="load"
       shift
-      cli_models_llm_load_parse_requirements "$@"
+      panther_minor_models_llm_load_parse_requirements "$@"
       shift $#
       ;;
 
     unload)
       action="unload"
       shift
-      cli_models_llm_unload_parse_requirements "$@"
+      panther_minor_models_llm_unload_parse_requirements "$@"
       shift $#
       ;;
 
     bench)
       action="bench"
       shift
-      cli_models_llm_bench_parse_requirements "$@"
+      panther_minor_models_llm_bench_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_models_llm_usage >&2
+      panther_minor_models_llm_usage >&2
       exit 1
       ;;
 
@@ -5317,7 +5317,7 @@ cli_models_llm_parse_requirements() {
 
 }
 
-cli_models_llm_download_parse_requirements() {
+panther_minor_models_llm_download_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5325,7 +5325,7 @@ cli_models_llm_download_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_download_usage
+        panther_minor_models_llm_download_usage
         exit
         ;;
 
@@ -5386,7 +5386,7 @@ cli_models_llm_download_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm download MODEL [OPTIONS]\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models llm download MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -5401,7 +5401,7 @@ cli_models_llm_download_parse_requirements() {
 
 }
 
-cli_models_llm_list_parse_requirements() {
+panther_minor_models_llm_list_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5409,7 +5409,7 @@ cli_models_llm_list_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_list_usage
+        panther_minor_models_llm_list_usage
         exit
         ;;
 
@@ -5455,7 +5455,7 @@ cli_models_llm_list_parse_requirements() {
 
 }
 
-cli_models_llm_remove_parse_requirements() {
+panther_minor_models_llm_remove_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5463,7 +5463,7 @@ cli_models_llm_remove_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_remove_usage
+        panther_minor_models_llm_remove_usage
         exit
         ;;
 
@@ -5518,7 +5518,7 @@ cli_models_llm_remove_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm remove MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models llm remove MODEL\n" >&2
 
     exit 1
   fi
@@ -5533,7 +5533,7 @@ cli_models_llm_remove_parse_requirements() {
 
 }
 
-cli_models_llm_load_parse_requirements() {
+panther_minor_models_llm_load_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5541,7 +5541,7 @@ cli_models_llm_load_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_load_usage
+        panther_minor_models_llm_load_usage
         exit
         ;;
 
@@ -5596,7 +5596,7 @@ cli_models_llm_load_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm load MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models llm load MODEL\n" >&2
 
     exit 1
   fi
@@ -5611,7 +5611,7 @@ cli_models_llm_load_parse_requirements() {
 
 }
 
-cli_models_llm_unload_parse_requirements() {
+panther_minor_models_llm_unload_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5619,7 +5619,7 @@ cli_models_llm_unload_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_unload_usage
+        panther_minor_models_llm_unload_usage
         exit
         ;;
 
@@ -5674,7 +5674,7 @@ cli_models_llm_unload_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm unload MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models llm unload MODEL\n" >&2
 
     exit 1
   fi
@@ -5689,7 +5689,7 @@ cli_models_llm_unload_parse_requirements() {
 
 }
 
-cli_models_llm_bench_parse_requirements() {
+panther_minor_models_llm_bench_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5697,7 +5697,7 @@ cli_models_llm_bench_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_llm_bench_usage
+        panther_minor_models_llm_bench_usage
         exit
         ;;
 
@@ -5812,7 +5812,7 @@ cli_models_llm_bench_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models llm bench MODEL [OPTIONS]\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models llm bench MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -5859,7 +5859,7 @@ cli_models_llm_bench_parse_requirements() {
 
 }
 
-cli_models_t2i_parse_requirements() {
+panther_minor_models_t2i_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5867,7 +5867,7 @@ cli_models_t2i_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_usage
+        panther_minor_models_t2i_usage
         exit
         ;;
 
@@ -5886,40 +5886,40 @@ cli_models_t2i_parse_requirements() {
     download)
       action="download"
       shift
-      cli_models_t2i_download_parse_requirements "$@"
+      panther_minor_models_t2i_download_parse_requirements "$@"
       shift $#
       ;;
 
     list)
       action="list"
       shift
-      cli_models_t2i_list_parse_requirements "$@"
+      panther_minor_models_t2i_list_parse_requirements "$@"
       shift $#
       ;;
 
     remove)
       action="remove"
       shift
-      cli_models_t2i_remove_parse_requirements "$@"
+      panther_minor_models_t2i_remove_parse_requirements "$@"
       shift $#
       ;;
 
     load)
       action="load"
       shift
-      cli_models_t2i_load_parse_requirements "$@"
+      panther_minor_models_t2i_load_parse_requirements "$@"
       shift $#
       ;;
 
     unload)
       action="unload"
       shift
-      cli_models_t2i_unload_parse_requirements "$@"
+      panther_minor_models_t2i_unload_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_models_t2i_usage >&2
+      panther_minor_models_t2i_usage >&2
       exit 1
       ;;
 
@@ -5963,7 +5963,7 @@ cli_models_t2i_parse_requirements() {
 
 }
 
-cli_models_t2i_download_parse_requirements() {
+panther_minor_models_t2i_download_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5971,7 +5971,7 @@ cli_models_t2i_download_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_download_usage
+        panther_minor_models_t2i_download_usage
         exit
         ;;
 
@@ -6032,7 +6032,7 @@ cli_models_t2i_download_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models t2i download MODEL [OPTIONS]\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models t2i download MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -6047,7 +6047,7 @@ cli_models_t2i_download_parse_requirements() {
 
 }
 
-cli_models_t2i_list_parse_requirements() {
+panther_minor_models_t2i_list_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6055,7 +6055,7 @@ cli_models_t2i_list_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_list_usage
+        panther_minor_models_t2i_list_usage
         exit
         ;;
 
@@ -6101,7 +6101,7 @@ cli_models_t2i_list_parse_requirements() {
 
 }
 
-cli_models_t2i_remove_parse_requirements() {
+panther_minor_models_t2i_remove_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6109,7 +6109,7 @@ cli_models_t2i_remove_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_remove_usage
+        panther_minor_models_t2i_remove_usage
         exit
         ;;
 
@@ -6164,7 +6164,7 @@ cli_models_t2i_remove_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models t2i remove MODEL\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models t2i remove MODEL\n" >&2
 
     exit 1
   fi
@@ -6179,7 +6179,7 @@ cli_models_t2i_remove_parse_requirements() {
 
 }
 
-cli_models_t2i_load_parse_requirements() {
+panther_minor_models_t2i_load_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6187,7 +6187,7 @@ cli_models_t2i_load_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_load_usage
+        panther_minor_models_t2i_load_usage
         exit
         ;;
 
@@ -6248,7 +6248,7 @@ cli_models_t2i_load_parse_requirements() {
   done
 
   if [[ -z ${args['model']+x} ]]; then
-    printf "missing required argument: MODEL\nusage: cli models t2i load MODEL [OPTIONS]\n" >&2
+    printf "missing required argument: MODEL\nusage: panther-minor models t2i load MODEL [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -6263,7 +6263,7 @@ cli_models_t2i_load_parse_requirements() {
 
 }
 
-cli_models_t2i_unload_parse_requirements() {
+panther_minor_models_t2i_unload_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6271,7 +6271,7 @@ cli_models_t2i_unload_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_t2i_unload_usage
+        panther_minor_models_t2i_unload_usage
         exit
         ;;
 
@@ -6317,7 +6317,7 @@ cli_models_t2i_unload_parse_requirements() {
 
 }
 
-cli_models_prune_parse_requirements() {
+panther_minor_models_prune_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6325,7 +6325,7 @@ cli_models_prune_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_models_prune_usage
+        panther_minor_models_prune_usage
         exit
         ;;
 
@@ -6371,7 +6371,7 @@ cli_models_prune_parse_requirements() {
 
 }
 
-cli_proxy_parse_requirements() {
+panther_minor_proxy_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6379,7 +6379,7 @@ cli_proxy_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_proxy_usage
+        panther_minor_proxy_usage
         exit
         ;;
 
@@ -6398,26 +6398,26 @@ cli_proxy_parse_requirements() {
     certbot)
       action="certbot"
       shift
-      cli_proxy_certbot_parse_requirements "$@"
+      panther_minor_proxy_certbot_parse_requirements "$@"
       shift $#
       ;;
 
     renew-ssl)
       action="renew-ssl"
       shift
-      cli_proxy_renew_ssl_parse_requirements "$@"
+      panther_minor_proxy_renew_ssl_parse_requirements "$@"
       shift $#
       ;;
 
     setup-cron)
       action="setup-cron"
       shift
-      cli_proxy_setup_cron_parse_requirements "$@"
+      panther_minor_proxy_setup_cron_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_proxy_usage >&2
+      panther_minor_proxy_usage >&2
       exit 1
       ;;
 
@@ -6461,7 +6461,7 @@ cli_proxy_parse_requirements() {
 
 }
 
-cli_proxy_certbot_parse_requirements() {
+panther_minor_proxy_certbot_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6469,7 +6469,7 @@ cli_proxy_certbot_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_proxy_certbot_usage
+        panther_minor_proxy_certbot_usage
         exit
         ;;
 
@@ -6554,7 +6554,7 @@ cli_proxy_certbot_parse_requirements() {
 
 }
 
-cli_proxy_renew_ssl_parse_requirements() {
+panther_minor_proxy_renew_ssl_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6562,7 +6562,7 @@ cli_proxy_renew_ssl_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_proxy_renew_ssl_usage
+        panther_minor_proxy_renew_ssl_usage
         exit
         ;;
 
@@ -6608,7 +6608,7 @@ cli_proxy_renew_ssl_parse_requirements() {
 
 }
 
-cli_proxy_setup_cron_parse_requirements() {
+panther_minor_proxy_setup_cron_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6616,7 +6616,7 @@ cli_proxy_setup_cron_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_proxy_setup_cron_usage
+        panther_minor_proxy_setup_cron_usage
         exit
         ;;
 
@@ -6698,7 +6698,7 @@ cli_proxy_setup_cron_parse_requirements() {
 
 }
 
-cli_cluster_parse_requirements() {
+panther_minor_cluster_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6706,7 +6706,7 @@ cli_cluster_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_usage
+        panther_minor_cluster_usage
         exit
         ;;
 
@@ -6725,47 +6725,47 @@ cli_cluster_parse_requirements() {
     start)
       action="start"
       shift
-      cli_cluster_start_parse_requirements "$@"
+      panther_minor_cluster_start_parse_requirements "$@"
       shift $#
       ;;
 
     status)
       action="status"
       shift
-      cli_cluster_status_parse_requirements "$@"
+      panther_minor_cluster_status_parse_requirements "$@"
       shift $#
       ;;
 
     stop)
       action="stop"
       shift
-      cli_cluster_stop_parse_requirements "$@"
+      panther_minor_cluster_stop_parse_requirements "$@"
       shift $#
       ;;
 
     cleanup)
       action="cleanup"
       shift
-      cli_cluster_cleanup_parse_requirements "$@"
+      panther_minor_cluster_cleanup_parse_requirements "$@"
       shift $#
       ;;
 
     restart)
       action="restart"
       shift
-      cli_cluster_restart_parse_requirements "$@"
+      panther_minor_cluster_restart_parse_requirements "$@"
       shift $#
       ;;
 
     build)
       action="build"
       shift
-      cli_cluster_build_parse_requirements "$@"
+      panther_minor_cluster_build_parse_requirements "$@"
       shift $#
       ;;
 
     "")
-      cli_cluster_usage >&2
+      panther_minor_cluster_usage >&2
       exit 1
       ;;
 
@@ -6809,7 +6809,7 @@ cli_cluster_parse_requirements() {
 
 }
 
-cli_cluster_start_parse_requirements() {
+panther_minor_cluster_start_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6817,7 +6817,7 @@ cli_cluster_start_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_start_usage
+        panther_minor_cluster_start_usage
         exit
         ;;
 
@@ -6893,7 +6893,7 @@ cli_cluster_start_parse_requirements() {
 
 }
 
-cli_cluster_status_parse_requirements() {
+panther_minor_cluster_status_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6901,7 +6901,7 @@ cli_cluster_status_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_status_usage
+        panther_minor_cluster_status_usage
         exit
         ;;
 
@@ -6947,7 +6947,7 @@ cli_cluster_status_parse_requirements() {
 
 }
 
-cli_cluster_stop_parse_requirements() {
+panther_minor_cluster_stop_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -6955,7 +6955,7 @@ cli_cluster_stop_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_stop_usage
+        panther_minor_cluster_stop_usage
         exit
         ;;
 
@@ -7031,7 +7031,7 @@ cli_cluster_stop_parse_requirements() {
 
 }
 
-cli_cluster_cleanup_parse_requirements() {
+panther_minor_cluster_cleanup_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7039,7 +7039,7 @@ cli_cluster_cleanup_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_cleanup_usage
+        panther_minor_cluster_cleanup_usage
         exit
         ;;
 
@@ -7085,7 +7085,7 @@ cli_cluster_cleanup_parse_requirements() {
 
 }
 
-cli_cluster_restart_parse_requirements() {
+panther_minor_cluster_restart_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7093,7 +7093,7 @@ cli_cluster_restart_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_restart_usage
+        panther_minor_cluster_restart_usage
         exit
         ;;
 
@@ -7175,7 +7175,7 @@ cli_cluster_restart_parse_requirements() {
 
 }
 
-cli_cluster_build_parse_requirements() {
+panther_minor_cluster_build_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7183,7 +7183,7 @@ cli_cluster_build_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_cluster_build_usage
+        panther_minor_cluster_build_usage
         exit
         ;;
 
@@ -7259,7 +7259,7 @@ cli_cluster_build_parse_requirements() {
 
 }
 
-cli_logs_parse_requirements() {
+panther_minor_logs_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7267,7 +7267,7 @@ cli_logs_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_logs_usage
+        panther_minor_logs_usage
         exit
         ;;
 
@@ -7334,7 +7334,7 @@ cli_logs_parse_requirements() {
   done
 
   if [[ -z ${args['service']+x} ]]; then
-    printf "missing required argument: SERVICE\nusage: cli logs SERVICE [OPTIONS]\n" >&2
+    printf "missing required argument: SERVICE\nusage: panther-minor logs SERVICE [OPTIONS]\n" >&2
 
     exit 1
   fi
@@ -7357,7 +7357,7 @@ cli_logs_parse_requirements() {
 
 }
 
-cli_update_parse_requirements() {
+panther_minor_update_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7365,7 +7365,7 @@ cli_update_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_update_usage
+        panther_minor_update_usage
         exit
         ;;
 
@@ -7411,7 +7411,7 @@ cli_update_parse_requirements() {
 
 }
 
-cli_completions_parse_requirements() {
+panther_minor_completions_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -7419,7 +7419,7 @@ cli_completions_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        cli_completions_usage
+        panther_minor_completions_usage
         exit
         ;;
 
@@ -7496,7 +7496,7 @@ completion_run() {
     unset 'completion_words[completion_count - 1]'
   fi
 
-  cli_completion "$completion_current" "${completion_words[@]}"
+  panther_minor_completion "$completion_current" "${completion_words[@]}"
 
   local completion_options_string=""
   if [[ ${#completion_options[@]} -gt 0 ]]; then
@@ -7570,7 +7570,7 @@ send_completions() {
 }
 
 send_completions_bash() {
-  echo $'_cli_completions() {'
+  echo $'_panther_minor_completions() {'
   echo $'  local completion_command="${COMP_WORDS[0]}"'
   echo $'  local completion_current="${COMP_WORDS[COMP_CWORD]:-}"'
   echo $'  local completion_word_count=$((COMP_CWORD - 1))'
@@ -7628,13 +7628,13 @@ send_completions_bash() {
   echo $'  fi'
   echo $'}'
   echo $''
-  echo $'complete -F _cli_completions cli'
+  echo $'complete -F _panther_minor_completions panther-minor'
 }
 
 send_completions_zsh() {
-  echo $'#compdef cli'
+  echo $'#compdef panther-minor'
   echo $''
-  echo $'_cli_completions() {'
+  echo $'_panther_minor_completions() {'
   echo $'  local completion_command="${words[1]}"'
   echo $'  local completion_current="${words[CURRENT]:-}"'
   echo $'  local completion_output'
@@ -7679,10 +7679,10 @@ send_completions_zsh() {
   echo $'  fi'
   echo $'}'
   echo $''
-  echo $'compdef _cli_completions cli'
+  echo $'compdef _panther_minor_completions panther-minor'
 }
 
-cli_completion() {
+panther_minor_completion() {
   local completion_current="$1"
   shift
 
@@ -7690,37 +7690,37 @@ cli_completion() {
     case "$1" in
       setup)
         shift
-        cli_setup_completion "$completion_current" "$@"
+        panther_minor_setup_completion "$completion_current" "$@"
         return
         ;;
       models)
         shift
-        cli_models_completion "$completion_current" "$@"
+        panther_minor_models_completion "$completion_current" "$@"
         return
         ;;
       proxy)
         shift
-        cli_proxy_completion "$completion_current" "$@"
+        panther_minor_proxy_completion "$completion_current" "$@"
         return
         ;;
       cluster)
         shift
-        cli_cluster_completion "$completion_current" "$@"
+        panther_minor_cluster_completion "$completion_current" "$@"
         return
         ;;
       logs)
         shift
-        cli_logs_completion "$completion_current" "$@"
+        panther_minor_logs_completion "$completion_current" "$@"
         return
         ;;
       update)
         shift
-        cli_update_completion "$completion_current" "$@"
+        panther_minor_update_completion "$completion_current" "$@"
         return
         ;;
       completions)
         shift
-        cli_completions_completion "$completion_current" "$@"
+        panther_minor_completions_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -7745,7 +7745,7 @@ cli_completion() {
 
 }
 
-cli_setup_completion() {
+panther_minor_setup_completion() {
   local completion_current="$1"
   shift
 
@@ -7753,72 +7753,72 @@ cli_setup_completion() {
     case "$1" in
       all)
         shift
-        cli_setup_all_completion "$completion_current" "$@"
+        panther_minor_setup_all_completion "$completion_current" "$@"
         return
         ;;
       init)
         shift
-        cli_setup_init_completion "$completion_current" "$@"
+        panther_minor_setup_init_completion "$completion_current" "$@"
         return
         ;;
       packages)
         shift
-        cli_setup_packages_completion "$completion_current" "$@"
+        panther_minor_setup_packages_completion "$completion_current" "$@"
         return
         ;;
       brew)
         shift
-        cli_setup_brew_completion "$completion_current" "$@"
+        panther_minor_setup_brew_completion "$completion_current" "$@"
         return
         ;;
       docker)
         shift
-        cli_setup_docker_completion "$completion_current" "$@"
+        panther_minor_setup_docker_completion "$completion_current" "$@"
         return
         ;;
       tailscale)
         shift
-        cli_setup_tailscale_completion "$completion_current" "$@"
+        panther_minor_setup_tailscale_completion "$completion_current" "$@"
         return
         ;;
       ssh)
         shift
-        cli_setup_ssh_completion "$completion_current" "$@"
+        panther_minor_setup_ssh_completion "$completion_current" "$@"
         return
         ;;
       ufw)
         shift
-        cli_setup_ufw_completion "$completion_current" "$@"
+        panther_minor_setup_ufw_completion "$completion_current" "$@"
         return
         ;;
       fail2ban)
         shift
-        cli_setup_fail2ban_completion "$completion_current" "$@"
+        panther_minor_setup_fail2ban_completion "$completion_current" "$@"
         return
         ;;
       amdgpu)
         shift
-        cli_setup_amdgpu_completion "$completion_current" "$@"
+        panther_minor_setup_amdgpu_completion "$completion_current" "$@"
         return
         ;;
       grub)
         shift
-        cli_setup_grub_completion "$completion_current" "$@"
+        panther_minor_setup_grub_completion "$completion_current" "$@"
         return
         ;;
       git)
         shift
-        cli_setup_git_completion "$completion_current" "$@"
+        panther_minor_setup_git_completion "$completion_current" "$@"
         return
         ;;
       shell)
         shift
-        cli_setup_shell_completion "$completion_current" "$@"
+        panther_minor_setup_shell_completion "$completion_current" "$@"
         return
         ;;
       env)
         shift
-        cli_setup_env_completion "$completion_current" "$@"
+        panther_minor_setup_env_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -7826,21 +7826,21 @@ cli_setup_completion() {
         shift
         ;;
       *)
-        cli_setup_all_completion "$completion_current" "$@"
+        panther_minor_setup_all_completion "$completion_current" "$@"
         return
         ;;
     esac
   done
   completion_candidates "$completion_current" all init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env
 
-  cli_setup_all_completion "$completion_current"
+  panther_minor_setup_all_completion "$completion_current"
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
   fi
 
 }
 
-cli_setup_all_completion() {
+panther_minor_setup_all_completion() {
   local completion_current="$1"
   shift
 
@@ -7917,7 +7917,7 @@ cli_setup_all_completion() {
 
 }
 
-cli_setup_init_completion() {
+panther_minor_setup_init_completion() {
   local completion_current="$1"
   shift
 
@@ -7961,7 +7961,7 @@ cli_setup_init_completion() {
 
 }
 
-cli_setup_packages_completion() {
+panther_minor_setup_packages_completion() {
   local completion_current="$1"
   shift
 
@@ -7983,40 +7983,7 @@ cli_setup_packages_completion() {
 
 }
 
-cli_setup_brew_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --allowed-user | -u)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--allowed-user"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
-  fi
-
-}
-
-cli_setup_docker_completion() {
+panther_minor_setup_brew_completion() {
   local completion_current="$1"
   shift
 
@@ -8049,7 +8016,40 @@ cli_setup_docker_completion() {
 
 }
 
-cli_setup_tailscale_completion() {
+panther_minor_setup_docker_completion() {
+  local completion_current="$1"
+  shift
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help | -h)
+        completion_blocked_flags["--help"]=1
+        shift
+        ;;
+      --allowed-user | -u)
+        shift
+        if [[ $# -eq 0 ]]; then
+
+          return
+        fi
+        shift
+        completion_blocked_flags["--allowed-user"]=1
+
+        ;;
+      *)
+        return
+        ;;
+    esac
+  done
+
+  if [[ $completion_current == -* ]]; then
+    completion_flag_candidates --help "$completion_current" --help -h
+    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
+  fi
+
+}
+
+panther_minor_setup_tailscale_completion() {
   local completion_current="$1"
   shift
 
@@ -8071,7 +8071,7 @@ cli_setup_tailscale_completion() {
 
 }
 
-cli_setup_ssh_completion() {
+panther_minor_setup_ssh_completion() {
   local completion_current="$1"
   shift
 
@@ -8115,7 +8115,7 @@ cli_setup_ssh_completion() {
 
 }
 
-cli_setup_ufw_completion() {
+panther_minor_setup_ufw_completion() {
   local completion_current="$1"
   shift
 
@@ -8148,7 +8148,7 @@ cli_setup_ufw_completion() {
 
 }
 
-cli_setup_fail2ban_completion() {
+panther_minor_setup_fail2ban_completion() {
   local completion_current="$1"
   shift
 
@@ -8181,7 +8181,7 @@ cli_setup_fail2ban_completion() {
 
 }
 
-cli_setup_amdgpu_completion() {
+panther_minor_setup_amdgpu_completion() {
   local completion_current="$1"
   shift
 
@@ -8203,7 +8203,7 @@ cli_setup_amdgpu_completion() {
 
 }
 
-cli_setup_grub_completion() {
+panther_minor_setup_grub_completion() {
   local completion_current="$1"
   shift
 
@@ -8225,7 +8225,7 @@ cli_setup_grub_completion() {
 
 }
 
-cli_setup_git_completion() {
+panther_minor_setup_git_completion() {
   local completion_current="$1"
   shift
 
@@ -8269,7 +8269,7 @@ cli_setup_git_completion() {
 
 }
 
-cli_setup_shell_completion() {
+panther_minor_setup_shell_completion() {
   local completion_current="$1"
   shift
 
@@ -8302,7 +8302,7 @@ cli_setup_shell_completion() {
 
 }
 
-cli_setup_env_completion() {
+panther_minor_setup_env_completion() {
   local completion_current="$1"
   shift
 
@@ -8335,7 +8335,7 @@ cli_setup_env_completion() {
 
 }
 
-cli_models_completion() {
+panther_minor_models_completion() {
   local completion_current="$1"
   shift
 
@@ -8343,17 +8343,17 @@ cli_models_completion() {
     case "$1" in
       llm)
         shift
-        cli_models_llm_completion "$completion_current" "$@"
+        panther_minor_models_llm_completion "$completion_current" "$@"
         return
         ;;
       t2i)
         shift
-        cli_models_t2i_completion "$completion_current" "$@"
+        panther_minor_models_t2i_completion "$completion_current" "$@"
         return
         ;;
       prune)
         shift
-        cli_models_prune_completion "$completion_current" "$@"
+        panther_minor_models_prune_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -8373,7 +8373,7 @@ cli_models_completion() {
 
 }
 
-cli_models_llm_completion() {
+panther_minor_models_llm_completion() {
   local completion_current="$1"
   shift
 
@@ -8381,32 +8381,32 @@ cli_models_llm_completion() {
     case "$1" in
       download)
         shift
-        cli_models_llm_download_completion "$completion_current" "$@"
+        panther_minor_models_llm_download_completion "$completion_current" "$@"
         return
         ;;
       list)
         shift
-        cli_models_llm_list_completion "$completion_current" "$@"
+        panther_minor_models_llm_list_completion "$completion_current" "$@"
         return
         ;;
       remove)
         shift
-        cli_models_llm_remove_completion "$completion_current" "$@"
+        panther_minor_models_llm_remove_completion "$completion_current" "$@"
         return
         ;;
       load)
         shift
-        cli_models_llm_load_completion "$completion_current" "$@"
+        panther_minor_models_llm_load_completion "$completion_current" "$@"
         return
         ;;
       unload)
         shift
-        cli_models_llm_unload_completion "$completion_current" "$@"
+        panther_minor_models_llm_unload_completion "$completion_current" "$@"
         return
         ;;
       bench)
         shift
-        cli_models_llm_bench_completion "$completion_current" "$@"
+        panther_minor_models_llm_bench_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -8426,7 +8426,7 @@ cli_models_llm_completion() {
 
 }
 
-cli_models_llm_download_completion() {
+panther_minor_models_llm_download_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8470,7 +8470,7 @@ cli_models_llm_download_completion() {
 
 }
 
-cli_models_llm_list_completion() {
+panther_minor_models_llm_list_completion() {
   local completion_current="$1"
   shift
 
@@ -8492,7 +8492,7 @@ cli_models_llm_list_completion() {
 
 }
 
-cli_models_llm_remove_completion() {
+panther_minor_models_llm_remove_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8530,7 +8530,7 @@ cli_models_llm_remove_completion() {
 
 }
 
-cli_models_llm_load_completion() {
+panther_minor_models_llm_load_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8568,7 +8568,7 @@ cli_models_llm_load_completion() {
 
 }
 
-cli_models_llm_unload_completion() {
+panther_minor_models_llm_unload_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8606,7 +8606,7 @@ cli_models_llm_unload_completion() {
 
 }
 
-cli_models_llm_bench_completion() {
+panther_minor_models_llm_bench_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8699,7 +8699,7 @@ cli_models_llm_bench_completion() {
 
 }
 
-cli_models_t2i_completion() {
+panther_minor_models_t2i_completion() {
   local completion_current="$1"
   shift
 
@@ -8707,27 +8707,27 @@ cli_models_t2i_completion() {
     case "$1" in
       download)
         shift
-        cli_models_t2i_download_completion "$completion_current" "$@"
+        panther_minor_models_t2i_download_completion "$completion_current" "$@"
         return
         ;;
       list)
         shift
-        cli_models_t2i_list_completion "$completion_current" "$@"
+        panther_minor_models_t2i_list_completion "$completion_current" "$@"
         return
         ;;
       remove)
         shift
-        cli_models_t2i_remove_completion "$completion_current" "$@"
+        panther_minor_models_t2i_remove_completion "$completion_current" "$@"
         return
         ;;
       load)
         shift
-        cli_models_t2i_load_completion "$completion_current" "$@"
+        panther_minor_models_t2i_load_completion "$completion_current" "$@"
         return
         ;;
       unload)
         shift
-        cli_models_t2i_unload_completion "$completion_current" "$@"
+        panther_minor_models_t2i_unload_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -8747,7 +8747,7 @@ cli_models_t2i_completion() {
 
 }
 
-cli_models_t2i_download_completion() {
+panther_minor_models_t2i_download_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8791,7 +8791,7 @@ cli_models_t2i_download_completion() {
 
 }
 
-cli_models_t2i_list_completion() {
+panther_minor_models_t2i_list_completion() {
   local completion_current="$1"
   shift
 
@@ -8813,7 +8813,7 @@ cli_models_t2i_list_completion() {
 
 }
 
-cli_models_t2i_remove_completion() {
+panther_minor_models_t2i_remove_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8851,7 +8851,7 @@ cli_models_t2i_remove_completion() {
 
 }
 
-cli_models_t2i_load_completion() {
+panther_minor_models_t2i_load_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -8895,7 +8895,7 @@ cli_models_t2i_load_completion() {
 
 }
 
-cli_models_t2i_unload_completion() {
+panther_minor_models_t2i_unload_completion() {
   local completion_current="$1"
   shift
 
@@ -8917,7 +8917,7 @@ cli_models_t2i_unload_completion() {
 
 }
 
-cli_models_prune_completion() {
+panther_minor_models_prune_completion() {
   local completion_current="$1"
   shift
 
@@ -8939,7 +8939,7 @@ cli_models_prune_completion() {
 
 }
 
-cli_proxy_completion() {
+panther_minor_proxy_completion() {
   local completion_current="$1"
   shift
 
@@ -8947,17 +8947,17 @@ cli_proxy_completion() {
     case "$1" in
       certbot)
         shift
-        cli_proxy_certbot_completion "$completion_current" "$@"
+        panther_minor_proxy_certbot_completion "$completion_current" "$@"
         return
         ;;
       renew-ssl)
         shift
-        cli_proxy_renew_ssl_completion "$completion_current" "$@"
+        panther_minor_proxy_renew_ssl_completion "$completion_current" "$@"
         return
         ;;
       setup-cron)
         shift
-        cli_proxy_setup_cron_completion "$completion_current" "$@"
+        panther_minor_proxy_setup_cron_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -8977,7 +8977,7 @@ cli_proxy_completion() {
 
 }
 
-cli_proxy_certbot_completion() {
+panther_minor_proxy_certbot_completion() {
   local completion_current="$1"
   shift
 
@@ -9027,7 +9027,7 @@ cli_proxy_certbot_completion() {
 
 }
 
-cli_proxy_renew_ssl_completion() {
+panther_minor_proxy_renew_ssl_completion() {
   local completion_current="$1"
   shift
 
@@ -9049,7 +9049,7 @@ cli_proxy_renew_ssl_completion() {
 
 }
 
-cli_proxy_setup_cron_completion() {
+panther_minor_proxy_setup_cron_completion() {
   local completion_current="$1"
   shift
 
@@ -9104,7 +9104,7 @@ cli_proxy_setup_cron_completion() {
 
 }
 
-cli_cluster_completion() {
+panther_minor_cluster_completion() {
   local completion_current="$1"
   shift
 
@@ -9112,32 +9112,32 @@ cli_cluster_completion() {
     case "$1" in
       start)
         shift
-        cli_cluster_start_completion "$completion_current" "$@"
+        panther_minor_cluster_start_completion "$completion_current" "$@"
         return
         ;;
       status)
         shift
-        cli_cluster_status_completion "$completion_current" "$@"
+        panther_minor_cluster_status_completion "$completion_current" "$@"
         return
         ;;
       stop)
         shift
-        cli_cluster_stop_completion "$completion_current" "$@"
+        panther_minor_cluster_stop_completion "$completion_current" "$@"
         return
         ;;
       cleanup)
         shift
-        cli_cluster_cleanup_completion "$completion_current" "$@"
+        panther_minor_cluster_cleanup_completion "$completion_current" "$@"
         return
         ;;
       restart)
         shift
-        cli_cluster_restart_completion "$completion_current" "$@"
+        panther_minor_cluster_restart_completion "$completion_current" "$@"
         return
         ;;
       build)
         shift
-        cli_cluster_build_completion "$completion_current" "$@"
+        panther_minor_cluster_build_completion "$completion_current" "$@"
         return
         ;;
       --help | -h)
@@ -9157,7 +9157,7 @@ cli_cluster_completion() {
 
 }
 
-cli_cluster_start_completion() {
+panther_minor_cluster_start_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9200,7 +9200,7 @@ cli_cluster_start_completion() {
 
 }
 
-cli_cluster_status_completion() {
+panther_minor_cluster_status_completion() {
   local completion_current="$1"
   shift
 
@@ -9222,7 +9222,7 @@ cli_cluster_status_completion() {
 
 }
 
-cli_cluster_stop_completion() {
+panther_minor_cluster_stop_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9265,7 +9265,7 @@ cli_cluster_stop_completion() {
 
 }
 
-cli_cluster_cleanup_completion() {
+panther_minor_cluster_cleanup_completion() {
   local completion_current="$1"
   shift
 
@@ -9287,7 +9287,7 @@ cli_cluster_cleanup_completion() {
 
 }
 
-cli_cluster_restart_completion() {
+panther_minor_cluster_restart_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9336,7 +9336,7 @@ cli_cluster_restart_completion() {
 
 }
 
-cli_cluster_build_completion() {
+panther_minor_cluster_build_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9379,7 +9379,7 @@ cli_cluster_build_completion() {
 
 }
 
-cli_logs_completion() {
+panther_minor_logs_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9428,7 +9428,7 @@ cli_logs_completion() {
 
 }
 
-cli_update_completion() {
+panther_minor_update_completion() {
   local completion_current="$1"
   shift
 
@@ -9450,7 +9450,7 @@ cli_update_completion() {
 
 }
 
-cli_completions_completion() {
+panther_minor_completions_completion() {
   local completion_current="$1"
   local completion_arg_index=0
   shift
@@ -9504,7 +9504,7 @@ initialize() {
   declare -g version="12.0.1"
   set -euo pipefail
 
-  declare -gr PANTHER_CLI_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cli"
+  declare -gr PANTHER_CLI_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/panther-minor"
   declare -gr PANTHER_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
   declare -gr PANTHER_MODELS_DIR="$PANTHER_REPO_ROOT/models"
   declare -gr PANTHER_PROXY_DIR="$PANTHER_REPO_ROOT/proxy"
@@ -9564,50 +9564,50 @@ run() {
   before_hook
 
   case "$action" in
-    "setup") cli_setup_command ;;
-    "setup all") cli_setup_all_command ;;
-    "setup init") cli_setup_init_command ;;
-    "setup packages") cli_setup_packages_command ;;
-    "setup brew") cli_setup_brew_command ;;
-    "setup docker") cli_setup_docker_command ;;
-    "setup tailscale") cli_setup_tailscale_command ;;
-    "setup ssh") cli_setup_ssh_command ;;
-    "setup ufw") cli_setup_ufw_command ;;
-    "setup fail2ban") cli_setup_fail2ban_command ;;
-    "setup amdgpu") cli_setup_amdgpu_command ;;
-    "setup grub") cli_setup_grub_command ;;
-    "setup git") cli_setup_git_command ;;
-    "setup shell") cli_setup_shell_command ;;
-    "setup env") cli_setup_env_command ;;
-    "models") cli_models_command ;;
-    "models llm") cli_models_llm_command ;;
-    "models llm download") cli_models_llm_download_command ;;
-    "models llm list") cli_models_llm_list_command ;;
-    "models llm remove") cli_models_llm_remove_command ;;
-    "models llm load") cli_models_llm_load_command ;;
-    "models llm unload") cli_models_llm_unload_command ;;
-    "models llm bench") cli_models_llm_bench_command ;;
-    "models t2i") cli_models_t2i_command ;;
-    "models t2i download") cli_models_t2i_download_command ;;
-    "models t2i list") cli_models_t2i_list_command ;;
-    "models t2i remove") cli_models_t2i_remove_command ;;
-    "models t2i load") cli_models_t2i_load_command ;;
-    "models t2i unload") cli_models_t2i_unload_command ;;
-    "models prune") cli_models_prune_command ;;
-    "proxy") cli_proxy_command ;;
-    "proxy certbot") cli_proxy_certbot_command ;;
-    "proxy renew-ssl") cli_proxy_renew_ssl_command ;;
-    "proxy setup-cron") cli_proxy_setup_cron_command ;;
-    "cluster") cli_cluster_command ;;
-    "cluster start") cli_cluster_start_command ;;
-    "cluster status") cli_cluster_status_command ;;
-    "cluster stop") cli_cluster_stop_command ;;
-    "cluster cleanup") cli_cluster_cleanup_command ;;
-    "cluster restart") cli_cluster_restart_command ;;
-    "cluster build") cli_cluster_build_command ;;
-    "logs") cli_logs_command ;;
-    "update") cli_update_command ;;
-    "completions") cli_completions_command ;;
+    "setup") panther_minor_setup_command ;;
+    "setup all") panther_minor_setup_all_command ;;
+    "setup init") panther_minor_setup_init_command ;;
+    "setup packages") panther_minor_setup_packages_command ;;
+    "setup brew") panther_minor_setup_brew_command ;;
+    "setup docker") panther_minor_setup_docker_command ;;
+    "setup tailscale") panther_minor_setup_tailscale_command ;;
+    "setup ssh") panther_minor_setup_ssh_command ;;
+    "setup ufw") panther_minor_setup_ufw_command ;;
+    "setup fail2ban") panther_minor_setup_fail2ban_command ;;
+    "setup amdgpu") panther_minor_setup_amdgpu_command ;;
+    "setup grub") panther_minor_setup_grub_command ;;
+    "setup git") panther_minor_setup_git_command ;;
+    "setup shell") panther_minor_setup_shell_command ;;
+    "setup env") panther_minor_setup_env_command ;;
+    "models") panther_minor_models_command ;;
+    "models llm") panther_minor_models_llm_command ;;
+    "models llm download") panther_minor_models_llm_download_command ;;
+    "models llm list") panther_minor_models_llm_list_command ;;
+    "models llm remove") panther_minor_models_llm_remove_command ;;
+    "models llm load") panther_minor_models_llm_load_command ;;
+    "models llm unload") panther_minor_models_llm_unload_command ;;
+    "models llm bench") panther_minor_models_llm_bench_command ;;
+    "models t2i") panther_minor_models_t2i_command ;;
+    "models t2i download") panther_minor_models_t2i_download_command ;;
+    "models t2i list") panther_minor_models_t2i_list_command ;;
+    "models t2i remove") panther_minor_models_t2i_remove_command ;;
+    "models t2i load") panther_minor_models_t2i_load_command ;;
+    "models t2i unload") panther_minor_models_t2i_unload_command ;;
+    "models prune") panther_minor_models_prune_command ;;
+    "proxy") panther_minor_proxy_command ;;
+    "proxy certbot") panther_minor_proxy_certbot_command ;;
+    "proxy renew-ssl") panther_minor_proxy_renew_ssl_command ;;
+    "proxy setup-cron") panther_minor_proxy_setup_cron_command ;;
+    "cluster") panther_minor_cluster_command ;;
+    "cluster start") panther_minor_cluster_start_command ;;
+    "cluster status") panther_minor_cluster_status_command ;;
+    "cluster stop") panther_minor_cluster_stop_command ;;
+    "cluster cleanup") panther_minor_cluster_cleanup_command ;;
+    "cluster restart") panther_minor_cluster_restart_command ;;
+    "cluster build") panther_minor_cluster_build_command ;;
+    "logs") panther_minor_logs_command ;;
+    "update") panther_minor_update_command ;;
+    "completions") panther_minor_completions_command ;;
   esac
 
   after_hook
