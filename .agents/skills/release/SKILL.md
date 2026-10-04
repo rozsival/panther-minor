@@ -40,8 +40,8 @@ Update the version in **every file that carries it**. As of this writing those a
 `bin/cli` also carries the version, at `declare -g version="X.Y.Z"`. It is **not** in that table on
 purpose.
 
-> **Never read or edit `bin/cli` during a release.** It is a ~240 KB / 9,600-line generated bashly
-> artifact — reading it costs tens of thousands of tokens and has caused a release to fail mid-run. Its version line
+> **Never read or edit `bin/cli` during a release.** It is a large generated bashly artifact (see
+> `.agents/skills/cli-command/SKILL.md`) — reading it costs tens of thousands of tokens and has caused a release to fail mid-run. Its version line
 > comes from `cli/bashly.yml` and is rewritten by `pnpm run build:cli` below. Bump the source, not
 > the artifact.
 

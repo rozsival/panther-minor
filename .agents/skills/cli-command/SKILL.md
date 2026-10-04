@@ -13,7 +13,7 @@ precisely — see `bin/README.md` for the human-facing summary of the same rules
 ## The one rule that matters
 
 > [!IMPORTANT]
-> Never edit `./bin/cli` directly. It is a generated artifact — **~240 KB / 9,600 lines**, including the
+> Never edit `./bin/cli` directly. It is a generated artifact — **roughly 10k lines**, including the
 > inlined Bashly completion engine — built from `cli/*` by `bashly generate`. Reading it burns tens of
 > thousands of tokens for no benefit, and any hand
 > edit is silently discarded the next time someone runs `pnpm run build:cli`. Edit the authored sources

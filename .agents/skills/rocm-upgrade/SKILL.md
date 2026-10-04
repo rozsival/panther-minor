@@ -42,7 +42,7 @@ As of the last verified pass, the version-carrying locations were:
 | `AGENTS.md`                       | "Host: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params ..." stack summary line, "ROCm v10 with gfx1201" rule                    |
 | `models/README.md`                | Incidental hardware-context prose (e.g. base image name in a footnote) — check, don't assume it needs a change                             |
 
-`bin/cli` is a ~9,600-line generated bashly artifact assembled from `cli/*` by
+`bin/cli` is a large generated bashly artifact assembled from `cli/*` by
 `pnpm run build:cli` (see `package.json`). **Never hand-edit `bin/cli` directly** — edit the source
 command file under `cli/commands/`, then regenerate.
 
