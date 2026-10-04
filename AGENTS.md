@@ -15,7 +15,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
-- **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `bin/src/*`
+- **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `cli/*`
 
 ## Critical Rules
 

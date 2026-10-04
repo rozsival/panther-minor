@@ -1,5 +1,5 @@
 panther_setup_shell() {
-  # Resolved before the message below expands it: see setup_ssh_command.sh.
+  # Resolved before the message below expands it: see setup/ssh.sh.
   panther_resolve_setup_context
   panther_prepare_setup_step "Set up shell with Starship prompt for ${PANTHER_ALLOWED_USER}."
 

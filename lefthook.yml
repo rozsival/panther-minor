@@ -8,8 +8,9 @@ pre-commit:
   jobs:
     - run: pnpm run build:cli
       glob:
-        - 'bin/src/bashly.yml'
-        - 'bin/src/**/*.sh'
+        - 'cli/bashly.yml'
+        - 'cli/**/*.sh'
+        - 'bashly-settings.yml'
       stage_fixed: true
 
     - run: pnpm ultracite fix

@@ -21,30 +21,30 @@ Do not trust a cached list of hits — run this yourself, right now, and enumera
 grep -rn "rocm/dev-ubuntu-\|gfx1201\|GGML_HIP_RCCL\|amdgpu\.mes\|amdgpu\.runpm\|iommu=pt\|pcie_aspm" \
   --include=*.sh --include=Dockerfile --include=*.yml --include=*.md --include=*.example . \
   | grep -vE "node_modules|/\.git/"
-grep -rn "amdgpu_release\|ubuntu_codename\|rocm_release\|rocm_distro\|amdrocm[0-9]" bin/src . \
+grep -rn "amdgpu_release\|ubuntu_codename\|rocm_release\|rocm_distro\|amdrocm[0-9]" cli . \
   | grep -vE "node_modules|/\.git/"
 grep -rniE "ubuntu [0-9]{2}\.04|rocm [0-9]+(\.[0-9]+)?|linux kernel [0-9]+" README.md AGENTS.md
 ```
 
 As of the last verified pass, the version-carrying locations were:
 
-| File                                | What it pins                                                                                                                               |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `bin/src/setup_amdgpu_command.sh`   | `amdgpu_release`, `ubuntu_codename`, `rocm_release`, `rocm_distro` locals; repo URLs; `amdrocm${rocm_release}-${rocm_arch}` package name   |
-| `bin/src/setup_packages_command.sh` | `apt-get upgrade -y --with-new-pkgs` and the base package list (OS-version-sensitive names go here)                                        |
-| `bin/src/setup_grub_command.sh`     | GRUB kernel params array (`amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`)                                                            |
-| `bin/src/lib/setup.sh`              | Shared setup helpers invoked by the commands above — check for embedded version assumptions                                                |
-| `llama-cpp/Dockerfile`              | `FROM rocm/dev-ubuntu-<ver>:<rocm-ver>-full`, `ARG ROCM_ARCH="gfx1201"`, `-DGGML_HIP_RCCL=ON`, `/etc/ld.so.conf.d/rocm.conf` registration  |
-| `stable-diffusion-cpp/Dockerfile`   | Same base image, `ROCM_ARCH`, dynamic-loader registration as `llama-cpp/Dockerfile`                                                        |
-| `docker-compose.yml`                | Descriptive comments ("ROCm 10 support") near the `llama-cpp` and `stable-diffusion-cpp` service blocks; `ROCM_ARCH` build arg passthrough |
-| `.env.example`                      | `ROCM_ARCH=gfx1201` (only changes if the target GPU's ISA changes, not on every ROCm bump)                                                 |
-| `README.md`                         | Platform badge, "Ubuntu Server **26.04 LTS or newer** (Linux kernel 7)" prerequisite, ROCm 10 mentions in the services table               |
-| `AGENTS.md`                         | "Host: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params ..." stack summary line, "ROCm v10 with gfx1201" rule                    |
-| `models/README.md`                  | Incidental hardware-context prose (e.g. base image name in a footnote) — check, don't assume it needs a change                             |
+| File                              | What it pins                                                                                                                               |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `cli/commands/setup/amdgpu.sh`    | `amdgpu_release`, `ubuntu_codename`, `rocm_release`, `rocm_distro` locals; repo URLs; `amdrocm${rocm_release}-${rocm_arch}` package name   |
+| `cli/commands/setup/packages.sh`  | `apt-get upgrade -y --with-new-pkgs` and the base package list (OS-version-sensitive names go here)                                        |
+| `cli/commands/setup/grub.sh`      | GRUB kernel params array (`amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`)                                                            |
+| `cli/lib/setup.sh`                | Shared setup helpers invoked by the commands above — check for embedded version assumptions                                                |
+| `llama-cpp/Dockerfile`            | `FROM rocm/dev-ubuntu-<ver>:<rocm-ver>-full`, `ARG ROCM_ARCH="gfx1201"`, `-DGGML_HIP_RCCL=ON`, `/etc/ld.so.conf.d/rocm.conf` registration  |
+| `stable-diffusion-cpp/Dockerfile` | Same base image, `ROCM_ARCH`, dynamic-loader registration as `llama-cpp/Dockerfile`                                                        |
+| `docker-compose.yml`              | Descriptive comments ("ROCm 10 support") near the `llama-cpp` and `stable-diffusion-cpp` service blocks; `ROCM_ARCH` build arg passthrough |
+| `.env.example`                    | `ROCM_ARCH=gfx1201` (only changes if the target GPU's ISA changes, not on every ROCm bump)                                                 |
+| `README.md`                       | Platform badge, "Ubuntu Server **26.04 LTS or newer** (Linux kernel 7)" prerequisite, ROCm 10 mentions in the services table               |
+| `AGENTS.md`                       | "Host: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params ..." stack summary line, "ROCm v10 with gfx1201" rule                    |
+| `models/README.md`                | Incidental hardware-context prose (e.g. base image name in a footnote) — check, don't assume it needs a change                             |
 
-`bin/cli` is a ~7,700-line generated bashly artifact assembled from `bin/src/*` by
+`bin/cli` is a ~9,600-line generated bashly artifact assembled from `cli/*` by
 `pnpm run build:cli` (see `package.json`). **Never hand-edit `bin/cli` directly** — edit the source
-command file under `bin/src/`, then regenerate.
+command file under `cli/commands/`, then regenerate.
 
 ## 2. Check upstream AMD instructions first
 
@@ -58,7 +58,7 @@ release at https://rocm.docs.amd.com/en/latest/install/rocm.html. Confirm:
   consolidated them;
 - the ROCm-arch metapackage name pattern (has changed across releases: `rocm`/`rocm-core` →
   `amdrocm7.14-gfx1201` → `amdrocm10.0-gfx1201`) — get the new pattern exactly, it feeds
-  `"amdrocm${rocm_release}-${rocm_arch}"` in `setup_amdgpu_command.sh`;
+  `"amdrocm${rocm_release}-${rocm_arch}"` in `cli/commands/setup/amdgpu.sh`;
 - whether `amdgpu-install` is still the recommended path or whether AMD still documents the direct
   package-manager path this repo uses instead (see the comment above `panther_setup_amdgpu` explaining
   why `amdgpu-install` was dropped — re-verify that reasoning still holds for the new release before
@@ -66,17 +66,17 @@ release at https://rocm.docs.amd.com/en/latest/install/rocm.html. Confirm:
 
 ## 3. Apply the version bump
 
-1. **`bin/src/setup_amdgpu_command.sh`** — update `amdgpu_release`, `ubuntu_codename`, `rocm_release`,
+1. **`cli/commands/setup/amdgpu.sh`** — update `amdgpu_release`, `ubuntu_codename`, `rocm_release`,
    `rocm_distro` to match what AMD documents. Update the `.sources` file bodies (`Suites:`, `URIs:`)
    and the purge/reinstall comments referencing old metapackage name patterns if they've changed
    again. Read the whole function before editing — several comments encode hard-won behavior (why
    `amdgpu-install` is skipped, why packages are purged wholesale, why the driver-version compare uses
    a prefix match) that must stay accurate after the edit, not just the version literals.
-2. **`bin/src/setup_grub_command.sh`** — GRUB params are a Linux-kernel/GPU-generation concern, not a
+2. **`cli/commands/setup/grub.sh`** — GRUB params are a Linux-kernel/GPU-generation concern, not a
    ROCm-release one. Only touch `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off` if the new kernel
    or driver release changes what's required — check AMD's release notes for the target ROCm version
    for new/removed recommended kernel params before editing this file at all.
-3. **`bin/src/setup_packages_command.sh`** — if the OS codename changed, verify every package name in
+3. **`cli/commands/setup/packages.sh`** — if the OS codename changed, verify every package name in
    the install list still exists under the new release's APT repos; some Ubuntu package names get
    renamed across LTS releases.
 4. **`llama-cpp/Dockerfile`** and **`stable-diffusion-cpp/Dockerfile`** — bump
@@ -104,7 +104,7 @@ interface and prints a warning on every scripted invocation.
 
 - `apt upgrade` is not `apt-get upgrade` — it maps to `apt-get upgrade -y --with-new-pkgs`. Plain
   `apt-get upgrade` holds back any upgrade that needs a new package, which is exactly what a kernel
-  ABI bump is (a new `linux-image` pulled in by `linux-generic`). `setup_packages_command.sh` already
+  ABI bump is (a new `linux-image` pulled in by `linux-generic`). `cli/commands/setup/packages.sh` already
   gets this right — preserve it if you touch that file.
 - Use `apt-cache` / `apt-mark` for read-only queries (available versions, held packages), never
   `apt`.
@@ -113,10 +113,10 @@ interface and prints a warning on every scripted invocation.
 
 1. **Syntax-check every changed shell script**:
    ```bash
-   bash -n bin/src/setup_amdgpu_command.sh
-   bash -n bin/src/setup_packages_command.sh
-   bash -n bin/src/setup_grub_command.sh
-   bash -n bin/src/lib/setup.sh
+   bash -n cli/commands/setup/amdgpu.sh
+   bash -n cli/commands/setup/packages.sh
+   bash -n cli/commands/setup/grub.sh
+   bash -n cli/lib/setup.sh
    ```
 2. **Regenerate the CLI artifact** from the edited source (never hand-edit `bin/cli`):
    ```bash

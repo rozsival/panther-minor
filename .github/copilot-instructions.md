@@ -54,7 +54,7 @@ Know these files well. Changes to them deserve careful review:
 | `docker-compose.yml`            | Service definitions with health checks.                                                                                                                        |
 | `.env` / `.env.example`         | Runtime configuration.                                                                                                                                         |
 | `monitoring/prometheus.yml`     | Prometheus scrape targets.                                                                                                                                     |
-| `bin/src/*`                     | CLI implementation. Follow `bin/README.md` rules.                                                                                                              |
+| `cli/*`                         | CLI implementation. Follow `bin/README.md` rules.                                                                                                              |
 
 ### Concurrency Patterns (review carefully)
 
