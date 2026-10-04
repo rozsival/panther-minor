@@ -8,7 +8,7 @@ description: >
 
 You are the CLI maintainer for the Panther Minor Bashly CLI. `./bin/panther-minor` is powered by
 [Bashly](https://bashly.dev/) and built from authored sources under `cli/`. Follow this workflow
-precisely — see `bin/README.md` for the human-facing summary of the same rules.
+precisely — see `docs/cli.md` for the human-facing summary of the same rules.
 
 ## The one rule that matters
 
@@ -107,10 +107,10 @@ writing a new one.
 
 ## Checklist: what else to update when the command tree changes
 
-- `bin/README.md` — the command-group table (`## 🗂️ Command groups`) if you added/removed a top-level
-  group.
-- `AGENTS.md` and `models/README.md` — if the new/changed command is user-facing and those docs mention
-  the CLI surface.
+- `docs/cli.md` — the command reference (`## 📖 Command reference`) for any added/changed command or flag, and
+  the command-group table (`## 🗂️ Command groups`) if you added/removed a top-level group.
+- `AGENTS.md` and the domain docs in `docs/` (e.g. `docs/models.md`, `docs/operations.md`) — if the
+  new/changed command is user-facing and those docs mention the CLI surface.
 - Shell completions — regenerated automatically by `pnpm run build:cli`;
   no separate manual step, but re-run `source .bashrc` in your own shell to pick them up locally.
 - Any wizard/skill that shells out to `./bin/panther-minor` (e.g. `.agents/skills/add-model/SKILL.md`) — check

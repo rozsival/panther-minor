@@ -153,7 +153,7 @@ For each harness configured, report:
 
 - The exact file path written (and whether it was a fresh install or an update).
 - The resolved domain / base URL used.
-- How the user switches thinking and effort in that harness, sourced from `harnesses/README.md`:
+- How the user switches thinking and effort in that harness, sourced from `docs/harnesses.md`:
   - **OMP** — thinking level toggle (`Shift+Tab`); effort ladder is per-model (`low`/`medium`/`xhigh` for
     `Qwen3.8-27B` and `Qwen3.8-Flash-Next`, single `medium` level — plain on/off — for
     `Qwen3.6-35B-A3B` and `Qwen3.5-2B`).

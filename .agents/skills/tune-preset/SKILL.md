@@ -10,7 +10,7 @@ description: >
 
 You are tuning a `llama-cpp/preset.ini` section for measured throughput, not guesswork. Every claim in
 this skill traces back to a real preset in this repo — read the target section before touching it, and
-read `models/README.md` for the worked example (`Qwen3.8-Flash-Next`) if you need the full derivation
+read `docs/llm.md` for the worked example (`Qwen3.8-Flash-Next`) if you need the full derivation
 behind any number.
 
 ## Measurement-first loop — never skip a step
@@ -170,7 +170,7 @@ Once a change is kept (bench log shows a real, repeatable delta):
   for a throughput/placement win, `fix(llama-cpp): …` for a correctness fix (e.g. an OOM avoided).
   Examples from this repo's history: `perf(llama-cpp): tune deepseek spec decoding`,
   `fix(llama-cpp): reduce spec-draft-n-max`, `perf(llama-cpp): use tensor split`.
-- If the tuned number is one `models/README.md` documents (VRAM budget, measured tok/s, split
+- If the tuned number is one `docs/llm.md` documents (VRAM budget, measured tok/s, split
   rationale, draft depth), update that doc in the same change — it is the narrative explanation of
   numbers that live in `llama-cpp/preset.ini`, and a stale doc is worse than no doc. Do not edit
-  `models/README.md` for changes that don't touch a number it states.
+  `docs/llm.md` for changes that don't touch a number it states.

@@ -40,7 +40,7 @@ Prometheus → scraping /status on llama-manager for GPU metrics
 2. **llama.cpp only**: Custom ROCm v10 build with `gfx1201`. No alternative inference backends.
 3. **Package manager**: `apt-get` only in scripts and Dockerfiles. Never bare `apt` — it has no stable CLI interface and prints a warning on every scripted invocation. `apt upgrade` maps to `apt-get upgrade --with-new-pkgs`, not plain `apt-get upgrade`, which holds back upgrades needing new packages (kernel ABI bumps).
 4. **Commits**: Conventional Commits v1.0.0, lowercase, no final punctuation, ≤100 chars.
-5. **CLI**: All `./bin/panther-minor` commands follow rules in `bin/README.md`. Do not suggest new subcommands or flags without checking that file first.
+5. **CLI**: All `./bin/panther-minor` commands follow rules in `docs/cli.md`. Do not suggest new subcommands or flags without checking that file first.
 
 ### Key Files & Their Roles
 
@@ -54,7 +54,7 @@ Know these files well. Changes to them deserve careful review:
 | `docker-compose.yml`            | Service definitions with health checks.                                                                                                                        |
 | `.env` / `.env.example`         | Runtime configuration.                                                                                                                                         |
 | `monitoring/prometheus.yml`     | Prometheus scrape targets.                                                                                                                                     |
-| `cli/*`                         | CLI implementation. Follow `bin/README.md` rules.                                                                                                              |
+| `cli/*`                         | CLI implementation. Follow `docs/cli.md` rules.                                                                                                                |
 
 ### Concurrency Patterns (review carefully)
 

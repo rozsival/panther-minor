@@ -23,7 +23,7 @@ grep -rn "rocm/dev-ubuntu-\|gfx1201\|GGML_HIP_RCCL\|amdgpu\.mes\|amdgpu\.runpm\|
   | grep -vE "node_modules|/\.git/"
 grep -rn "amdgpu_release\|ubuntu_codename\|rocm_release\|rocm_distro\|amdrocm[0-9]" cli . \
   | grep -vE "node_modules|/\.git/"
-grep -rniE "ubuntu [0-9]{2}\.04|rocm [0-9]+(\.[0-9]+)?|linux kernel [0-9]+" README.md AGENTS.md
+grep -rniE "ubuntu [0-9]{2}\.04|rocm [0-9]+(\.[0-9]+)?|linux kernel [0-9]+" README.md AGENTS.md docs/
 ```
 
 As of the last verified pass, the version-carrying locations were:
@@ -38,9 +38,11 @@ As of the last verified pass, the version-carrying locations were:
 | `stable-diffusion-cpp/Dockerfile` | Same base image, `ROCM_ARCH`, dynamic-loader registration as `llama-cpp/Dockerfile`                                                        |
 | `docker-compose.yml`              | Descriptive comments ("ROCm 10 support") near the `llama-cpp` and `stable-diffusion-cpp` service blocks; `ROCM_ARCH` build arg passthrough |
 | `.env.example`                    | `ROCM_ARCH=gfx1201` (only changes if the target GPU's ISA changes, not on every ROCm bump)                                                 |
-| `README.md`                       | Platform badge, "Ubuntu Server **26.04 LTS or newer** (Linux kernel 7)" prerequisite, ROCm 10 mentions in the services table               |
+| `README.md`                       | Platform badge, "Ubuntu Server 26.04 LTS+" quick-start requirement line                                                                    |
+| `docs/installation.md`            | "Ubuntu Server **26.04 LTS or newer** (Linux kernel 7)" prerequisite                                                                       |
+| `docs/architecture.md`            | "RDNA 4 and ROCm 10 support" mentions in the services table                                                                                |
 | `AGENTS.md`                       | "Host: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params ..." stack summary line, "ROCm v10 with gfx1201" rule                    |
-| `models/README.md`                | Incidental hardware-context prose (e.g. base image name in a footnote) — check, don't assume it needs a change                             |
+| `docs/llm.md`                     | Incidental hardware-context prose — check, don't assume it needs a change                                                                  |
 
 `bin/panther-minor` is a large generated bashly artifact assembled from `cli/*` by
 `pnpm run build:cli` (see `package.json`). **Never hand-edit `bin/panther-minor` directly** — edit the source
@@ -87,8 +89,9 @@ release at https://rocm.docs.amd.com/en/latest/install/rocm.html. Confirm:
    for `/opt/rocm/lib`; confirm the new base image still lacks one (if AMD started shipping the entry,
    the workaround becomes dead weight and should be dropped, with the explanatory comment removed
    too).
-5. **`README.md`** — update the platform badge, the "Ubuntu Server **X.Y LTS or newer** (Linux kernel
-   N)" prerequisite line, and the "ROCm N support" mentions in the services table.
+5. **`README.md`** and **`docs/`** — update the platform badge and the "Ubuntu Server X.Y LTS+" requirement in
+   `README.md`, the "Ubuntu Server **X.Y LTS or newer** (Linux kernel N)" prerequisite in `docs/installation.md`,
+   and the "ROCm N support" mentions in the `docs/architecture.md` services table.
 6. **`AGENTS.md`** — update the "Host: Ubuntu X.Y LTS+ (Linux kernel N), ROCm N, kernel params ..."
    line and the "ROCm vN with gfx1201" rule under Critical Rules.
 7. **`docker-compose.yml`** — update the descriptive "ROCm N support" comments near the two build

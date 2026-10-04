@@ -14,7 +14,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 - **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
-- **Network**: See PORTS.md. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
+- **Network**: See `docs/networking.md`. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
 - **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `cli/*`
 
 ## Critical Rules
@@ -26,10 +26,11 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 ## Key Files
 
-- `README.md` — setup instructions, architecture overview, service access details
-- `PORTS.md` — detailed port configuration and access methods
-- `bin/README.md` — overview of the `./bin/panther-minor` command tree (strictly follow rules there for CLI changes)
-- `models/README.md` — overview for LLMs (`./bin/panther-minor models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`) and text-to-image models (`./bin/panther-minor models t2i *`, `models/t2i.config.json`)
+- `README.md` — minimal project overview, quick start, ownership; links to `docs/`
+- `docs/README.md` — documentation index; one domain per file in `docs/` (follow its conventions when adding or editing docs)
+- `docs/networking.md` — port configuration, `BIND_ADDR`, and access methods
+- `docs/cli.md` — `./bin/panther-minor` command reference and maintainer workflow (strictly follow rules there for CLI changes)
+- `docs/models.md`, `docs/llm.md`, `docs/image-generation.md` — model catalogs and shared cache; LLM serving (`./bin/panther-minor models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`); text-to-image (`./bin/panther-minor models t2i *`, `models/t2i.config.json`)
 - `docker-compose.yml` — service definitions with health checks
 - `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models and arbitrates large-model switches before proxying inference
 - `llama-cpp/models.js` — shared model helpers, including normalization and the static list of model IDs treated as large by the manager

@@ -9,362 +9,76 @@
 ![Inference](https://img.shields.io/badge/Inference-llama.cpp%20%2B%20stable--diffusion.cpp-4CAF50)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
 
-Panther Minor gives you a reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems. It combines
-**llama.cpp**, **stable-diffusion.cpp**, **Open WebUI**, **Prometheus**, and **Grafana** into a secure setup with
-**Tailscale access**, **hardened SSH**, and **smart GPU usage management**.
+A reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems: **llama.cpp**,
+**stable-diffusion.cpp**, **Open WebUI**, **Prometheus** and **Grafana**, with **Tailscale access**, **hardened SSH**
+and **smart GPU usage management**.
+
+**[📚 Documentation](docs/README.md)** · [Installation](docs/installation.md) · [Operations](docs/operations.md) ·
+[CLI](docs/cli.md)
 
 </div>
 
 ---
 
-## ✨ Why Panther Minor?
+## ✨ Highlights
 
 | Feature                     | What it gives you                                                                                             |
 | --------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Local inference**         | OpenAI-compatible LLM API powered by [LLaMA.cpp](https://github.com/ggml-org/llama.cpp)                       |
+| **Local inference**         | OpenAI-compatible LLM API powered by [llama.cpp](https://github.com/ggml-org/llama.cpp)                       |
 | **Local image generation**  | OpenAI-compatible image API powered by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) |
 | **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                  |
-| **GPU power & VRAM saving** | Automatic idle detection and `llama.cpp` model unload behavior                                                |
-| **Secure remote access**    | Tailscale, key-only SSH on port `2222`, firewall, and fail2ban                                                |
+| **GPU power & VRAM saving** | Idle model unloading and serialized large-model switching                                                     |
+| **Secure remote access**    | Tailscale-scoped ports, key-only SSH on port `2222`, firewall, and fail2ban                                   |
 | **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                                                    |
 
-## 🏗️ Architecture
-
-```mermaid
-flowchart LR
-    U[Users / Clients] --> W[Open WebUI]
-    U --> A[External API Clients]
-
-    W --> M[llama-manager]
-    A --> M
-    W --> S[sd-manager]
-    A --> S
-
-    M --> L[llama.cpp]
-    S --> I[stable-diffusion.cpp]
-
-    P[Prometheus] --> X[llama-metrics-exporter]
-    P --> Y[sd-metrics-exporter]
-    P --> G[amd-gpu-exporter]
-    P --> N[node-exporter]
-    X --> M
-    X --> L
-    Y --> S
-
-    D[Grafana] --> P
-```
-
 > [!IMPORTANT]
-> This stack is designed as a **single-tenant** system for one trusted user and workload. It is not suitable for multi-user or untrusted environments.
+> Panther Minor is a **single-tenant** system for one trusted user and workload. It is not suitable for multi-user or
+> untrusted environments.
 
-## 🧰 Prerequisites
+## 🚀 Quick start
 
-### Hardware
-
-| Component   | Recommendation                                        |
-| ----------- | ----------------------------------------------------- |
-| Motherboard | X870E with 2x PCIe Gen5 x16 slots                     |
-| CPU         | AMD Ryzen 9 or newer, **12 cores recommended**        |
-| Memory      | **96 GB DDR5 or more**, in **two DIMMs**              |
-| GPUs        | **2x AMD Radeon Pro RDNA 4** with **32 GB VRAM each** |
-| Storage     | NVMe SSD, **1 TB or more**, Gen4 or newer             |
-| PSU         | **1300W or more** with 2x 12VHPWR connectors          |
-
-> [!NOTE]
-> Use **two DIMMs, one per channel**. Filling all four slots forces AM5 down to the JEDEC 3600 MT/s fallback
-> regardless of EXPO, and adding modules later downclocks the pair already installed. DRAM speed measured no
-> effect on MoE inference here, so size for **capacity**: spare RAM becomes page cache for the GGUF corpus
-> and shortens cold model loads.
-
-### BIOS
-
-- Above 4G decoding enabled
-- Resize BAR enabled
-- IOMMU enabled
-- iGPU disabled
-- PCIe slots set to Gen5 (the CPU bifurcates its x16 into x8/x8, so each card trains at Gen5 x8)
-- `M2_1` slot set to Gen4 for the NVMe SSD
-
-> [!NOTE]
-> Gen5 GPU + Gen4 SSD is the sweet spot for maximizing GPU performance while maintaining system stability.
-
-### Software
-
-- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS or newer** (Linux kernel 7)
-- Server installed with a non-root user that has `sudo` privileges
-- OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
-- A [Tailscale](https://tailscale.com/) account for secure remote access
-- A domain you control for required SSL certificate issuance and secure service access
-
-> [!WARNING]
-> **Install a major release cleanly rather than upgrading in place.** `do-release-upgrade` leaves the
-> previous release's kernels installed and disables third-party repositories, so the out-of-tree
-> `amdgpu` DKMS driver is rebuilt in a mixed state. Every build succeeds, the module loads, nothing
-> fails - and inference throughput silently drops. Record a baseline with
-> `./bin/panther-minor models llm bench <model>` before any OS, driver, ROCm or llama.cpp change so a regression
-> is a diff rather than a hunch.
-
----
-
-## 🚀 Quick Start
-
-SSH into your server, clone the repository and run the setup CLI:
-
-> [!WARNING]
-> **Reboot is required** after the script completes to load the new kernel drivers and parameters.
-> After reboot, SSH will be available on **port 2222** with **key-based authentication only**.
->
-> Reconnect with: `ssh -p 2222 <user>@<server-ip>`
+**Requires** Ubuntu Server 26.04 LTS+, 2x AMD RDNA 4 GPUs, a Tailscale account and a domain — see
+[Installation](docs/installation.md#-prerequisites) for hardware and BIOS settings.
 
 ```bash
+# 1. Clone a release and prepare the host (reboot afterwards)
 git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
 git checkout v12.0.1
 sudo ./bin/panther-minor setup
-```
+sudo reboot
 
----
-
-## ⚙️ What the setup command configures
-
-`sudo ./bin/panther-minor setup` automatically prepares the server with:
-
-- **Init** — server workspace and timezone setup
-- **Essential packages** — `build-essential`, `jq`, `nvtop`, `htop`, and more with unattended upgrades
-- **Homebrew** — installs Homebrew, `llmfit`, `huggingface-cli`, and `yq` for the current user
-- **Docker** — Docker Engine and Docker Compose
-- **Tailscale** — Tailscale agent installation
-- **SSH** — hardened `/etc/ssh/sshd_config` with port `2222`, key-only auth, and restricted users
-- **UFW** — firewall rules for ports `2222`, `80`, and `443`
-- **fail2ban** — brute-force protection
-- **AMD GPU & ROCm** — latest kernel drivers and ROCm
-- **Kernel parameters** — GRUB config with optimized settings for AMD GPUs and LLM workloads
-- **Git** — default name, email, and rebase pull strategy
-- **Shell** — modern shell prompt for the current user
-- **Environment** — creates `.env` from `.env.example` and syncs `VIDEO_GID` / `RENDER_GID`
-
-> [!TIP]
-> You can re-run individual setup steps. For example, to apply SSH hardening again:
->
-> ```bash
-> sudo ./bin/panther-minor setup ssh
-> ```
-
----
-
-## 🔐 Remote access with Tailscale
-
-After the initial setup and reboot, authenticate the server to your
-[Tailscale network](https://login.tailscale.com/admin/):
-
-```bash
+# 2. Reconnect on port 2222, join Tailscale, scope ports to it
+ssh -p 2222 <user>@<server-ip>
 sudo tailscale up
-```
-
-Follow the browser link to complete authentication. Once connected, access the server via its Tailscale IP or hostname:
-
-```bash
-ssh -p 2222 <user>@<server-name>
-```
-
-Then record the node's Tailscale address in `.env`, which is what scopes every published port
-away from the public internet:
-
-```bash
 sudo ./bin/panther-minor setup env
-```
 
-> [!IMPORTANT]
-> `setup all` runs before Tailscale is authenticated, so `BIND_ADDR` is empty until this step.
-> The cluster refuses to start with an empty `BIND_ADDR` rather than publishing its ports on
-> `0.0.0.0`. See [Port Configuration](./PORTS.md) for the reasoning.
-
-> [!TIP]
-> It is usually best to
-> [disable key expiry](https://login.tailscale.com/admin/machines)
-> for the server in Tailscale to avoid losing access.
-
----
-
-## 🔒 SSL setup
-
-SSL is part of Panther Minor's secure design. Complete these steps to issue and maintain certificates for your domain:
-
-1. Enable HTTPS in Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
-2. Add an `A` record in your DNS provider pointing to the server's
-   [Tailscale IP address](https://login.tailscale.com/admin/machines).
-3. Generate the certificate on the server:
-
-> [!IMPORTANT]
-> The script prints the required ACME DNS `CNAME` record value. You must add that record at your DNS provider before
-> continuing, otherwise certificate issuance will fail.
-
-```bash
-./bin/panther-minor proxy certbot --domain [<subdomain>.]<domain> --challenge-record _acme-challenge[.<subdomain>]
-```
-
-4. Enable automatic renewal:
-
-```bash
+# 3. Issue TLS certificates and enable renewal
+./bin/panther-minor proxy certbot --domain <domain> --challenge-record _acme-challenge
 ./bin/panther-minor proxy setup-cron
-```
 
----
-
-## 🧠 LLaMA.cpp cluster
-
-Panther Minor runs local LLMs across both GPUs with an OpenAI-compatible API, and a monitoring stack.
-
-### Configuration
-
-See `.env` for configurable parameters. Defaults are provided for all non-sensitive values.
-
-#### Hugging Face
-
-A [Hugging Face token](https://huggingface.co/settings/tokens) is not required, but it is recommended to avoid rate
-limits when downloading models.
-
-### Model management
-
-See [Models](./models/README.md) for available models and their usage.
-
-### Start the cluster
-
-```bash
+# 4. Download the default models and start the cluster
+./bin/panther-minor models llm download Qwen3.8-27B
+./bin/panther-minor models llm download Qwen3.5-2B
+./bin/panther-minor models llm download Qwen3-Embedding-0.6B
 ./bin/panther-minor cluster start
 ```
 
-### Rebuild only
+Then open `https://<domain>:8080` (Open WebUI) or point an OpenAI client at `https://<domain>:8000/v1`.
 
-```bash
-./bin/panther-minor cluster build
-# or without cache (for example after config changes):
-./bin/panther-minor cluster build --no-cache
-```
+> [!WARNING]
+> After `setup`, SSH accepts **keys only on port 2222**. Keep your current session open until a second one connects.
 
-### Services
+## 📚 Documentation
 
-| Service                  | Role                                                                             |
-| ------------------------ | -------------------------------------------------------------------------------- |
-| `llama-cpp`              | OpenAI-compatible LLM inference with RDNA 4 and ROCm 10 support                  |
-| `llama-manager`          | Activity-aware reverse proxy with idle unload and large-model switch handling    |
-| `stable-diffusion-cpp`   | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 10 support |
-| `sd-manager`             | Activity-aware reverse proxy in front of `sd-server`                             |
-| `open-webui`             | Chat and image-generation interface                                              |
-| `grafana`                | Monitoring dashboard with pre-configured GPU and host metrics                    |
-| `prometheus`             | Time-series database for scraping and storing metrics                            |
-| `amd-gpu-exporter`       | AMD GPU metrics exporter                                                         |
-| `node-exporter`          | Host metrics exporter for CPU, RAM, disk, network, and temperature               |
-| `llama-metrics-exporter` | Prometheus exporter for `llama.cpp` metrics                                      |
-| `sd-metrics-exporter`    | Prometheus exporter for `stable-diffusion.cpp` metrics                           |
+Everything else — architecture, networking, models, GPU management, monitoring, coding harnesses, CLI and
+development — lives in **[docs/](docs/README.md)**.
 
-> [!IMPORTANT]
-> Services are **not** accessible from the public internet. See [PORTS.md](PORTS.md) for network details and access
-> methods.
+## 👤 Ownership
 
-### Extending the cluster
-
-You can extend the cluster with custom services or configuration overrides by creating
-`docker-compose.override.yml` in the project root. Docker Compose picks it up automatically and merges it with the base
-configuration.
-
-Alternatively, you can set `COMPOSE_FILE` in `.env` to point to your custom
-[compose file(s)](https://docs.docker.com/compose/how-tos/environment-variables/envvars/#compose_file).
-
-> [!IMPORTANT]
-> Always include the base `docker-compose.yml`.
-
-Put any extra files, scripts, configurations, or assets in the `./extra` directory and mount it into your custom services as needed. The directory is kept out of VCS.
-
----
-
-## 🎨 Image generation
-
-Panther Minor also serves local **text-to-image** generation through
-[stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp)'s `sd-server`, exposing an
-**OpenAI-compatible image API** (`POST /v1/images/generations`). Two models are available:
-[Ideogram 4](https://huggingface.co/leejet/ideogram-4-GGUF) (default) and
-[Qwen-Image 2.1](https://huggingface.co/unsloth/Qwen-Image-2.1-GGUF).
-
-`sd-server` loads exactly **one** model per process, so only one text-to-image model is ever resident. Downloading,
-switching, per-model sampling defaults, and GPU assignment are all handled by the CLI:
-
-```bash
-./bin/panther-minor models t2i download Ideogram-4  # or Qwen-Image-2.1
-./bin/panther-minor models t2i load Qwen-Image-2.1  # switch the served model (recreates sd-server)
-```
-
-Open WebUI needs no changes when switching — leave its image model field at `default`. See
-[Text-to-image models](./models/README.md#-text-to-image-models-t2iconfigjson) for the full command reference, and
-[Recommended workflows](./models/README.md#-recommended-workflows) for how to combine image generation with LLM chats
-without VRAM contention.
-
----
-
-## 🔋 GPU power and VRAM management
-
-All LLM traffic from Open WebUI and external clients flows through `llama-manager`, which sits in front of
-`llama-cpp` as an activity-aware reverse proxy.
-
-### Idle VRAM unloading
-
-When the cluster is idle, `llama-manager` automatically unloads all models from `llama.cpp` to free up VRAM and reduce
-power consumption. The logic is as follows:
-
-1. `llama-manager` records every model list, inference, and embedding request as activity.
-2. When no request has been received within `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `llama-manager` checks `/models` and calls
-   `/models/unload` for each still-loaded model, so `llama.cpp` releases VRAM without restarting the container.
-3. `llama-metrics-exporter` checks `llama-manager /status` before each Prometheus scrape. During idle, it serves the
-   last active counter values plus a fresh `/models` snapshot instead of querying `/metrics`, but it still performs one
-   catch-up scrape after unseen activity so short requests are not missed between Prometheus scrape intervals.
-
-A dedicated `llama_metrics_exporter_idle` gauge flips to `1` during idle periods.
-
-Set `LLAMA_CPP_SLEEP_IDLE_SECONDS=0` in `.env` to disable idle mode entirely.
-
-### Large-model switch handling
-
-`llama-manager` also prevents avoidable OOM spikes when you switch between bigger models while keeping a lightweight
-second model resident (for embeddings or quick tasks). The logic is as follows:
-
-1. A static list of large model IDs lives in `llama-cpp/models.js`.
-2. Before proxying an inference request for one of those models, the manager reads the request body, checks `/models`,
-   and unloads any other loaded large model first.
-3. Large-model switches are serialized, and a loaded large model is never unloaded while one of its proxied inference
-   requests is still in flight.
-
-This keeps the small helper model untouched while making large-model handovers deterministic.
-
-Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
-is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `preset.ini` instead:
-`Qwen3.8-Flash-Next` moves blocks 0-27's routed experts to system RAM with `n-cpu-moe = 28`. Its 26.82 GiB n-gram
-table is read host-side and never enters VRAM at all.
-
-### Image generation VRAM
-
-`sd-server` offloads its weights to RAM between generations (`--offload-to-cpu`), so it only holds VRAM while actually
-producing an image — idle image-generation VRAM frees itself. Short on VRAM, it streams weights in segments and tiles
-the VAE decode, so either image model shares the GPUs with `Qwen3.8-27B`; larger LLMs leave too little. For those, or
-heavy image sessions, `models t2i load --exclusive` dedicates a GPU to image generation and `models t2i unload` gives
-it back to the LLMs — see [Recommended workflows](./models/README.md#-recommended-workflows) and
-[GPU assignment](./models/README.md#gpu-assignment). `sd-manager` records image activity and exposes a
-`sd_metrics_exporter_idle` gauge for visibility in Grafana.
-
----
-
-## 🛑 Stop the cluster
-
-```bash
-./bin/panther-minor cluster stop
-```
-
-## 🖲 Remote control
-
-See [Panther Minor Controller](https://github.com/rozsival/panther-minor-controller) for a companion tool running on Raspberry Pi that gives you remote control over Panther Minor power state (on/off/reboot).
-
-## 📚 More documentation
-
-- [Panther Minor CLI](./bin/README.md) — full command reference for managing the cluster
-- [Models](./models/README.md) — model presets and usage
-- [Coding Harness Presets](./harnesses/README.md) — recommended config files for coding agents (Pi, OpenCode, etc.)
-- [Port Configuration](./PORTS.md) — ports, routing, and service access details
+| Item       | Details                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------- |
+| Maintainer | [@rozsival](https://github.com/rozsival) (see [`CODEOWNERS`](CODEOWNERS))                               |
+| Issues     | [GitHub Issues](https://github.com/rozsival/panther-minor/issues)                                       |
+| Companion  | [Panther Minor Controller](https://github.com/rozsival/panther-minor-controller) — remote power control |
+| License    | [MIT](LICENSE)                                                                                          |
