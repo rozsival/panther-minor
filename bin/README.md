@@ -55,6 +55,7 @@ pnpm run build:cli
 | `./bin/src/lib/*.sh`          | Shared helper logic                               |
 | `./bin/src/lib/validations/*` | Custom validations                                |
 | `./bin/src/initialize.sh`     | Pre-parse normalization and bootstrapping         |
+| `./bin/settings.yml`          | Bashly settings (`completions: full`)             |
 
 ### Editing rules
 
@@ -71,7 +72,10 @@ pnpm run build:cli
 - `models download` supports `HF_TOKEN`
 - `logs <service>` streams logs, `logs <service> --tail` prints the latest `100` lines once, and
   `logs <service> --tail <n>` prints the latest `<n>` lines once
-- `./bin/cli completions` prints the shell completion script for `eval "$(./bin/cli completions)"`
+- `./bin/cli completions [bash|zsh]` prints the shell completion script (default `bash`) for
+  `eval "$(./bin/cli completions)"`; completions are generated natively by Bashly 2 (`completions: full` in
+  `./bin/settings.yml`)
+- Per-argument completions live on the arg in `./bin/src/bashly.yml` as `completions: { static | dynamic | options }`
 
 ## ✅ Validate after changes
 
