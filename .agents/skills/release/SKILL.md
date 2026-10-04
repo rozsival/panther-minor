@@ -1,7 +1,8 @@
 ---
 name: release
 description: >
-  Bump version, commit, tag, and push to remote. Use when user says "release" or "bump version".
+  Bump version on a release branch, open a PR to main, and tag the merged commit. Use when user says
+  "release" or "bump version".
 ---
 
 You are the release engineer for Panther Minor. Follow this workflow precisely.
@@ -25,6 +26,23 @@ Wait for their answer. Then bump the version using semver:
 | major | `X.Y.Z`         | `X+1.0.0`   |
 | minor | `X.Y.Z`         | `X.Y+1.0`   |
 | patch | `X.Y.Z`         | `X.Y.Z+1`   |
+
+## Release Branch
+
+Agents never push to `main`: it only accepts rebase-merged PRs with a code-owner review. The release
+commit goes through a `release/vX.Y.Z` branch instead.
+
+1. **Check the version is free** — neither the tag nor the branch may exist on the remote:
+   ```bash
+   git ls-remote origin refs/tags/vX.Y.Z refs/heads/release/vX.Y.Z
+   ```
+   It must print nothing. Otherwise abort and report what exists.
+2. **Create the branch** from the freshly pulled `main`:
+   ```bash
+   git switch -c release/vX.Y.Z
+   ```
+
+## Update the Version
 
 Update the version in **every file that carries it**. As of this writing those are:
 
@@ -55,7 +73,7 @@ grep -rn "<CURRENT_VERSION>" --include=*.json --include=*.yml --include=*.ini --
 Update each match to the new version in-place. If your edit tool needs a fresh read to anchor a hunk,
 read **only the matching line range** (e.g. `README.md:110-120`), never the whole file.
 
-## Commit & Tag
+## Commit & Pull Request
 
 1. **Refresh lockfile** after version bump:
    ```bash
@@ -80,22 +98,59 @@ read **only the matching line range** (e.g. `README.md:110-120`), never the whol
    ```bash
    git commit -m "chore(release): vX.Y.Z"
    ```
-6. **Create a signed tag**, then confirm it exists. Run it as its own command — hook output on stderr
-   (commitlint via lefthook) can make a chained `git commit && git tag -s …` look like a failure and
-   abort before the tag is created, leaving a release commit with no tag:
+6. **Push the branch** — confirm with the user first:
    ```bash
-   git tag -s vX.Y.Z -m "Release vX.Y.Z"
+   git push -u origin release/vX.Y.Z
+   ```
+7. **Open the PR**:
+   ```bash
+   gh pr create --base main --head release/vX.Y.Z --title "chore(release): vX.Y.Z" \
+     --body "Release vX.Y.Z. Rebase-merge, then the tag is pushed from the merged commit."
+   ```
+8. **Wait for the required checks** (`qa`, `test`):
+   ```bash
+   gh pr checks release/vX.Y.Z --watch --required
+   ```
+   If a check fails, stop and report it. Do not push fixes onto the release branch unasked.
+9. **Hand the merge to the user** — print the PR URL and ask them to review and merge it with **Rebase and
+   merge** (the only method `main` allows). Never merge it yourself, never use `--admin` or any ruleset
+   bypass. Wait for the user to confirm, then verify:
+   ```bash
+   gh pr view release/vX.Y.Z --json state --jq .state
+   ```
+   It must print `MERGED`. Anything else: stop, nothing gets tagged.
+
+## Tag
+
+The tag goes on `main`'s copy of the release commit, never the branch's: a rebase merge rewrites every
+commit, so the SHA on `release/vX.Y.Z` never reaches `main`.
+
+1. **Update `main`**:
+   ```bash
+   git switch main
+   git pull --rebase
+   ```
+2. **Find the merged release commit**:
+   ```bash
+   git log main --format=%H -n 1 --grep='^chore(release): vX.Y.Z$'
+   ```
+   It must print exactly one SHA. If it prints nothing, stop and report — do not tag `HEAD` instead.
+3. **Create an annotated tag** on that SHA, then confirm it exists. Annotated, not signed: agent sessions
+   hold no signing key (`tag.gpgsign = false`), so `git tag -s` fails there:
+   ```bash
+   git tag -a vX.Y.Z <SHA> -m "Release vX.Y.Z"
    git tag --list vX.Y.Z
    ```
-   If the second command prints nothing, the tag was **not** created. Stop and report the error — do not
-   push a release commit without its tag.
-7. **Push to remote** — push **sequentially**, NOT in parallel:
+   If the second command prints nothing, the tag was **not** created. Stop and report the error.
+4. **Push the tag** — confirm with the user first. This triggers `.github/workflows/release.yml`:
    ```bash
    git push origin vX.Y.Z
-   git push origin main
    ```
-   Push the tag first, then the branch. Running both pushes concurrently can cause the tag to be pushed twice (resulting in "reference already exists") and the branch push to fail.
-   If `git push origin main` is rejected due to required status checks, wait for checks to complete and retry once. Do not retry more than once.
+5. **Clean up** the local branch (`-D`: the rebase merge leaves its original commits unmerged by SHA):
+   ```bash
+   git branch -D release/vX.Y.Z
+   git fetch --prune
+   ```
 
 ## Confirmation
 
@@ -104,13 +159,14 @@ Report back to the user:
 ```
 ✅ Release vX.Y.Z created successfully.
    - Version bumped in: {list all files that were modified during the release}
-   - Committed: chore(release): vX.Y.Z
-   - Tagged: vX.Y.Z
-   - Pushed to remote
+   - Committed: chore(release): vX.Y.Z on release/vX.Y.Z
+   - PR: {PR URL}, rebase-merged into main
+   - Tagged: vX.Y.Z on {merged SHA}, pushed to remote
 ```
 
 ## Error Handling
 
 - If the version format is unexpected, abort and ask the user to verify it follows `X.Y.Z` semver or is approved to be in a different format (e.g., `X.Y.Z-beta`).
-- If `git push` fails (e.g., remote rejects tag, network issue), inform the user and stop. Do not retry automatically.
+- If `git push` fails (e.g., remote rejects the branch or tag, network issue), inform the user and stop. Do not retry automatically.
+- Never push to `main`, never merge the release PR, never bypass branch rules — `main` changes only through the user's merge.
 - Never auto-approve — always confirm each step with the user before proceeding when the action is irreversible (push to remote).

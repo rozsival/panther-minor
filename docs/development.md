@@ -78,7 +78,7 @@ The `release` agent skill performs the whole sequence.
 | `.agents/skills/cli-command/`      | Add or change Bashly CLI commands and flags                |
 | `.agents/skills/harness-config/`   | Install or update OMP / Pi / OpenCode presets locally      |
 | `.agents/skills/ideogram4-prompt/` | Generate valid Ideogram 4 JSON prompts                     |
-| `.agents/skills/release/`          | Version bump, commit, tag and push                         |
+| `.agents/skills/release/`          | Version bump on a release branch, PR, tag                  |
 | `.agents/skills/rocm-upgrade/`     | Upgrade ROCm, `amdgpu`, base OS or kernel across the stack |
 | `.agents/skills/tune-preset/`      | Measurement-first `llama.cpp` preset tuning                |
 
