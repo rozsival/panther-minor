@@ -90,5 +90,5 @@ curl -k https://localhost:8000/v1/models
 | -------------------- | ----------------------------------------------------------------- |
 | `docker-compose.yml` | Service definitions and address-scoped published ports            |
 | `.env`               | `BIND_ADDR` — the address published ports are scoped to           |
-| `bin/src/bashly.yml` | CLI surface and setup command contract                            |
-| `bin/src/*.sh`       | Setup logic, `BIND_ADDR` resolution, firewall rules, SSH defaults |
+| `cli/bashly.yml`     | CLI surface and setup command contract                            |
+| `cli/**/*.sh`        | Setup logic, `BIND_ADDR` resolution, firewall rules, SSH defaults |

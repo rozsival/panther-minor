@@ -30,7 +30,7 @@ Update the version in **every file that carries it**. As of this writing those a
 
 | File                     | Occurrence                                         |
 | ------------------------ | -------------------------------------------------- |
-| `bin/src/bashly.yml`     | `version: X.Y.Z`                                   |
+| `cli/bashly.yml`         | `version: X.Y.Z`                                   |
 | `package.json`           | `"version": "X.Y.Z"`                               |
 | `models/llm.config.json` | `"version": "X.Y.Z"`                               |
 | `llama-cpp/preset.ini`   | `version = X.Y.Z`                                  |
@@ -40,9 +40,9 @@ Update the version in **every file that carries it**. As of this writing those a
 `bin/cli` also carries the version, at `declare -g version="X.Y.Z"`. It is **not** in that table on
 purpose.
 
-> **Never read or edit `bin/cli` during a release.** It is a 205 KB / 7,700-line generated bashly
-> artifact — reading it costs ~16k tokens and has caused a release to fail mid-run. Its version line
-> comes from `bin/src/bashly.yml` and is rewritten by `pnpm run build:cli` below. Bump the source, not
+> **Never read or edit `bin/cli` during a release.** It is a ~240 KB / 9,600-line generated bashly
+> artifact — reading it costs tens of thousands of tokens and has caused a release to fail mid-run. Its version line
+> comes from `cli/bashly.yml` and is rewritten by `pnpm run build:cli` below. Bump the source, not
 > the artifact.
 
 Do **not** trust the table blindly — file locations drift. Before editing, discover
