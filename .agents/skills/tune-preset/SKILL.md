@@ -17,7 +17,7 @@ behind any number.
 
 1. **Baseline before changing anything**:
    ```bash
-   ./bin/cli models llm bench <preset> --loads 3
+   ./bin/panther-minor models llm bench <preset> --loads 3
    ```
    This pins every variable that would otherwise drift: a fixed 24-sentence prompt, `seed = 42`,
    `temperature = 0` (greedy), `cache_prompt = false` (prefill is measured, not replayed from the slot
@@ -36,9 +36,9 @@ behind any number.
    change to revert.
 4. **Reload weights, then re-bench**:
    ```bash
-   ./bin/cli models llm unload <preset>
-   ./bin/cli models llm load <preset>
-   ./bin/cli models llm bench <preset> --loads 3
+   ./bin/panther-minor models llm unload <preset>
+   ./bin/panther-minor models llm load <preset>
+   ./bin/panther-minor models llm bench <preset> --loads 3
    ```
    Presets map 1:1 to models — `load`/`unload` take the **preset** name from `llama-cpp/preset.ini`,
    `download`/`remove` take the **model** name from `models/llm.config.json`. Reasoning mode
@@ -129,7 +129,7 @@ the checkpoint allows, and not a value you can pick from spec sheets. Measure it
   ```bash
   curl -s localhost:8000/metrics | grep spec_decode_num_accepted_tokens_per_pos_total
   ```
-- **Benchmark at production sampling.** `./bin/cli models llm bench` runs greedy (`temperature = 0`),
+- **Benchmark at production sampling.** `./bin/panther-minor models llm bench` runs greedy (`temperature = 0`),
   which inflates acceptance and pushes the apparent optimum higher than it is at the preset's real
   `temp`/`top-k`/`top-p`. Cross-check with a manual request at the preset's actual sampler settings
   before committing a depth change, and note in the commit which sampler you measured at.
@@ -156,8 +156,8 @@ sampler-dependent.
 ## Inspecting live state
 
 ```bash
-./bin/cli logs llama-cpp --tail 200   # one-time snapshot of the llama.cpp container's recent logs
-./bin/cli logs llama-cpp              # stream logs live (no --tail)
+./bin/panther-minor logs llama-cpp --tail 200   # one-time snapshot of the llama.cpp container's recent logs
+./bin/panther-minor logs llama-cpp              # stream logs live (no --tail)
 curl -s localhost:8000/status         # llama-manager: current load state, in-flight counts, idle timers
 curl -s localhost:8000/metrics        # llama.cpp server: Prometheus metrics, incl. spec_decode_* series
 ```

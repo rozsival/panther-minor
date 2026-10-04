@@ -40,7 +40,7 @@ Prometheus → scraping /status on llama-manager for GPU metrics
 2. **llama.cpp only**: Custom ROCm v10 build with `gfx1201`. No alternative inference backends.
 3. **Package manager**: `apt-get` only in scripts and Dockerfiles. Never bare `apt` — it has no stable CLI interface and prints a warning on every scripted invocation. `apt upgrade` maps to `apt-get upgrade --with-new-pkgs`, not plain `apt-get upgrade`, which holds back upgrades needing new packages (kernel ABI bumps).
 4. **Commits**: Conventional Commits v1.0.0, lowercase, no final punctuation, ≤100 chars.
-5. **CLI**: All `./bin/cli` commands follow rules in `bin/README.md`. Do not suggest new subcommands or flags without checking that file first.
+5. **CLI**: All `./bin/panther-minor` commands follow rules in `bin/README.md`. Do not suggest new subcommands or flags without checking that file first.
 
 ### Key Files & Their Roles
 

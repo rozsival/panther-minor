@@ -13,8 +13,8 @@ is stored at its repository-relative path (`<repository>/<file>`), so a file use
 kept **only once** and same-named files from different repositories never collide.
 
 ```bash
-./bin/cli models llm|t2i download|remove <model>   # Fetch missing files / delete only unshared ones
-./bin/cli models prune                             # Reclaim files no config references anymore
+./bin/panther-minor models llm|t2i download|remove <model>   # Fetch missing files / delete only unshared ones
+./bin/panther-minor models prune                             # Reclaim files no config references anymore
 ```
 
 ## 📚 Large language models (`llm.config.json`)
@@ -145,8 +145,8 @@ fit for sparse MoE or uneven topologies. **`none`** is single-GPU, with `main-gp
 ### Management
 
 ```bash
-./bin/cli models llm list|download|remove <model>   # Weight files (-f forces re-download)
-./bin/cli models llm load|unload|bench <preset>     # Serving and measurement
+./bin/panther-minor models llm list|download|remove <model>   # Weight files (-f forces re-download)
+./bin/panther-minor models llm load|unload|bench <preset>     # Serving and measurement
 ```
 
 `download`/`remove` take a **model name** from the table above, removing only unshared files;
@@ -212,8 +212,8 @@ Qwen3-VL-8B encoder file, so it is downloaded once and `remove` keeps it while t
 ### Management
 
 ```bash
-./bin/cli models t2i list|download|remove <model>   # Components (-f forces re-download)
-./bin/cli models t2i load [-e] <model>              # Serve it (-e dedicates a GPU); unload stops sd-server
+./bin/panther-minor models t2i list|download|remove <model>   # Components (-f forces re-download)
+./bin/panther-minor models t2i load [-e] <model>              # Serve it (-e dedicates a GPU); unload stops sd-server
 ```
 
 `sd-server` loads exactly **one** model per process, so `load` rewrites the active-model variables in `.env`
@@ -268,7 +268,7 @@ Load the chat model **before** generating, as the everyday flow does anyway: a l
 
 ### Everyday: chat with occasional images (no GPU switching)
 
-Load an image model once (`./bin/cli models t2i load <model>`) and leave GPU assignment alone — no
+Load an image model once (`./bin/panther-minor models t2i load <model>`) and leave GPU assignment alone — no
 reassignment, no restarts, no cleanup, and `stable-diffusion.cpp` holds VRAM only while producing an image.
 The chat model's only role is **authoring the prompt**, so match it to the loaded image model:
 
@@ -285,6 +285,6 @@ streaming and tiling, which cost +10% (`Qwen-Image-2.1`) to +26% (`Ideogram-4`) 
 [GPU assignment](#gpu-assignment) for the mechanics.
 
 ```bash
-./bin/cli models t2i load --exclusive <model>   # LLMs shrink onto their own GPU(s), sd-server gets a dedicated one
-./bin/cli models t2i unload                     # Done: sd-server stops, all GPUs return to the LLMs
+./bin/panther-minor models t2i load --exclusive <model>   # LLMs shrink onto their own GPU(s), sd-server gets a dedicated one
+./bin/panther-minor models t2i unload                     # Done: sd-server stops, all GPUs return to the LLMs
 ```

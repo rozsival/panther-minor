@@ -6,7 +6,7 @@
 # Exactly ONE model is loaded per process (sd-server has no runtime model
 # switching), which guarantees only one text-to-image model is resident at a
 # time. The active model is selected by SD_CPP_MODEL and its component files;
-# switch models on the host with `./bin/cli models t2i load <model>`, which
+# switch models on the host with `./bin/panther-minor models t2i load <model>`, which
 # rewrites these variables and recreates this single container.
 #
 # Models differ in which components they need: Ideogram 4 ships a conditional
@@ -38,7 +38,7 @@ add_component() {
   local path="$hub_dir/$filename"
   if [[ ! -f "$path" ]]; then
     echo "[stable-diffusion-cpp] missing model file: $path" >&2
-    echo "[stable-diffusion-cpp] run './bin/cli models t2i download $model' on the host first" >&2
+    echo "[stable-diffusion-cpp] run './bin/panther-minor models t2i download $model' on the host first" >&2
     exit 1
   fi
 

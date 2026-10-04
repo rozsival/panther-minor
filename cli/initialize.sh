@@ -1,4 +1,4 @@
-declare -gr PANTHER_CLI_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/cli"
+declare -gr PANTHER_CLI_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/panther-minor"
 declare -gr PANTHER_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 declare -gr PANTHER_MODELS_DIR="$PANTHER_REPO_ROOT/models"
 declare -gr PANTHER_PROXY_DIR="$PANTHER_REPO_ROOT/proxy"

@@ -101,7 +101,7 @@ flowchart LR
 > previous release's kernels installed and disables third-party repositories, so the out-of-tree
 > `amdgpu` DKMS driver is rebuilt in a mixed state. Every build succeeds, the module loads, nothing
 > fails - and inference throughput silently drops. Record a baseline with
-> `./bin/cli models llm bench <model>` before any OS, driver, ROCm or llama.cpp change so a regression
+> `./bin/panther-minor models llm bench <model>` before any OS, driver, ROCm or llama.cpp change so a regression
 > is a diff rather than a hunch.
 
 ---
@@ -120,14 +120,14 @@ SSH into your server, clone the repository and run the setup CLI:
 git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
 git checkout v12.0.1
-sudo ./bin/cli setup
+sudo ./bin/panther-minor setup
 ```
 
 ---
 
 ## ⚙️ What the setup command configures
 
-`sudo ./bin/cli setup` automatically prepares the server with:
+`sudo ./bin/panther-minor setup` automatically prepares the server with:
 
 - **Init** — server workspace and timezone setup
 - **Essential packages** — `build-essential`, `jq`, `nvtop`, `htop`, and more with unattended upgrades
@@ -147,7 +147,7 @@ sudo ./bin/cli setup
 > You can re-run individual setup steps. For example, to apply SSH hardening again:
 >
 > ```bash
-> sudo ./bin/cli setup ssh
+> sudo ./bin/panther-minor setup ssh
 > ```
 
 ---
@@ -171,7 +171,7 @@ Then record the node's Tailscale address in `.env`, which is what scopes every p
 away from the public internet:
 
 ```bash
-sudo ./bin/cli setup env
+sudo ./bin/panther-minor setup env
 ```
 
 > [!IMPORTANT]
@@ -200,13 +200,13 @@ SSL is part of Panther Minor's secure design. Complete these steps to issue and 
 > continuing, otherwise certificate issuance will fail.
 
 ```bash
-./bin/cli proxy certbot --domain [<subdomain>.]<domain> --challenge-record _acme-challenge[.<subdomain>]
+./bin/panther-minor proxy certbot --domain [<subdomain>.]<domain> --challenge-record _acme-challenge[.<subdomain>]
 ```
 
 4. Enable automatic renewal:
 
 ```bash
-./bin/cli proxy setup-cron
+./bin/panther-minor proxy setup-cron
 ```
 
 ---
@@ -231,15 +231,15 @@ See [Models](./models/README.md) for available models and their usage.
 ### Start the cluster
 
 ```bash
-./bin/cli cluster start
+./bin/panther-minor cluster start
 ```
 
 ### Rebuild only
 
 ```bash
-./bin/cli cluster build
+./bin/panther-minor cluster build
 # or without cache (for example after config changes):
-./bin/cli cluster build --no-cache
+./bin/panther-minor cluster build --no-cache
 ```
 
 ### Services
@@ -290,8 +290,8 @@ Panther Minor also serves local **text-to-image** generation through
 switching, per-model sampling defaults, and GPU assignment are all handled by the CLI:
 
 ```bash
-./bin/cli models t2i download Ideogram-4  # or Qwen-Image-2.1
-./bin/cli models t2i load Qwen-Image-2.1  # switch the served model (recreates sd-server)
+./bin/panther-minor models t2i download Ideogram-4  # or Qwen-Image-2.1
+./bin/panther-minor models t2i load Qwen-Image-2.1  # switch the served model (recreates sd-server)
 ```
 
 Open WebUI needs no changes when switching — leave its image model field at `default`. See
@@ -355,7 +355,7 @@ it back to the LLMs — see [Recommended workflows](./models/README.md#-recommen
 ## 🛑 Stop the cluster
 
 ```bash
-./bin/cli cluster stop
+./bin/panther-minor cluster stop
 ```
 
 ## 🖲 Remote control

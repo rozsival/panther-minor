@@ -42,8 +42,8 @@ As of the last verified pass, the version-carrying locations were:
 | `AGENTS.md`                       | "Host: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params ..." stack summary line, "ROCm v10 with gfx1201" rule                    |
 | `models/README.md`                | Incidental hardware-context prose (e.g. base image name in a footnote) — check, don't assume it needs a change                             |
 
-`bin/cli` is a large generated bashly artifact assembled from `cli/*` by
-`pnpm run build:cli` (see `package.json`). **Never hand-edit `bin/cli` directly** — edit the source
+`bin/panther-minor` is a large generated bashly artifact assembled from `cli/*` by
+`pnpm run build:cli` (see `package.json`). **Never hand-edit `bin/panther-minor` directly** — edit the source
 command file under `cli/commands/`, then regenerate.
 
 ## 2. Check upstream AMD instructions first
@@ -118,19 +118,19 @@ interface and prints a warning on every scripted invocation.
    bash -n cli/commands/setup/grub.sh
    bash -n cli/lib/setup.sh
    ```
-2. **Regenerate the CLI artifact** from the edited source (never hand-edit `bin/cli`):
+2. **Regenerate the CLI artifact** from the edited source (never hand-edit `bin/panther-minor`):
    ```bash
    pnpm run build:cli
    ```
 3. **Rebuild the images** with the new base image / ROCm packages:
    ```bash
-   ./bin/cli cluster build --no-cache
+   ./bin/panther-minor cluster build --no-cache
    ```
 4. **Start the stack** and confirm the GPU is visible with the right ISA:
    ```bash
-   ./bin/cli cluster start
+   ./bin/panther-minor cluster start
    ```
-   Then check the container logs (`./bin/cli logs llama-cpp --tail 200`, same for
+   Then check the container logs (`./bin/panther-minor logs llama-cpp --tail 200`, same for
    `stable-diffusion-cpp`) for successful ROCm/HIP init (no `librccl.so.1` or `libamdhip64`/`libhipblas` "cannot open
    shared object file" errors — those specifically mean the `/etc/ld.so.conf.d/rocm.conf` step broke
    or the base image changed layout) and confirm the reported GPU/gfx target matches `gfx1201`.
@@ -159,7 +159,7 @@ Conventional Commits v1.0.0, lowercase, no final punctuation, ≤100 chars.
   ```
   feat!: upgrade stack to rocm 10.0 and amdgpu 31.50
 
-  Host must be running Ubuntu 26.04 LTS (resolute) before re-running `./bin/cli setup`. Reboot
+  Host must be running Ubuntu 26.04 LTS (resolute) before re-running `./bin/panther-minor setup`. Reboot
   after setup to load the new amdgpu kernel module.
   ```
 - Otherwise, scope by what actually changed:
