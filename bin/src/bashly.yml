@@ -191,6 +191,9 @@ commands:
                 required: true
                 help: Model name from models/llm.config.json
                 validate: supported_llm
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json
             flags:
               - long: --force
                 short: -f
@@ -201,8 +204,6 @@ commands:
             examples:
               - cli models llm download Qwen3.5-35B-A3B
               - HF_TOKEN=token cli models llm download Qwen3.5-35B-A3B
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
 
           - name: list
             help: List supported LLMs
@@ -214,8 +215,9 @@ commands:
                 required: true
                 help: Model name from models/llm.config.json
                 validate: supported_llm
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/llm.config.json)")
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json
 
           - name: load
             help: Load an LLM into the llama.cpp server
@@ -224,10 +226,11 @@ commands:
                 required: true
                 help: Preset name from llama-cpp/preset.ini
                 validate: loadable_llm
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
             examples:
               - cli models llm load Qwen3.8-Flash-Next
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
           - name: unload
             help: Unload an LLM from the llama.cpp server
@@ -236,10 +239,11 @@ commands:
                 required: true
                 help: Preset name from llama-cpp/preset.ini
                 validate: loadable_llm
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
             examples:
               - cli models llm unload Qwen3.8-Flash-Next
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
           - name: bench
             help: Measure decode and prefill throughput and append it to the baseline log
@@ -248,6 +252,9 @@ commands:
                 required: true
                 help: Preset name from llama-cpp/preset.ini
                 validate: loadable_llm
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
             flags:
               - long: --tokens
                 short: -n
@@ -276,8 +283,6 @@ commands:
             examples:
               - cli models llm bench Qwen3.8-27B
               - cli models llm bench --loads 3 --tokens 512 Qwen3.8-Flash-Next
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini)
 
       - name: t2i
         help: Manage text-to-image models
@@ -289,6 +294,9 @@ commands:
                 required: true
                 help: Model name from models/t2i.config.json
                 validate: supported_t2i
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
             flags:
               - long: --force
                 short: -f
@@ -299,8 +307,6 @@ commands:
             examples:
               - cli models t2i download Ideogram-4
               - HF_TOKEN=token cli models t2i download Ideogram-4
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 
           - name: list
             help: List supported text-to-image models
@@ -312,8 +318,9 @@ commands:
                 required: true
                 help: Model name from models/t2i.config.json
                 validate: supported_t2i
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
 
           - name: load
             help: Load a text-to-image model into sd-server (replaces the currently loaded one)
@@ -322,6 +329,9 @@ commands:
                 required: true
                 help: Model name from models/t2i.config.json
                 validate: supported_t2i
+                completions:
+                  dynamic:
+                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
             flags:
               - long: --exclusive
                 short: -e
@@ -329,8 +339,6 @@ commands:
             examples:
               - cli models t2i load Qwen-Image-2.1
               - cli models t2i load --exclusive Qwen-Image-2.1
-            completions:
-              - $(cd "$(git rev-parse --show-toplevel)" && echo "$(jq -r '.models.[] | .name' models/t2i.config.json)")
 
           - name: unload
             help: Unload the text-to-image model by stopping sd-server (returns dedicated GPUs to the LLMs)
@@ -387,8 +395,9 @@ commands:
             help: Start only specific service(s); repeat the flag to pass multiple services
             validate: cluster_service
             repeatable: true
-        completions:
-          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            completions:
+              dynamic:
+                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
         flags:
           - long: --remove-orphans
             short: -r
@@ -405,8 +414,9 @@ commands:
             help: Stop only specific service(s); repeat the argument to pass multiple services
             validate: cluster_service
             repeatable: true
-        completions:
-          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            completions:
+              dynamic:
+                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
         flags:
           - long: --volumes
             short: -v
@@ -423,8 +433,9 @@ commands:
             help: Restart only specific service(s); repeat the argument to pass multiple services
             validate: cluster_service
             repeatable: true
-        completions:
-          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            completions:
+              dynamic:
+                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
         flags:
           - long: --remove-orphans
             short: -r
@@ -441,8 +452,9 @@ commands:
             help: Build only specific service(s); repeat the argument to pass multiple services
             validate: cluster_service
             repeatable: true
-        completions:
-          - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+            completions:
+              dynamic:
+                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
         flags:
           - long: --no-cache
             short: -n
@@ -456,8 +468,9 @@ commands:
         help: Service to show logs for
         validate: cluster_service
         repeatable: false
-    completions:
-      - $(cd "$(git rev-parse --show-toplevel)" && echo "$(docker compose config | yq '.services | keys[]')")
+        completions:
+          dynamic:
+            - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
     flags:
       - long: --tail
         short: -t
@@ -469,4 +482,9 @@ commands:
     help: Update the repository from upstream
 
   - name: completions
-    help: Print the bash completion script for eval
+    help: Print the shell completion script for eval
+    args:
+      - name: shell
+        help: Shell to generate completions for
+        allowed: [bash, zsh]
+        default: bash

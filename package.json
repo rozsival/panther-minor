@@ -10,7 +10,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build:cli": "cd bin && rm src/lib/send_completions.sh && bashly add completions && bashly generate",
+    "build:cli": "cd bin && bashly generate",
     "check": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run check:code\" \"pnpm run check:misc\"",
     "check:code": "biome check .",
     "check:misc": "prettier --check .",
