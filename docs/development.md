@@ -58,14 +58,16 @@ Tests live next to their subject as `*.test.js` (`llama-cpp/`, `stable-diffusion
 
 ## 🔁 CI and releases
 
-| Workflow                        | Trigger                         | Jobs                                                                         |
-| ------------------------------- | ------------------------------- | ---------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`      | Push / PR to `main`             | `qa`: commitlint, `biome ci`, `prettier --check`; `test`: `pnpm run test`    |
-| `.github/workflows/release.yml` | Tag `v*.*.*` or manual dispatch | Validates the SemVer tag, publishes a GitHub release with a commit changelog |
+| Workflow                        | Trigger                           | Jobs                                                                                              |
+| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`      | Push / PR to `main`               | `qa`: commitlint, `biome ci`, `prettier --check`; `test`: `pnpm run test`                         |
+| `.github/workflows/release.yml` | Push to `main` or manual dispatch | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog |
 
-Releases are cut from `main` by bumping every version-carrying file (`cli/bashly.yml`, `package.json`,
-`models/*.config.json`, `llama-cpp/preset.ini`, the root README quick start), committing, tagging `vX.Y.Z` and pushing.
-The `release` agent skill performs the whole sequence.
+Releases go through a `release/vX.Y.Z` branch: bump every version-carrying file (`cli/bashly.yml`, `package.json`,
+`models/*.config.json`, `llama-cpp/preset.ini`, the root README quick start), commit as `chore(release): vX.Y.Z` and
+open a PR. Rebase-merging it is the release: `release.yml` creates the tag on the merged commit, since a tag pushed
+with `GITHUB_TOKEN` would not trigger a workflow. Re-run a release with
+`gh workflow run release.yml -f version=vX.Y.Z`. The `release` agent skill performs the whole sequence up to your merge.
 
 ## 🤖 Agent assets
 
@@ -78,7 +80,7 @@ The `release` agent skill performs the whole sequence.
 | `.agents/skills/cli-command/`      | Add or change Bashly CLI commands and flags                |
 | `.agents/skills/harness-config/`   | Install or update OMP / Pi / OpenCode presets locally      |
 | `.agents/skills/ideogram4-prompt/` | Generate valid Ideogram 4 JSON prompts                     |
-| `.agents/skills/release/`          | Version bump on a release branch, PR, tag                  |
+| `.agents/skills/release/`          | Version bump on a release branch and PR to `main`          |
 | `.agents/skills/rocm-upgrade/`     | Upgrade ROCm, `amdgpu`, base OS or kernel across the stack |
 | `.agents/skills/tune-preset/`      | Measurement-first `llama.cpp` preset tuning                |
 

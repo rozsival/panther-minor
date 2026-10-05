@@ -1,7 +1,7 @@
 ---
 name: release
 description: >
-  Bump version on a release branch, open a PR to main, and tag the merged commit. Use when user says
+  Bump version on a release branch and open a PR to main; merging it publishes the release. Use when user says
   "release" or "bump version".
 ---
 
@@ -98,6 +98,8 @@ read **only the matching line range** (e.g. `README.md:110-120`), never the whol
    ```bash
    git commit -m "chore(release): vX.Y.Z"
    ```
+   Keep that subject exact: `.github/workflows/release.yml` publishes the release when a commit with it
+   lands on `main`.
 6. **Push the branch** — confirm with the user first:
    ```bash
    git push -u origin release/vX.Y.Z
@@ -105,7 +107,7 @@ read **only the matching line range** (e.g. `README.md:110-120`), never the whol
 7. **Open the PR**:
    ```bash
    gh pr create --base main --head release/vX.Y.Z --title "chore(release): vX.Y.Z" \
-     --body "Release vX.Y.Z. Rebase-merge, then the tag is pushed from the merged commit."
+     --body "Release vX.Y.Z. Rebase-merging publishes the release from the merged commit."
    ```
 8. **Wait for the required checks** (`qa`, `test`):
    ```bash
@@ -118,34 +120,38 @@ read **only the matching line range** (e.g. `README.md:110-120`), never the whol
    ```bash
    gh pr view release/vX.Y.Z --json state --jq .state
    ```
-   It must print `MERGED`. Anything else: stop, nothing gets tagged.
+   It must print `MERGED`. Anything else: stop, nothing gets released.
 
-## Tag
+## Publish
 
-The tag goes on `main`'s copy of the release commit, never the branch's: a rebase merge rewrites every
-commit, so the SHA on `release/vX.Y.Z` never reaches `main`.
+Merging is the release: the push to `main` runs `.github/workflows/release.yml`, which finds the
+`chore(release): vX.Y.Z` commit, creates the `vX.Y.Z` tag on it and publishes the GitHub release. Never
+create or push the tag yourself — a tag on `main` before the workflow runs makes it fail as a conflict.
 
 1. **Update `main`**:
    ```bash
    git switch main
    git pull --rebase
    ```
-2. **Find the merged release commit**:
+2. **Find the merged release commit** — a rebase merge rewrites every commit, so it is not the branch's SHA:
    ```bash
    git log main --format=%H -n 1 --grep='^chore(release): vX.Y.Z$'
    ```
-   It must print exactly one SHA. If it prints nothing, stop and report — do not tag `HEAD` instead.
-3. **Create an annotated tag** on that SHA, then confirm it exists. Annotated, not signed: agent sessions
-   hold no signing key (`tag.gpgsign = false`), so `git tag -s` fails there:
+   It must print exactly one SHA. If it prints nothing, stop and report.
+3. **Watch the release run** on that SHA (it can take a few seconds to appear):
    ```bash
-   git tag -a vX.Y.Z <SHA> -m "Release vX.Y.Z"
-   git tag --list vX.Y.Z
+   gh run list --workflow release.yml --commit <SHA> --json databaseId --jq '.[0].databaseId'
+   gh run watch <RUN_ID> --exit-status
    ```
-   If the second command prints nothing, the tag was **not** created. Stop and report the error.
-4. **Push the tag** — confirm with the user first. This triggers `.github/workflows/release.yml`:
+   If it fails, stop and report the failing step. With the user's go-ahead, retry with
+   `gh run rerun <RUN_ID> --failed`, or `gh workflow run release.yml -f version=vX.Y.Z` if the run is gone.
+4. **Verify the release and tag**:
    ```bash
-   git push origin vX.Y.Z
+   gh release view vX.Y.Z --json url --jq .url
+   git fetch --tags
+   git rev-parse 'vX.Y.Z^{commit}'
    ```
+   The last command must print the SHA from step 2.
 5. **Clean up** the local branch (`-D`: the rebase merge leaves its original commits unmerged by SHA):
    ```bash
    git branch -D release/vX.Y.Z
@@ -161,12 +167,12 @@ Report back to the user:
    - Version bumped in: {list all files that were modified during the release}
    - Committed: chore(release): vX.Y.Z on release/vX.Y.Z
    - PR: {PR URL}, rebase-merged into main
-   - Tagged: vX.Y.Z on {merged SHA}, pushed to remote
+   - Released: vX.Y.Z on {merged SHA}, {release URL}
 ```
 
 ## Error Handling
 
 - If the version format is unexpected, abort and ask the user to verify it follows `X.Y.Z` semver or is approved to be in a different format (e.g., `X.Y.Z-beta`).
-- If `git push` fails (e.g., remote rejects the branch or tag, network issue), inform the user and stop. Do not retry automatically.
+- If `git push` fails (e.g., remote rejects the branch, network issue), inform the user and stop. Do not retry automatically.
 - Never push to `main`, never merge the release PR, never bypass branch rules — `main` changes only through the user's merge.
 - Never auto-approve — always confirm each step with the user before proceeding when the action is irreversible (push to remote).
