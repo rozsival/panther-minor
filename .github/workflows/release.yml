@@ -1,21 +1,15 @@
 name: Release
 
 # A release is a `chore(release): vX.Y.Z` commit landing on main (the release skill's rebase-merged PR).
-# This workflow creates the tag itself: a tag pushed with GITHUB_TOKEN would not trigger another workflow.
+# On that push this workflow creates the tag itself: a tag pushed with GITHUB_TOKEN would not trigger another
+# workflow. Pushing the `vX.Y.Z` tag onto the release commit by hand is the recovery path for a release that
+# was missed: GITHUB_TOKEN may not create a tag on an older commit (softprops/action-gh-release `target_commitish`).
 on:
   push:
     branches:
       - main
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release whose `chore(release): vX.Y.Z` commit is on main (e.g. v1.2.3)'
-        required: true
-        type: string
-
-concurrency:
-  group: ${{ github.workflow }}
-  cancel-in-progress: false
+    tags:
+      - 'v*.*.*'
 
 jobs:
   detect:
@@ -30,24 +24,26 @@ jobs:
           clean: true
           fetch-depth: 0
           persist-credentials: false
-          ref: ${{ github.event_name == 'push' && github.sha || 'main' }}
+          ref: ${{ github.ref_type == 'branch' && github.sha || 'main' }}
 
       - name: Find release commit
         id: detect
         env:
-          EVENT: ${{ github.event_name }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
           BEFORE: ${{ github.event.before }}
           AFTER: ${{ github.sha }}
-          VERSION: ${{ inputs.version }}
         # language=bash
         run: |
           # SemVer with optional channel suffix (e.g., v1.2.3 or v1.2.3-beta, v1.2.3-rc.1)
           TAG_REGEX='^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+(\.[0-9]+)?)?$'
-          if [[ ${EVENT} == push ]]; then
+          VERSION=''
+          if [[ ${REF_TYPE} == branch ]]; then
             RANGE="${BEFORE}..${AFTER}"
           else
+            VERSION="${REF_NAME}"
             if [[ ! ${VERSION} =~ ${TAG_REGEX} ]]; then
-              echo "::error::Version ${VERSION} does not match the required tag format (e.g., v1.2.3 or v1.2.3-beta, v1.2.3-rc.1)"
+              echo "::error::Tag ${VERSION} does not match the required tag format (e.g., v1.2.3 or v1.2.3-beta, v1.2.3-rc.1)"
               exit 1
             fi
             RANGE=HEAD
@@ -56,12 +52,12 @@ jobs:
           FOUND=()
           while read -r SHA SUBJECT; do
             [[ ${SUBJECT} =~ ^chore\(release\):\ (v[^ ]+)$ ]] || continue
-            [[ ${EVENT} == push || ${BASH_REMATCH[1]} == "${VERSION}" ]] || continue
+            [[ -z ${VERSION} || ${BASH_REMATCH[1]} == "${VERSION}" ]] || continue
             FOUND+=("${SHA} ${BASH_REMATCH[1]}")
           done < <(git log --format='%H %s' "${RANGE}")
 
           if [[ ${#FOUND[@]} -eq 0 ]]; then
-            if [[ ${EVENT} == push ]]; then
+            if [[ -z ${VERSION} ]]; then
               echo "No release commit in ${RANGE}, nothing to release."
               exit 0
             fi
@@ -93,6 +89,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: detect
     if: needs.detect.outputs.tag != ''
+    # Per release, not per workflow: a workflow-wide group keeps one pending run and cancels it for the next
+    # push, which would drop a queued release behind an ordinary push to main.
+    concurrency:
+      group: ${{ github.workflow }}-${{ needs.detect.outputs.tag }}
+      cancel-in-progress: false
     permissions:
       contents: write
     env:

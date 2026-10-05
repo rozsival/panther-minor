@@ -58,16 +58,17 @@ Tests live next to their subject as `*.test.js` (`llama-cpp/`, `stable-diffusion
 
 ## 🔁 CI and releases
 
-| Workflow                        | Trigger                           | Jobs                                                                                              |
-| ------------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`      | Push / PR to `main`               | `qa`: commitlint, `biome ci`, `prettier --check`; `test`: `pnpm run test`                         |
-| `.github/workflows/release.yml` | Push to `main` or manual dispatch | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog |
+| Workflow                        | Trigger                        | Jobs                                                                                              |
+| ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`      | Push / PR to `main`            | `qa`: commitlint, `biome ci`, `prettier --check`; `test`: `pnpm run test`                         |
+| `.github/workflows/release.yml` | Push to `main` or tag `v*.*.*` | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog |
 
 Releases go through a `release/vX.Y.Z` branch: bump every version-carrying file (`cli/bashly.yml`, `package.json`,
 `models/*.config.json`, `llama-cpp/preset.ini`, the root README quick start), commit as `chore(release): vX.Y.Z` and
 open a PR. Rebase-merging it is the release: `release.yml` creates the tag on the merged commit, since a tag pushed
-with `GITHUB_TOKEN` would not trigger a workflow. Re-run a release with
-`gh workflow run release.yml -f version=vX.Y.Z`. The `release` agent skill performs the whole sequence up to your merge.
+with `GITHUB_TOKEN` would not trigger a workflow. A missed release is recovered by pushing the `vX.Y.Z` tag onto its
+release commit yourself, which runs the same workflow. The `release` agent skill prepares the PR, stops for your
+merge, then watches the release run and verifies the tag.
 
 ## 🤖 Agent assets
 
