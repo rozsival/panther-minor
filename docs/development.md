@@ -10,16 +10,17 @@
 
 ## 🧰 Toolchain
 
-| Tool              | Version / config                         | Role                                        |
-| ----------------- | ---------------------------------------- | ------------------------------------------- |
-| Node.js           | `24.x` (`engines`)                       | Managers, exporters, tests                  |
-| pnpm              | `packageManager` in `package.json`       | Package manager and script runner           |
-| Biome (Ultracite) | `biome.jsonc`                            | JS/JSON lint and format                     |
-| Prettier          | `prettier.config.js` (`printWidth: 120`) | Markdown, YAML, TOML, `package.json` format |
-| Bashly            | `bashly-settings.yml`                    | Generates `bin/panther-minor` from `cli/`   |
-| Lefthook          | `lefthook.yml`                           | Git hooks                                   |
-| commitlint        | `commitlint.config.js`                   | Conventional Commits enforcement            |
-| Renovate          | `renovate.json`                          | Dependency updates                          |
+| Tool              | Version / config                                                | Role                                                                                                     |
+| ----------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Node.js           | `24.x` (`engines`)                                              | Managers, exporters, tests                                                                               |
+| pnpm              | `packageManager` in `package.json`                              | Package manager and script runner                                                                        |
+| Biome (Ultracite) | `biome.jsonc`                                                   | JS/JSON lint and format                                                                                  |
+| Prettier          | `prettier.config.js` (`printWidth: 120`)                        | Markdown, YAML, TOML, `package.json` and shell (`*.sh`, via `prettier-plugin-sh` as `shfmt -i 2`) format |
+| ShellCheck        | `shellcheck` package (pins the binary, downloaded on first run) | Lints `bin/panther-minor` (which holds every `cli/` source) and the container entrypoints                |
+| Bashly            | `bashly-settings.yml`                                           | Generates `bin/panther-minor` from `cli/`                                                                |
+| Lefthook          | `lefthook.yml`                                                  | Git hooks                                                                                                |
+| commitlint        | `commitlint.config.js`                                          | Conventional Commits enforcement                                                                         |
+| Renovate          | `renovate.json`                                                 | Dependency updates                                                                                       |
 
 ```bash
 pnpm install   # also installs the Git hooks outside CI
@@ -27,22 +28,22 @@ pnpm install   # also installs the Git hooks outside CI
 
 ## ✅ Quality checks
 
-| Task                         | Command              |
-| ---------------------------- | -------------------- |
-| Check code + misc formatting | `pnpm run check`     |
-| Auto-fix code + formatting   | `pnpm run fix`       |
-| Lint only                    | `pnpm run lint`      |
-| Run tests (`node --test`)    | `pnpm run test`      |
-| Regenerate the CLI           | `pnpm run build:cli` |
+| Task                          | Command              |
+| ----------------------------- | -------------------- |
+| Check code, formatting, shell | `pnpm run check`     |
+| Auto-fix code + formatting    | `pnpm run fix`       |
+| Lint only                     | `pnpm run lint`      |
+| Run tests (`node --test`)     | `pnpm run test`      |
+| Regenerate the CLI            | `pnpm run build:cli` |
 
 Tests live next to their subject as `*.test.js` (`llama-cpp/`, `stable-diffusion-cpp/`).
 
 ### Git hooks
 
-| Hook         | Runs                                                                                                            |
-| ------------ | --------------------------------------------------------------------------------------------------------------- |
-| `commit-msg` | `commitlint`                                                                                                    |
-| `pre-commit` | `build:cli` on CLI source changes, `ultracite fix` on JS/MD/JSON, Prettier on MD/YAML/TOML; fixes are re-staged |
+| Hook         | Runs                                                                                                                                       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `commit-msg` | `commitlint`                                                                                                                               |
+| `pre-commit` | Prettier, then `build:cli`, then ShellCheck on shell changes; `ultracite fix` on JS/MD/JSON, Prettier on MD/YAML/TOML; fixes are re-staged |
 
 ## 📝 Rules
 
@@ -60,7 +61,7 @@ Tests live next to their subject as `*.test.js` (`llama-cpp/`, `stable-diffusion
 
 | Workflow                        | Trigger                        | Jobs                                                                                              |
 | ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`      | Push / PR to `main`            | `qa`: commitlint, `biome ci`, `prettier --check`; `test`: `pnpm run test`                         |
+| `.github/workflows/ci.yml`      | Push / PR to `main`            | `qa`: commitlint, `biome ci`, `prettier --check`, ShellCheck; `test`: `pnpm run test`             |
 | `.github/workflows/release.yml` | Push to `main` or tag `v*.*.*` | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog |
 
 Releases go through a `release/vX.Y.Z` branch: bump every version-carrying file (`cli/bashly.yml`, `package.json`,
@@ -104,5 +105,5 @@ stays in `AGENTS.md` or a skill.
 
 ### Why does CI fail on formatting when it passed locally?
 
-CI runs `biome ci` and `prettier --check` on the whole repository. Run `pnpm run check` before pushing, or let the
-pre-commit hook fix staged files.
+CI runs `biome ci`, `prettier --check` and ShellCheck on the whole repository. Run `pnpm run check` before pushing, or
+let the pre-commit hook fix staged files.

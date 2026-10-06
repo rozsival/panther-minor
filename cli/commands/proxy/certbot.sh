@@ -1,8 +1,9 @@
 panther_proxy_certbot() {
   local domain="${args[--domain]}"
-  local challenge_record="${args[--challenge-record]}"
+  local challenge_record="${args['--challenge-record']}"
   local credentials_file="$PANTHER_PROXY_DIR/acme/dns-credentials.json"
-  local current_owner="$(id -u):$(id -g)"
+  local current_owner
+  current_owner="$(id -u):$(id -g)"
   local force=false
 
   if ! mkdir -p "$PANTHER_PROXY_DIR/acme" "$PANTHER_PROXY_DIR/ssl"; then

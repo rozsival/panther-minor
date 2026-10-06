@@ -1,5 +1,6 @@
 panther_proxy_renew_ssl() {
-  local current_owner="$(id -u):$(id -g)"
+  local current_owner
+  current_owner="$(id -u):$(id -g)"
   mkdir -p "$PANTHER_PROXY_DIR/acme" "$PANTHER_PROXY_DIR/ssl"
 
   docker run --rm \

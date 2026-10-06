@@ -28,6 +28,7 @@ jobs:
           pnpm exec commitlint --from=${{ github.sha }}
           pnpm exec biome ci .
           pnpm exec prettier --check .
+          pnpm run check:sh
 
   test:
     runs-on: ubuntu-latest

@@ -11,9 +11,10 @@
   "type": "module",
   "scripts": {
     "build:cli": "bashly generate",
-    "check": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run check:code\" \"pnpm run check:misc\"",
+    "check": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run check:code\" \"pnpm run check:misc\" \"pnpm run check:sh\"",
     "check:code": "biome check .",
     "check:misc": "prettier --check .",
+    "check:sh": "shellcheck bin/panther-minor */entrypoint.sh",
     "fix": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run fix:code\" \"pnpm run format:misc\"",
     "fix:code": "ultracite fix .",
     "fix:code:unsafe": "pnpm run fix:code --unsafe",
@@ -34,7 +35,9 @@
     "lefthook": "2.1.17",
     "prettier": "3.9.9",
     "prettier-plugin-packagejson": "3.0.2",
+    "prettier-plugin-sh": "0.20.2",
     "prettier-plugin-toml": "3.0.2",
+    "shellcheck": "4.1.0",
     "typescript": "6.0.3",
     "ultracite": "7.12.3"
   },

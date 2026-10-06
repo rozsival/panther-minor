@@ -4,6 +4,7 @@ panther_setup_tailscale() {
   # Resolved like the Docker source: UBUNTU_CODENAME still names the Ubuntu base
   # on derivatives, where VERSION_CODENAME names the derivative instead.
   local codename keyring staged
+  # shellcheck source=/dev/null # the host's file, read at runtime
   codename="$(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"
 
   # Upstream's own path, and the one the 'tailscale-archive-keyring' package

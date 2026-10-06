@@ -12,7 +12,7 @@ panther_cluster_start() {
 
   compose_args+=(--detach)
 
-  if [[ -n ${args[--remove-orphans]+x} ]]; then
+  if [[ -n ${args['--remove-orphans']+x} ]]; then
     compose_args+=(--remove-orphans)
   fi
 

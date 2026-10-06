@@ -61,7 +61,9 @@ writing a new one.
    `proxy renew-ssl` → `cli/commands/proxy/renew-ssl.sh`) defining a `panther_<subgroup>_<cmd>()`
    function (follow the naming pattern already used by sibling files, e.g. `cli/commands/models/llm/bench.sh` defines and calls
    `panther_llm_bench`). Put shared logic used by more than one command in `cli/lib/*.sh`, not
-   duplicated across command files.
+   duplicated across command files. Quote `args` keys with a hyphen inside the name:
+   `${args['--no-cache']}`, never `${args[--no-cache]}` — the shell formatter reads an unquoted subscript as
+   arithmetic and rewrites it to `--no - cache`, a different key, so the flag silently stops working.
 3. **Add a validator only if none of the existing ones fit**, in
    `cli/lib/validations/validate_<name>.sh`, then reference it from `bashly.yml` with
    `validate: <name>`.
@@ -75,6 +77,7 @@ writing a new one.
    project's `build:cli` script intentionally omits `--force`.
 5. **Validate the result:**
    ```bash
+   pnpm run check   # Biome, Prettier (shell included) and ShellCheck on bin/panther-minor
    bash -n ./bin/panther-minor
    ./bin/panther-minor --help
    ./bin/panther-minor <group> --help

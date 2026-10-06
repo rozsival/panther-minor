@@ -2,7 +2,7 @@ panther_cluster_build() {
   local -a compose_args=(build)
   local service_args=''
 
-  if [[ -n ${args[--no-cache]+x} ]]; then
+  if [[ -n ${args['--no-cache']+x} ]]; then
     compose_args+=(--no-cache)
   fi
 
@@ -14,11 +14,11 @@ panther_cluster_build() {
     compose_args+=("${services[@]}")
   fi
 
-  if [[ -n ${args[--no-cache]+x} && -n ${args[service]+x} ]]; then
+  if [[ -n ${args['--no-cache']+x} && -n ${args[service]+x} ]]; then
     panther_log_info "Building selected service images without cache: ${service_args}..."
   elif [[ -n ${args[service]+x} ]]; then
     panther_log_info "Building selected service images: ${service_args}..."
-  elif [[ -n ${args[--no-cache]+x} ]]; then
+  elif [[ -n ${args['--no-cache']+x} ]]; then
     panther_log_info 'Building cluster images without cache...'
   else
     panther_log_info 'Building cluster images...'

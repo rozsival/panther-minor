@@ -1,4 +1,5 @@
-declare -gr PANTHER_REPO_ROOT="$(panther_repo_root)"
+PANTHER_REPO_ROOT="$(panther_repo_root)"
+declare -gr PANTHER_REPO_ROOT
 declare -gr PANTHER_CLI_BIN="$PANTHER_REPO_ROOT/bin/panther-minor"
 declare -gr PANTHER_MODELS_DIR="$PANTHER_REPO_ROOT/models"
 declare -gr PANTHER_PROXY_DIR="$PANTHER_REPO_ROOT/proxy"

@@ -185,6 +185,8 @@ pnpm run build:cli
 
 - Routine status output uses `panther_log_info`, `panther_log_success`, `panther_log_warn` and `panther_log_error`.
 - Env support is declared per command in `./cli/bashly.yml`.
+- Quote `args` keys that contain a hyphen after the first character: `${args['--no-cache']}`, not `${args[--no-cache]}`.
+  The shell formatter parses an unquoted subscript as arithmetic and rewrites it to `--no - cache`, a different key.
 - The CLI does not globally load `.env`; commands that need it call `panther_load_dotenv` (`models llm|t2i download`,
   `models t2i load --exclusive`, `models t2i unload`), while Docker Compose still reads `.env`.
 - Per-argument completions live on the arg in `./cli/bashly.yml` as `completions: { static | dynamic | options }`.
