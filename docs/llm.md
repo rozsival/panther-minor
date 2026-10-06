@@ -83,8 +83,8 @@ Sweeping one placement knob at a time yields a linear cost model — for `Qwen3.
 - The **slope** is just bytes — 1.60 ms/block is what those experts cost at the DRAM ceiling this box actually
   reaches (45.3 GiB/s, measured; a single core already gets 37.3 GiB/s), so there is no per-block handoff overhead
   hiding in it.
-- The **intercept** is only the fit extrapolated to `n-cpu-moe = 0`; it is not the same quantity as a bare pass at
-  the deployed placement (which still streams 28 blocks), so don't read the two as cross-confirming.
+- The **intercept** is only the fit extrapolated to `n-cpu-moe = 0`; it is not the same quantity as the bare pass
+  measured at `n-cpu-moe = 28` (which still streams 28 blocks), so don't read the two as cross-confirming.
 
 What matters for procurement is that only the slope term is bandwidth-exposed: +20% DRAM bandwidth is capped at
 **≤7.5%** end to end, which is why the two physical memory experiments came back flat.
@@ -112,29 +112,31 @@ made at short context do not transfer upward.
 Most ⚡️ models use an **MTP head**: one extra dense layer sharing the base model's embeddings, run in-graph, and
 Unsloth ships a single `Q4_0` quant per model — nothing to choose.
 
-`Qwen3.8-Flash-Next` is the exception, with a **full MoE block** (512 experts, 2.58 GiB) shipped separately under
-`MTP/` in six variants. The stack uses `shared-Q8_0`: `shared-` variants borrow the target's
-`token_embd`/`output.weight` rather than carrying their own, saving 1.27 GiB, but the loader takes a raw pointer into
-the target's tensor map, so the head must land on whichever card holds `output.weight` — the last slot of
-`tensor-split`. Offloading experts to make room for it is structurally sound: a verify pass reads them **once** but
-settles ~2.5 tokens, so `n-cpu-moe` hurts _less_ under speculation than without it.
+`Qwen3.8-Flash-Next` is the exception, with a **full MoE block** (512 experts) shipped separately under `MTP/` in six
+variants. The stack uses the self-contained `Q8_0` (3.85 GiB). The `shared-` variants are 1.27 GiB smaller because
+they borrow the target's `token_embd`/`output.weight`, but only the `unslothai/llama.cpp#144` fork could load them:
+upstream requires `token_embd` in the head and has no cross-GGUF borrowing, so they fail with
+`token_embd.weight not found`. The head inherits the target's `tensor-split` and lands on the last slot, GPU 1.
+Offloading experts to make room for it is structurally sound: a verify pass reads them **once** but settles ~2.5
+tokens, so `n-cpu-moe` hurts _less_ under speculation than without it.
 
 Skip MTP for concurrent serving (0.81-0.87x at concurrency 8), and confirm the head actually runs via
 `timings.draft_n` / `draft_n_accepted`.
 
 Priced in isolation on `Qwen3.8-Flash-Next` by flipping `spec-type` between `draft-mtp` and `none` in one session, the
-head is worth **+30.6%** at the production sampler — 54.6 → 42.0 ms/token, or 18.3 → 23.9 t/s. In per-pass terms a
+head was worth **+30.6%** at the production sampler — 54.6 → 42.0 ms/token, or 18.3 → 23.9 t/s. In per-pass terms a
 speculative pass costs ~39 ms more than a plain token (93.9 vs 54.6) and returns ~1.25 extra tokens. Splitting that
 39 ms between the two draft forwards and the wider verify batch requires a model rather than a measurement, so treat
 any finer breakdown as estimated. A spec-off pass is strikingly repeatable (σ ≈ 0.1 ms/token), so nearly all
-run-to-run spread in speculative throughput is acceptance, not the machine.
+run-to-run spread in speculative throughput is acceptance, not the machine. These and every other MTP figure on this
+page were measured on the `unslothai/llama.cpp#144` fork with the `shared-Q8_0` head at `n-cpu-moe = 28`; re-bench
+before relying on them for the upstream build.
 
 > [!IMPORTANT]
-> **These heads do not run on mainline `llama.cpp`.** Upstream declares no `NEXTN_*` tensors for `qwen4exp` (still
-> true at `d08c787`), so it drops the head at conversion and silently ignores `spec-draft-model`. The build is pinned
-> to [unslothai/llama.cpp#144](https://github.com/unslothai/llama.cpp/pull/144) at commit `586b15ef` — see
-> [`.env.example`](../.env.example). Do **not** use that fork's prebuilt `*-mix-*` releases: they predate the
-> `qwen4exp` port and cannot load this model at all.
+> **MTP for `qwen4exp` needs `llama.cpp` v0.6.0 or newer** ([ggml-org/llama.cpp#29761](https://github.com/ggml-org/llama.cpp/pull/29761));
+> older mainline builds drop the head and silently ignore `spec-draft-model`. The main UD-Q4_K_XL shards are
+> unaffected, but Unsloth re-cut the self-contained heads for it on 2026-10-05 — a cached
+> `MTP/mtp-Qwen3.8-Flash-Next-Q8_0.gguf` from before that date must be re-downloaded.
 
 ### Draft depth
 
