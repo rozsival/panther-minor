@@ -44,7 +44,7 @@ and **smart GPU usage management**.
 # 1. Clone a release and prepare the host (reboot afterwards)
 git clone https://github.com/rozsival/panther-minor.git
 cd panther-minor
-git checkout v12.0.1
+git checkout v13.0.0
 sudo ./bin/panther-minor setup
 sudo reboot
 
