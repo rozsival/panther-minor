@@ -9,10 +9,17 @@ panther_setup_shell() {
   panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
   loginctl enable-linger "$PANTHER_ALLOWED_USER"
 
-  panther_register_bashrc_entry 'Panther Minor CLI' "source '$PANTHER_REPO_ROOT/.bashrc'"
   # shellcheck disable=SC2016 # We want to register the literal command, not its output
   panther_register_bashrc_entry 'Starship' 'eval "$(starship init bash)"'
   panther_log_success "Shell set up with Starship prompt for ${PANTHER_ALLOWED_USER}."
+
+  # As the user, after the ~/.bashrc entries above, so its login-shell checks
+  # see the shell they will get. A failed check is a follow-up, not a reason to
+  # abort the rest of 'setup all'.
+  panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
+  if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+    panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
+  fi
 }
 
 panther_setup_shell

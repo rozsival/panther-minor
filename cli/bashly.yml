@@ -157,7 +157,7 @@ commands:
             help: Default user for setup commands
 
       - name: shell
-        help: Install Starship and configure shell access for the selected user
+        help: Install Starship, configure the shell and put panther-minor on the PATH for the selected user
         flags:
           - long: --allowed-user
             short: -u
@@ -193,7 +193,7 @@ commands:
                 validate: supported_llm
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json
+                    - panther_complete_llm_models
             flags:
               - long: --force
                 short: -f
@@ -217,7 +217,7 @@ commands:
                 validate: supported_llm
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json
+                    - panther_complete_llm_models
 
           - name: load
             help: Load an LLM into the llama.cpp server
@@ -228,7 +228,7 @@ commands:
                 validate: loadable_llm
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
+                    - panther_complete_llm_presets
             examples:
               - panther-minor models llm load Qwen3.8-Flash-Next
 
@@ -241,7 +241,7 @@ commands:
                 validate: loadable_llm
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
+                    - panther_complete_llm_presets
             examples:
               - panther-minor models llm unload Qwen3.8-Flash-Next
 
@@ -254,7 +254,7 @@ commands:
                 validate: loadable_llm
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini
+                    - panther_complete_llm_presets
             flags:
               - long: --tokens
                 short: -n
@@ -296,7 +296,7 @@ commands:
                 validate: supported_t2i
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
+                    - panther_complete_t2i_models
             flags:
               - long: --force
                 short: -f
@@ -320,7 +320,7 @@ commands:
                 validate: supported_t2i
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
+                    - panther_complete_t2i_models
 
           - name: load
             help: Load a text-to-image model into sd-server (replaces the currently loaded one)
@@ -331,7 +331,7 @@ commands:
                 validate: supported_t2i
                 completions:
                   dynamic:
-                    - cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json
+                    - panther_complete_t2i_models
             flags:
               - long: --exclusive
                 short: -e
@@ -397,7 +397,7 @@ commands:
             repeatable: true
             completions:
               dynamic:
-                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
+                - panther_complete_services
         flags:
           - long: --remove-orphans
             short: -r
@@ -416,7 +416,7 @@ commands:
             repeatable: true
             completions:
               dynamic:
-                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
+                - panther_complete_services
         flags:
           - long: --volumes
             short: -v
@@ -435,7 +435,7 @@ commands:
             repeatable: true
             completions:
               dynamic:
-                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
+                - panther_complete_services
         flags:
           - long: --remove-orphans
             short: -r
@@ -454,7 +454,7 @@ commands:
             repeatable: true
             completions:
               dynamic:
-                - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
+                - panther_complete_services
         flags:
           - long: --no-cache
             short: -n
@@ -470,7 +470,7 @@ commands:
         repeatable: false
         completions:
           dynamic:
-            - cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml
+            - panther_complete_services
     flags:
       - long: --tail
         short: -t
@@ -480,6 +480,18 @@ commands:
 
   - name: update
     help: Update the repository from upstream
+
+  - name: install
+    help: |-
+      Put panther-minor on your PATH, with bash completion
+
+      Symlinks ~/.local/bin/panther-minor onto this checkout's bin/panther-minor and
+      writes ~/.local/share/bash-completion/completions/panther-minor, which
+      bash-completion lazy-loads. Idempotent; then checks that a fresh login shell
+      finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the
+      allowed user.
+    examples:
+      - ./bin/panther-minor install
 
   - name: completions
     help: Print the shell completion script for eval

@@ -11,41 +11,73 @@
 
 ## 📍 At a glance
 
-| Audience           | Use this                                                       |
-| ------------------ | -------------------------------------------------------------- |
-| CLI users          | Run `./bin/panther-minor` from the project root                |
-| CLI maintainers    | Edit authored sources in `./cli/*`                             |
-| Generated artifact | `./bin/panther-minor` is build output, not the source of truth |
+| Audience           | Use this                                                                                              |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| CLI users          | `./bin/panther-minor` from the project root, or `panther-minor` anywhere after [`install`](#-install) |
+| CLI maintainers    | Edit authored sources in `./cli/*`                                                                    |
+| Generated artifact | `./bin/panther-minor` is build output, not the source of truth                                        |
 
 > [!IMPORTANT]
 > Do **not** edit `./bin/panther-minor` directly. Update the authored Bashly sources and regenerate it instead.
 
 ## 🗂️ Command groups
 
-| Command       | Purpose                                                 |
-| ------------- | ------------------------------------------------------- |
-| `setup`       | Prepare and secure the host machine                     |
-| `models`      | Manage model downloads, cache, and throughput baselines |
-| `proxy`       | Work with certificate and proxy-related tasks           |
-| `cluster`     | Build, start, and stop the AI stack                     |
-| `logs`        | Inspect service logs                                    |
-| `update`      | Refresh project assets or dependencies                  |
-| `completions` | Print shell completion scripts                          |
+| Command       | Purpose                                                  |
+| ------------- | -------------------------------------------------------- |
+| `setup`       | Prepare and secure the host machine                      |
+| `models`      | Manage model downloads, cache, and throughput baselines  |
+| `proxy`       | Work with certificate and proxy-related tasks            |
+| `cluster`     | Build, start, and stop the AI stack                      |
+| `logs`        | Inspect service logs                                     |
+| `update`      | Refresh project assets or dependencies                   |
+| `install`     | Put `panther-minor` on your `PATH`, with bash completion |
+| `completions` | Print shell completion scripts                           |
 
 ```bash
 ./bin/panther-minor --help
 ./bin/panther-minor <command> --help
 ```
 
+## 🔗 `install`
+
+```bash
+./bin/panther-minor install    # as yourself, never with sudo
+```
+
+Makes `panther-minor` a command, the way `dot` and `devbox` are: a symlink `~/.local/bin/panther-minor` onto this
+checkout's `bin/panther-minor`, and the bash completion script at
+`~/.local/share/bash-completion/completions/panther-minor` (`$XDG_DATA_HOME` respected), where bash-completion's lazy
+loader finds it on the first `<TAB>` after `panther-minor` — no rc line, no startup cost. Idempotent: it touches only
+what differs, repoints a symlink onto another checkout, and refuses a `~/.local/bin/panther-minor` that is a real file.
+`setup shell` (and so `setup all`) runs it for the allowed user. It also drops the `source '<repo>/.bashrc'` line that
+`setup shell` used to add to `~/.bashrc`, since that file no longer exists.
+
+It finishes with checks and exits non-zero if one fails:
+
+| Check           | Passes when                                                                                                                                                                             |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Symlink         | `~/.local/bin/panther-minor` points at this checkout's `bin/panther-minor`                                                                                                              |
+| Completion file | It matches what this `bin/panther-minor` writes                                                                                                                                         |
+| PATH            | A fresh login shell (`$SHELL -lic`, clean environment) resolves `panther-minor` to the symlink; otherwise it prints the `PATH` line to add, or what shadows it                          |
+| bash-completion | That shell defines bash-completion's lazy loader: `apt-get install bash-completion` (Ubuntu's default `~/.bashrc` loads it), or `brew install bash-completion@2` plus its `source` line |
+
+The probe uses a fresh login shell because the calling one proves nothing: `setup shell` runs `install` through
+`sudo -u`, whose `PATH` has no `~/.local/bin`. On Ubuntu, the default `~/.profile` adds `~/.local/bin` once it exists.
+
+`bin/panther-minor` finds its repository through the symlink (`readlink -f`), so every command behaves the same whether
+you type `panther-minor` or `./bin/panther-minor`, from any directory.
+
 ### Shell completions
 
 ```bash
-source .bashrc                                   # bash, from the repository root
-eval "$(./bin/panther-minor completions zsh)"    # zsh
+./bin/panther-minor install                          # bash: written where bash-completion lazy-loads it
+source <(panther-minor completions zsh)              # zsh: in ~/.zshrc, after compinit
 ```
 
 `completions [bash|zsh]` prints the script (default `bash`). Completions are generated natively by Bashly 2
-(`completions: full` in `./bashly-settings.yml`); model, preset and service names complete dynamically.
+(`completions: full` in `./bashly-settings.yml`): the script forwards every `<TAB>` to the CLI's hidden `__complete`
+command, so new commands and flags complete as soon as `bin/panther-minor` is rebuilt. Model, preset and service names
+complete dynamically from any directory. `panther-minor __complete models llm load ""` prints the raw candidates.
 
 ## 📖 Command reference
 
@@ -67,7 +99,7 @@ Run with `sudo`. `setup` alone runs `setup all`. Details: [Installation](install
 | `amdgpu`    | Install AMD GPU drivers and ROCm                     | —                                                                                                      |
 | `grub`      | Update GRUB kernel parameters                        | —                                                                                                      |
 | `git`       | Configure Git defaults                               | `-n` `--server-name` (`panther_server_name`), `-u` `--allowed-user`                                    |
-| `shell`     | Install Starship and configure the shell             | `-u` `--allowed-user`                                                                                  |
+| `shell`     | Install Starship, configure the shell, run `install` | `-u` `--allowed-user`                                                                                  |
 | `env`       | Create `.env`, sync GPU group IDs and `BIND_ADDR`    | `-u` `--allowed-user`                                                                                  |
 
 Defaults: SSH port `2222`, timezone `Europe/Prague`, LVM device `/dev/ubuntu-vg/ubuntu-lv`, current user and host
@@ -112,14 +144,15 @@ name.
 | `cluster build [service...]`   | Build images                                   | `-n` `--no-cache`                         |
 | `cluster cleanup`              | Remove containers, volumes, images and orphans | —                                         |
 
-### `logs`, `update`, `completions`
+### `logs`, `update`, `install`, `completions`
 
-| Command                     | Purpose                                                 |
-| --------------------------- | ------------------------------------------------------- |
-| `logs <service>`            | Stream logs                                             |
-| `logs <service> --tail [n]` | Print the latest `n` lines once (`100` without a value) |
-| `update`                    | Pull `main` and switch to the latest release tag        |
-| `completions [bash\|zsh]`   | Print the completion script for `eval`                  |
+| Command                     | Purpose                                                         |
+| --------------------------- | --------------------------------------------------------------- |
+| `logs <service>`            | Stream logs                                                     |
+| `logs <service> --tail [n]` | Print the latest `n` lines once (`100` without a value)         |
+| `update`                    | Pull `main` and switch to the latest release tag                |
+| `install`                   | Put `panther-minor` on your `PATH` — see [`install`](#-install) |
+| `completions [bash\|zsh]`   | Print the completion script                                     |
 
 ## ✍️ Maintainer workflow
 
@@ -155,6 +188,9 @@ pnpm run build:cli
 - The CLI does not globally load `.env`; commands that need it call `panther_load_dotenv` (`models llm|t2i download`,
   `models t2i load --exclusive`, `models t2i unload`), while Docker Compose still reads `.env`.
 - Per-argument completions live on the arg in `./cli/bashly.yml` as `completions: { static | dynamic | options }`.
+  A `dynamic` entry names a `panther_complete_*` function from `./cli/lib/completions.sh`: `__complete` skips
+  `initialize.sh`, so these resolve the repository via `panther_repo_root` instead of its globals or the current
+  directory.
 
 ### Validate after changes
 
@@ -186,4 +222,5 @@ inline (`VAR=value ./bin/panther-minor …`).
 
 ### Completions don't show new commands. Why?
 
-Your shell still holds the old script. Rebuild, then re-run `source .bashrc` (or the `eval` line for zsh).
+They should: every `<TAB>` asks `bin/panther-minor __complete`, so a rebuild is enough. If they still don't, re-run
+`./bin/panther-minor install` — its checks report a stale completion file or a shell that never loads bash-completion.

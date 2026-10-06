@@ -21,14 +21,14 @@ precisely — see `docs/cli.md` for the human-facing summary of the same rules.
 
 ## Files you edit
 
-| Path                                | Responsibility                                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| `cli/bashly.yml`                    | Schema source of truth: command tree, flags, args, examples, env vars, `version`                         |
-| `cli/commands/<group>/<cmd>.sh`     | Command entrypoint (the function Bashly calls for that leaf command); path = command name, spaces → `/`  |
-| `cli/lib/*.sh`                      | Shared helper logic (`logging.sh`, `core.sh`, `compose.sh`, `models.sh`, `llm.sh`, `t2i.sh`, `setup.sh`) |
-| `cli/lib/validations/validate_*.sh` | Custom argument validators referenced from `bashly.yml` via `validate: <name>`                           |
-| `cli/initialize.sh`                 | Pre-parse normalization and bootstrapping (runs before any command)                                      |
-| `bashly-settings.yml`               | Bashly settings (`completions: full` enables the native bash/zsh completion engine)                      |
+| Path                                | Responsibility                                                                                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `cli/bashly.yml`                    | Schema source of truth: command tree, flags, args, examples, env vars, `version`                                                         |
+| `cli/commands/<group>/<cmd>.sh`     | Command entrypoint (the function Bashly calls for that leaf command); path = command name, spaces → `/`                                  |
+| `cli/lib/*.sh`                      | Shared helper logic (`logging.sh`, `core.sh`, `compose.sh`, `models.sh`, `llm.sh`, `t2i.sh`, `setup.sh`, `install.sh`, `completions.sh`) |
+| `cli/lib/validations/validate_*.sh` | Custom argument validators referenced from `bashly.yml` via `validate: <name>`                                                           |
+| `cli/initialize.sh`                 | Pre-parse normalization and bootstrapping (runs before any command)                                                                      |
+| `bashly-settings.yml`               | Bashly settings (`completions: full` enables the native bash/zsh completion engine)                                                      |
 
 Existing validators — reuse one of these instead of inventing a new one if the argument shape already
 fits:
@@ -98,12 +98,15 @@ writing a new one.
   the CLI.
 - **Completions** are generated natively by Bashly 2 (`completions: full` in `bashly-settings.yml`; no
   `send_completions.sh` lib file) and exposed by `./bin/panther-minor completions [bash|zsh]`
-  (`cli/commands/completions.sh`), loaded with `source .bashrc`. Dynamic per-arg completions (e.g.
-  listing model names) go on the **arg or flag**, never the command, as `completions: { dynamic: [...] }`
-  — each entry is a plain shell command (no `$()` wrapper) printing one candidate per line, run in a
-  subshell. See the `models llm download` `model` arg for the pattern
-  (`jq -r '.models.[] | .name' models/llm.config.json`). Literal suggestions use `static:`; file/dir
-  completion uses `options: [files|directories]`. Smoke-test with `./bin/panther-minor __complete <words...> ""`.
+  (`cli/commands/completions.sh`); `./bin/panther-minor install` writes the bash script where
+  bash-completion lazy-loads it. Dynamic per-arg completions (e.g. listing model names) go on the
+  **arg or flag**, never the command, as `completions: { dynamic: [...] }` — each entry names a
+  `panther_complete_*` function in `cli/lib/completions.sh` printing one candidate per line, run in a
+  subshell. `__complete` skips `cli/initialize.sh` and runs from any directory, so these functions
+  read files under `$(panther_repo_root)` — never `PANTHER_*` globals or the current directory. See
+  the `models llm download` `model` arg (`panther_complete_llm_models`) for the pattern. Literal
+  suggestions use `static:`; file/dir completion uses `options: [files|directories]`. Smoke-test with
+  `./bin/panther-minor __complete <words...> ""` from outside the repository.
 
 ## Checklist: what else to update when the command tree changes
 
@@ -111,8 +114,8 @@ writing a new one.
   the command-group table (`## 🗂️ Command groups`) if you added/removed a top-level group.
 - `AGENTS.md` and the domain docs in `docs/` (e.g. `docs/models.md`, `docs/operations.md`) — if the
   new/changed command is user-facing and those docs mention the CLI surface.
-- Shell completions — regenerated automatically by `pnpm run build:cli`;
-  no separate manual step, but re-run `source .bashrc` in your own shell to pick them up locally.
+- Shell completions — nothing to do: every `<TAB>` asks `bin/panther-minor __complete`, so
+  `pnpm run build:cli` is enough.
 - Any wizard/skill that shells out to `./bin/panther-minor` (e.g. `.agents/skills/add-model/SKILL.md`) — check
   whether it references the exact subcommand or flag name you changed.
 

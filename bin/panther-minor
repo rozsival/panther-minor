@@ -27,6 +27,7 @@ panther_minor_usage() {
   printf "  %s   Manage the Panther Minor Docker Compose cluster\n" "cluster    "
   printf "  %s   Stream logs by default or show a one-time tail for cluster services\n" "logs       "
   printf "  %s   Update the repository from upstream\n" "update     "
+  printf "  %s   Put panther-minor on your PATH, with bash completion\n" "install    "
   printf "  %s   Print the shell completion script for eval\n" "completions"
   echo
 
@@ -65,7 +66,7 @@ panther_minor_setup_usage() {
   printf "  %s   Install AMD GPU drivers and ROCm\n" "amdgpu   "
   printf "  %s   Update GRUB kernel parameters\n" "grub     "
   printf "  %s   Configure Git defaults for the selected user\n" "git      "
-  printf "  %s   Install Starship and configure shell access for the selected user\n" "shell    "
+  printf "  %s   Install Starship, configure the shell and put panther-minor on the PATH for the selected user\n" "shell    "
   printf "  %s   Create .env and sync GPU group IDs\n" "env      "
   echo
 
@@ -445,7 +446,7 @@ panther_minor_setup_git_usage() {
 }
 
 panther_minor_setup_shell_usage() {
-  printf "panther-minor setup shell - Install Starship and configure shell access for the selected user\n\n"
+  printf "panther-minor setup shell - Install Starship, configure the shell and put panther-minor on the PATH for the selected user\n\n"
 
   printf "%s\n" "Usage:"
   printf "  panther-minor setup shell [OPTIONS]\n"
@@ -1270,6 +1271,34 @@ panther_minor_update_usage() {
   fi
 }
 
+panther_minor_install_usage() {
+  if [[ -n $long_usage ]]; then
+    printf "panther-minor install\n\n"
+    printf "  Put panther-minor on your PATH, with bash completion\n  \n  Symlinks ~/.local/bin/panther-minor onto this checkout's bin/panther-minor and\n  writes ~/.local/share/bash-completion/completions/panther-minor, which\n  bash-completion lazy-loads. Idempotent; then checks that a fresh login shell\n  finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the\n  allowed user.\n\n"
+  else
+    printf "panther-minor install - Put panther-minor on your PATH, with bash completion\n\n"
+  fi
+
+  printf "%s\n" "Usage:"
+  printf "  panther-minor install\n"
+  printf "  panther-minor install --help | -h\n"
+  echo
+
+  if [[ -n "$long_usage" ]]; then
+
+    printf "%s\n" "Options:"
+
+    printf "  %s\n" "--help, -h"
+    printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  ./bin/panther-minor install\n"
+    echo
+
+  fi
+}
+
 panther_minor_completions_usage() {
   printf "panther-minor completions - Print the shell completion script for eval\n\n"
 
@@ -1325,6 +1354,28 @@ normalize_input() {
 
     shift
   done
+}
+
+panther_repo_root() {
+  # From the real file: `install` reaches bin/panther-minor through a symlink in
+  # ~/.local/bin, and the completion functions below run from any directory.
+  (cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/.." && pwd)
+}
+
+# Candidates for the dynamic `completions:` in bashly.yml. `panther-minor
+# __complete` skips initialize.sh, so these resolve the repository themselves
+# instead of reading its globals; each runs on every <TAB>, so they only read files.
+panther_complete_llm_models() {
+  jq -r '.models.[] | .name' "$(panther_repo_root)/models/llm.config.json"
+}
+panther_complete_llm_presets() {
+  awk -F'[][]' 'NF==3{print $2}' "$(panther_repo_root)/llama-cpp/preset.ini"
+}
+panther_complete_t2i_models() {
+  jq -r '.models.[] | .name' "$(panther_repo_root)/models/t2i.config.json"
+}
+panther_complete_services() {
+  yq '.services | keys[]' "$(panther_repo_root)/docker-compose.yml"
 }
 
 panther_compose() {
@@ -1419,6 +1470,111 @@ panther_confirm() {
     panther_log_warn "Aborted."
     exit 0
   }
+}
+
+# `panther-minor` by name, the way `dot` and `devbox` are: a symlink in
+# ~/.local/bin onto this checkout's bin/panther-minor, plus bash completion where
+# bash-completion's lazy loader looks for it
+# (~/.local/share/bash-completion/completions/<command>), so it costs nothing
+# until the first <TAB> after `panther-minor`.
+
+panther_install_link() { printf '%s\n' "$HOME/.local/bin/panther-minor"; }
+panther_install_completion_file() {
+  printf '%s\n' "${XDG_DATA_HOME:-$HOME/.local/share}/bash-completion/completions/panther-minor"
+}
+
+# The completion file's exact content. The bashly script only forwards each
+# <TAB> to `panther-minor __complete`, so it holds no command list and a re-run
+# is needed only when bashly's own completion function changes.
+panther_install_completion_script() {
+  # shellcheck disable=SC2016 # literal backticks
+  printf '# Written by `panther-minor install` from `panther-minor completions bash`: re-run it, never edit.\n'
+  send_completions bash
+}
+
+# Before `install` existed, `setup shell` made ~/.bashrc source the repository's
+# .bashrc, which evaluated the completion script on every shell start. That file
+# is gone, so the entry would fail in every new shell.
+panther_install_remove_legacy_bashrc_entry() {
+  local bashrc="$HOME/.bashrc"
+  local entry="source '$PANTHER_REPO_ROOT/.bashrc'"
+  local kept
+
+  [[ -f "$bashrc" ]] && grep -qxF "$entry" "$bashrc" || return 0
+  kept="$(grep -vxF -e "$entry" -e '# Panther Minor CLI' "$bashrc" || true)"
+  # Rewritten in place, not replaced, so the file keeps its owner and mode.
+  printf '%s\n' "$kept" >"$bashrc"
+  panther_log_info "Removed the legacy Panther Minor CLI entry from $bashrc."
+}
+
+# How a fresh login shell sees `panther-minor` - what a new SSH session gets,
+# independent of the PATH this process inherited (`setup shell` runs install
+# through sudo, whose PATH has no ~/.local/bin). Prints `path=<resolved>` and,
+# for a bash login shell, `loader=yes` when bash-completion's lazy loader is
+# defined.
+panther_install_fresh_shell() {
+  local shell="${SHELL:-/bin/bash}"
+  # shellcheck disable=SC2016 # expands in the probed shell
+  env -i HOME="$HOME" USER="${USER:-}" LOGNAME="${LOGNAME:-${USER:-}}" SHELL="$shell" TERM=dumb \
+    PATH=/usr/bin:/bin:/usr/sbin:/sbin "$shell" -lic \
+    'printf "path=%s\n" "$(command -v panther-minor)"
+     [ -n "${BASH_VERSION:-}" ] && declare -F _comp_load __load_completion >/dev/null && echo loader=yes
+     exit 0' </dev/null 2>/dev/null || true
+}
+
+panther_install_completion_hint() {
+  if [[ "$(uname -s)" == Darwin ]]; then
+    # shellcheck disable=SC2016 # a command for the user to run
+    echo 'brew install bash-completion@2, then source "$(brew --prefix)/etc/profile.d/bash_completion.sh" from ~/.bashrc'
+  else
+    echo "sudo apt-get install -y bash-completion, then source /usr/share/bash-completion/bash_completion from ~/.bashrc (Ubuntu's default ~/.bashrc does)"
+  fi
+}
+
+# Reports every check before failing, so one run lists every fix.
+panther_install_checks() {
+  local link file probe resolved
+  local failures=0
+  link="$(panther_install_link)"
+  file="$(panther_install_completion_file)"
+
+  if [[ -L "$link" && "$(readlink "$link")" == "$PANTHER_CLI_BIN" ]]; then
+    panther_log_success "$link -> $PANTHER_CLI_BIN"
+  else
+    panther_log_warn "$link is not a symlink onto $PANTHER_CLI_BIN."
+    failures=$((failures + 1))
+  fi
+
+  if [[ -f "$file" ]] && cmp -s "$file" <(panther_install_completion_script); then
+    panther_log_success "Bash completion at $file."
+  else
+    panther_log_warn "Bash completion at $file is missing or stale."
+    failures=$((failures + 1))
+  fi
+
+  probe="$(panther_install_fresh_shell)"
+  resolved="$(sed -n 's/^path=//p' <<<"$probe")"
+  if [[ "$resolved" == "$link" ]]; then
+    panther_log_success "A login shell (${SHELL:-/bin/bash}) resolves panther-minor to $link."
+  elif [[ -z "$resolved" ]]; then
+    # shellcheck disable=SC2016 # literal $HOME/$PATH in the hint
+    panther_log_warn "A login shell (${SHELL:-/bin/bash}) does not find panther-minor - add ~/.local/bin to its PATH: export PATH=\"\$HOME/.local/bin:\$PATH\""
+    failures=$((failures + 1))
+  else
+    panther_log_warn "A login shell resolves panther-minor to $resolved, ahead of $link - remove it or put ~/.local/bin first on the PATH."
+    failures=$((failures + 1))
+  fi
+
+  if [[ "${SHELL:-/bin/bash}" != */bash ]]; then
+    panther_log_info "Login shell $SHELL is not bash: completion is installed for bash only - for zsh, put 'source <(panther-minor completions zsh)' in ~/.zshrc after compinit."
+  elif grep -qx 'loader=yes' <<<"$probe"; then
+    panther_log_success 'A login shell loads bash-completion, which lazy-loads panther-minor completion.'
+  else
+    panther_log_warn "A login shell does not load bash-completion, so panther-minor completion never loads - $(panther_install_completion_hint)."
+    failures=$((failures + 1))
+  fi
+
+  ((failures == 0)) || panther_log_error "$failures check(s) failed: fix them, then re-run $PANTHER_CLI_BIN install."
 }
 
 panther_llm_config_file() {
@@ -1919,7 +2075,7 @@ panther_minor_setup_all_command() {
     local step
 
     for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env; do
-      "cli_setup_${step}_command"
+      "panther_minor_setup_${step}_command"
     done
 
     # Prints the checklist and, more importantly, the ACTIONS REQUIRED list the
@@ -2761,10 +2917,17 @@ panther_minor_setup_shell_command() {
     panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
     loginctl enable-linger "$PANTHER_ALLOWED_USER"
 
-    panther_register_bashrc_entry 'Panther Minor CLI' "source '$PANTHER_REPO_ROOT/.bashrc'"
     # shellcheck disable=SC2016 # We want to register the literal command, not its output
     panther_register_bashrc_entry 'Starship' 'eval "$(starship init bash)"'
     panther_log_success "Shell set up with Starship prompt for ${PANTHER_ALLOWED_USER}."
+
+    # As the user, after the ~/.bashrc entries above, so its login-shell checks
+    # see the shell they will get. A failed check is a follow-up, not a reason to
+    # abort the rest of 'setup all'.
+    panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
+    if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+      panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
+    fi
   }
 
   panther_setup_shell
@@ -3801,6 +3964,41 @@ panther_minor_update_command() {
 
 }
 
+panther_minor_install_command() {
+
+  panther_install() {
+    # Everything lands in the caller's home, so root would install it for root.
+    [[ $EUID -ne 0 ]] || panther_log_error "Run install as the user who uses the CLI, not with sudo: it installs into your home directory. 'setup shell' runs it for the allowed user."
+
+    local link file
+    link="$(panther_install_link)"
+    file="$(panther_install_completion_file)"
+
+    # Only ever replaces a symlink: a real file there is someone else's command.
+    if [[ -e "$link" && ! -L "$link" ]]; then
+      panther_log_error "$link exists and is not a symlink - move it aside, then re-run."
+    fi
+    if [[ "$(readlink "$link" 2>/dev/null || true)" != "$PANTHER_CLI_BIN" ]]; then
+      mkdir -p "${link%/*}"
+      ln -sfn "$PANTHER_CLI_BIN" "$link"
+      panther_log_info "Linked $link -> $PANTHER_CLI_BIN."
+    fi
+
+    if [[ ! -f "$file" ]] || ! cmp -s "$file" <(panther_install_completion_script); then
+      mkdir -p "${file%/*}"
+      panther_install_completion_script >"$file.$$"
+      mv "$file.$$" "$file"
+      panther_log_info "Wrote $file."
+    fi
+
+    panther_install_remove_legacy_bashrc_entry
+    panther_install_checks
+  }
+
+  panther_install
+
+}
+
 panther_minor_completions_command() {
 
   send_completions "${args[shell]}"
@@ -3875,6 +4073,13 @@ parse_requirements() {
       action="update"
       shift
       panther_minor_update_parse_requirements "$@"
+      shift $#
+      ;;
+
+    install)
+      action="install"
+      shift
+      panther_minor_install_parse_requirements "$@"
       shift $#
       ;;
 
@@ -7411,6 +7616,60 @@ panther_minor_update_parse_requirements() {
 
 }
 
+panther_minor_install_parse_requirements() {
+  local key
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+      --help | -h)
+        long_usage=yes
+        panther_minor_install_usage
+        exit
+        ;;
+
+      *)
+        break
+        ;;
+
+    esac
+  done
+
+  action="install"
+
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case "$key" in
+
+      --)
+        shift
+        while [[ $# -gt 0 ]]; do
+          key="$1"
+
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+
+        done
+        break
+        ;;
+
+      -?*)
+        printf "invalid option: %s\n" "$key" >&2
+        exit 1
+        ;;
+
+      *)
+
+        printf "invalid argument: %s\n" "$key" >&2
+        exit 1
+
+        ;;
+
+    esac
+  done
+
+}
+
 panther_minor_completions_parse_requirements() {
   local key
 
@@ -7718,6 +7977,11 @@ panther_minor_completion() {
         panther_minor_update_completion "$completion_current" "$@"
         return
         ;;
+      install)
+        shift
+        panther_minor_install_completion "$completion_current" "$@"
+        return
+        ;;
       completions)
         shift
         panther_minor_completions_completion "$completion_current" "$@"
@@ -7736,7 +8000,7 @@ panther_minor_completion() {
         ;;
     esac
   done
-  completion_candidates "$completion_current" setup models proxy cluster logs update completions
+  completion_candidates "$completion_current" setup models proxy cluster logs update install completions
 
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
@@ -8461,7 +8725,7 @@ panther_minor_models_llm_download_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_llm_models; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8521,7 +8785,7 @@ panther_minor_models_llm_remove_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/llm.config.json; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_llm_models; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8559,7 +8823,7 @@ panther_minor_models_llm_load_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_llm_presets; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8597,7 +8861,7 @@ panther_minor_models_llm_unload_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_llm_presets; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8690,7 +8954,7 @@ panther_minor_models_llm_bench_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && awk -F'[][]' 'NF==3{print $2}' llama-cpp/preset.ini; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_llm_presets; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8782,7 +9046,7 @@ panther_minor_models_t2i_download_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_t2i_models; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8842,7 +9106,7 @@ panther_minor_models_t2i_remove_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_t2i_models; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -8886,7 +9150,7 @@ panther_minor_models_t2i_load_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && jq -r '.models.[] | .name' models/t2i.config.json; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_t2i_models; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9191,7 +9455,7 @@ panther_minor_cluster_start_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_services; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9256,7 +9520,7 @@ panther_minor_cluster_stop_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_services; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9327,7 +9591,7 @@ panther_minor_cluster_restart_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_services; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9370,7 +9634,7 @@ panther_minor_cluster_build_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_services; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9419,7 +9683,7 @@ panther_minor_logs_completion() {
   if [[ $completion_current != -* ]]; then
     case "$completion_arg_index" in
       0)
-        if completion_output="$({ cd "$(git rev-parse --show-toplevel)" && yq '.services | keys[]' docker-compose.yml; } 2>/dev/null)"; then
+        if completion_output="$({ panther_complete_services; } 2>/dev/null)"; then
           completion_dynamic_candidates "$completion_current" "$completion_output"
         fi
         ;;
@@ -9429,6 +9693,28 @@ panther_minor_logs_completion() {
 }
 
 panther_minor_update_completion() {
+  local completion_current="$1"
+  shift
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --help | -h)
+        completion_blocked_flags["--help"]=1
+        shift
+        ;;
+      *)
+        return
+        ;;
+    esac
+  done
+
+  if [[ $completion_current == -* ]]; then
+    completion_flag_candidates --help "$completion_current" --help -h
+  fi
+
+}
+
+panther_minor_install_completion() {
   local completion_current="$1"
   shift
 
@@ -9504,8 +9790,8 @@ initialize() {
   declare -g version="12.0.1"
   set -euo pipefail
 
-  declare -gr PANTHER_CLI_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/panther-minor"
-  declare -gr PANTHER_REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  declare -gr PANTHER_REPO_ROOT="$(panther_repo_root)"
+  declare -gr PANTHER_CLI_BIN="$PANTHER_REPO_ROOT/bin/panther-minor"
   declare -gr PANTHER_MODELS_DIR="$PANTHER_REPO_ROOT/models"
   declare -gr PANTHER_PROXY_DIR="$PANTHER_REPO_ROOT/proxy"
   declare -gr PANTHER_ENV_FILE="$PANTHER_REPO_ROOT/.env"
@@ -9607,6 +9893,7 @@ run() {
     "cluster build") panther_minor_cluster_build_command ;;
     "logs") panther_minor_logs_command ;;
     "update") panther_minor_update_command ;;
+    "install") panther_minor_install_command ;;
     "completions") panther_minor_completions_command ;;
   esac
 

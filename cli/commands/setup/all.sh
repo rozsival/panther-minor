@@ -8,7 +8,7 @@ panther_setup_all() {
   local step
 
   for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env; do
-    "cli_setup_${step}_command"
+    "panther_minor_setup_${step}_command"
   done
 
   # Prints the checklist and, more importantly, the ACTIONS REQUIRED list the
