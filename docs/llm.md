@@ -129,8 +129,9 @@ speculative pass costs ~39 ms more than a plain token (93.9 vs 54.6) and returns
 39 ms between the two draft forwards and the wider verify batch requires a model rather than a measurement, so treat
 any finer breakdown as estimated. A spec-off pass is strikingly repeatable (σ ≈ 0.1 ms/token), so nearly all
 run-to-run spread in speculative throughput is acceptance, not the machine. These and every other MTP figure on this
-page were measured on the `unslothai/llama.cpp#144` fork with the `shared-Q8_0` head at `n-cpu-moe = 28`; re-bench
-before relying on them for the upstream build.
+page were measured on the `unslothai/llama.cpp#144` fork with the `shared-Q8_0` head at `n-cpu-moe = 28`. The
+upstream v0.6.0 build with the self-contained head and `n-cpu-moe = 29` is faster on both ends — ~+100 t/s prefill
+and ~+5 t/s decode in Grafana — but has not been through `models llm bench` yet.
 
 > [!IMPORTANT]
 > **MTP for `qwen4exp` needs `llama.cpp` v0.6.0 or newer** ([ggml-org/llama.cpp#29761](https://github.com/ggml-org/llama.cpp/pull/29761));
