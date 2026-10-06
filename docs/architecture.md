@@ -89,6 +89,7 @@ additionally unloads idle models and serializes large-model switches — see [GP
 | `monitoring/`           | `prometheus.yml`, Grafana provisioning and dashboards                                             |
 | `proxy/`                | `nginx.conf`, TLS material in `proxy/ssl/`                                                        |
 | `harnesses/`            | Coding-agent provider presets ([Coding harnesses](harnesses.md))                                  |
+| `terminfo/`             | `xterm-ghostty` source that `setup shell` compiles into `/etc/terminfo`                           |
 | `docs/`                 | This documentation                                                                                |
 | `.agents/skills/`       | Agent skills for recurring maintenance tasks ([Development](development.md#-agent-assets))        |
 | `extra/`                | Untracked space for your own override assets ([Operations](operations.md#-extending-the-cluster)) |

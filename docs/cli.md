@@ -85,22 +85,22 @@ complete dynamically from any directory. `panther-minor __complete models llm lo
 
 Run with `sudo`. `setup` alone runs `setup all`. Details: [Installation](installation.md#-run-the-setup).
 
-| Subcommand  | Purpose                                              | Flags (env var)                                                                                        |
-| ----------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `all`       | Interactive full workstation setup, every step below | `-n` `--server-name`, `-u` `--allowed-user`, `-p` `--ssh-port`, `-t` `--timezone`, `-d` `--lvm-device` |
-| `init`      | Extend storage and set timezone                      | `-t` `--timezone` (`panther_timezone`), `-d` `--lvm-device` (`panther_lvm_device`)                     |
-| `packages`  | Install essential packages                           | —                                                                                                      |
-| `brew`      | Install Homebrew, `llmfit`, `hf`, `yq`               | `-u` `--allowed-user` (`panther_allowed_user`)                                                         |
-| `docker`    | Install Docker, add user to the `docker` group       | `-u` `--allowed-user`                                                                                  |
-| `tailscale` | Install Tailscale                                    | —                                                                                                      |
-| `ssh`       | Harden SSH                                           | `-u` `--allowed-user`, `-p` `--ssh-port` (`panther_ssh_port`)                                          |
-| `ufw`       | Configure the firewall                               | `-p` `--ssh-port`                                                                                      |
-| `fail2ban`  | Install and configure fail2ban                       | `-p` `--ssh-port`                                                                                      |
-| `amdgpu`    | Install AMD GPU drivers and ROCm                     | —                                                                                                      |
-| `grub`      | Update GRUB kernel parameters                        | —                                                                                                      |
-| `git`       | Configure Git defaults                               | `-n` `--server-name` (`panther_server_name`), `-u` `--allowed-user`                                    |
-| `shell`     | Install Starship, configure the shell, run `install` | `-u` `--allowed-user`                                                                                  |
-| `env`       | Create `.env`, sync GPU group IDs and `BIND_ADDR`    | `-u` `--allowed-user`                                                                                  |
+| Subcommand  | Purpose                                                                   | Flags (env var)                                                                                        |
+| ----------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `all`       | Interactive full workstation setup, every step below                      | `-n` `--server-name`, `-u` `--allowed-user`, `-p` `--ssh-port`, `-t` `--timezone`, `-d` `--lvm-device` |
+| `init`      | Extend storage and set timezone                                           | `-t` `--timezone` (`panther_timezone`), `-d` `--lvm-device` (`panther_lvm_device`)                     |
+| `packages`  | Install essential packages                                                | —                                                                                                      |
+| `brew`      | Install Homebrew, `llmfit`, `hf`, `yq`                                    | `-u` `--allowed-user` (`panther_allowed_user`)                                                         |
+| `docker`    | Install Docker, add user to the `docker` group                            | `-u` `--allowed-user`                                                                                  |
+| `tailscale` | Install Tailscale                                                         | —                                                                                                      |
+| `ssh`       | Harden SSH                                                                | `-u` `--allowed-user`, `-p` `--ssh-port` (`panther_ssh_port`)                                          |
+| `ufw`       | Configure the firewall                                                    | `-p` `--ssh-port`                                                                                      |
+| `fail2ban`  | Install and configure fail2ban                                            | `-p` `--ssh-port`                                                                                      |
+| `amdgpu`    | Install AMD GPU drivers and ROCm                                          | —                                                                                                      |
+| `grub`      | Update GRUB kernel parameters                                             | —                                                                                                      |
+| `git`       | Configure Git defaults                                                    | `-n` `--server-name` (`panther_server_name`), `-u` `--allowed-user`                                    |
+| `shell`     | Install Starship and Ghostty terminfo, configure the shell, run `install` | `-u` `--allowed-user`                                                                                  |
+| `env`       | Create `.env`, sync GPU group IDs and `BIND_ADDR`                         | `-u` `--allowed-user`                                                                                  |
 
 Defaults: SSH port `2222`, timezone `Europe/Prague`, LVM device `/dev/ubuntu-vg/ubuntu-lv`, current user and host
 name.

@@ -157,7 +157,7 @@ commands:
             help: Default user for setup commands
 
       - name: shell
-        help: Install Starship, configure the shell and put panther-minor on the PATH for the selected user
+        help: Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user
         flags:
           - long: --allowed-user
             short: -u

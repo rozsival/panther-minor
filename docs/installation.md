@@ -76,21 +76,21 @@ step below in order.
 
 ### What `setup all` configures
 
-| #   | Step        | What it does                                                                                                      |
-| --- | ----------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | `init`      | Extends the LVM root volume (`/dev/ubuntu-vg/ubuntu-lv`) and sets the timezone (`Europe/Prague`)                  |
-| 2   | `packages`  | `build-essential`, `jq`, `nvtop`, `htop` and more, plus unattended upgrades                                       |
-| 3   | `brew`      | Homebrew, `llmfit`, Hugging Face CLI (`hf`) and `yq` for the allowed user                                         |
-| 4   | `docker`    | Docker Engine + Compose; adds the allowed user to the `docker` group                                              |
-| 5   | `tailscale` | Tailscale agent                                                                                                   |
-| 6   | `ssh`       | Hardened `/etc/ssh/sshd_config`: port `2222`, key-only auth, `AllowUsers` restricted                              |
-| 7   | `ufw`       | Firewall rules for ports `2222`, `80` and `443`                                                                   |
-| 8   | `fail2ban`  | Brute-force protection on the SSH port                                                                            |
-| 9   | `amdgpu`    | Latest AMD kernel driver (DKMS) and ROCm                                                                          |
-| 10  | `grub`      | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                            |
-| 11  | `git`       | Default name, email and rebase pull strategy                                                                      |
-| 12  | `shell`     | Starship prompt; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
-| 13  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, fills `BIND_ADDR`                           |
+| #   | Step        | What it does                                                                                                                                           |
+| --- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `init`      | Extends the LVM root volume (`/dev/ubuntu-vg/ubuntu-lv`) and sets the timezone (`Europe/Prague`)                                                       |
+| 2   | `packages`  | `build-essential`, `jq`, `nvtop`, `htop` and more, plus unattended upgrades                                                                            |
+| 3   | `brew`      | Homebrew, `llmfit`, Hugging Face CLI (`hf`) and `yq` for the allowed user                                                                              |
+| 4   | `docker`    | Docker Engine + Compose; adds the allowed user to the `docker` group                                                                                   |
+| 5   | `tailscale` | Tailscale agent                                                                                                                                        |
+| 6   | `ssh`       | Hardened `/etc/ssh/sshd_config`: port `2222`, key-only auth, `AllowUsers` restricted                                                                   |
+| 7   | `ufw`       | Firewall rules for ports `2222`, `80` and `443`                                                                                                        |
+| 8   | `fail2ban`  | Brute-force protection on the SSH port                                                                                                                 |
+| 9   | `amdgpu`    | Latest AMD kernel driver (DKMS) and ROCm                                                                                                               |
+| 10  | `grub`      | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                                                                 |
+| 11  | `git`       | Default name, email and rebase pull strategy                                                                                                           |
+| 12  | `shell`     | Starship prompt; Ghostty terminfo in `/etc/terminfo`; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
+| 13  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, fills `BIND_ADDR`                                                                |
 
 Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot,
 open a second SSH session on the new port before closing the current one, authenticate Tailscale, and set

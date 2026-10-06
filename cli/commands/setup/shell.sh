@@ -11,6 +11,11 @@ panther_setup_shell() {
 
   # shellcheck disable=SC2016 # We want to register the literal command, not its output
   panther_register_bashrc_entry 'Starship' 'eval "$(starship init bash)"'
+
+  # Ghostty's ssh-terminfo installs xterm-ghostty into ~/.terminfo, which ncurses
+  # ignores for root and for setcap binaries such as nvtop (cap_perfmon).
+  panther_log_info "Installing xterm-ghostty terminfo into /etc/terminfo..."
+  tic -x -o /etc/terminfo "$PANTHER_REPO_ROOT/terminfo/xterm-ghostty.terminfo"
   panther_log_success "Shell set up with Starship prompt for ${PANTHER_ALLOWED_USER}."
 
   # As the user, after the ~/.bashrc entries above, so its login-shell checks
