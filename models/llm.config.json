@@ -74,7 +74,7 @@
         },
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",
-          "file": "MTP/mtp-Qwen3.8-Flash-Next-shared-Q8_0.gguf"
+          "file": "MTP/mtp-Qwen3.8-Flash-Next-Q8_0.gguf"
         }
       ]
     }
