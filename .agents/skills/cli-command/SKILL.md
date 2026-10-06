@@ -119,7 +119,9 @@ writing a new one.
   new/changed command is user-facing and those docs mention the CLI surface.
 - Shell completions — nothing to do: every `<TAB>` asks `bin/panther-minor __complete`, so
   `pnpm run build:cli` is enough.
-- Any wizard/skill that shells out to `./bin/panther-minor` (e.g. `.agents/skills/add-model/SKILL.md`) — check
+- `.agents/skills/panther-minor-cli/SKILL.md` — the operator skill mirrors the command tree (risk tiers, prompts,
+  recipes, error strings); update it for any added, renamed or removed command, flag or user-facing message.
+- Any other wizard/skill that shells out to `./bin/panther-minor` (e.g. `.agents/skills/add-model/SKILL.md`) — check
   whether it references the exact subcommand or flag name you changed.
 
 ## Error handling

@@ -73,18 +73,19 @@ merge, then watches the release run and verifies the tag.
 
 ## 🤖 Agent assets
 
-| Asset                              | Purpose                                                    |
-| ---------------------------------- | ---------------------------------------------------------- |
-| `AGENTS.md`                        | Project context and rules for AI assistants                |
-| `.github/copilot-instructions.md`  | Copilot PR review guidance                                 |
-| `.agents/plans/`                   | Feature plans, `YYYY-MM-DD-<short-description>.md`         |
-| `.agents/skills/add-model/`        | Wizard to add an LLM across catalog, presets and harnesses |
-| `.agents/skills/cli-command/`      | Add or change Bashly CLI commands and flags                |
-| `.agents/skills/harness-config/`   | Install or update OMP / Pi / OpenCode presets locally      |
-| `.agents/skills/ideogram4-prompt/` | Generate valid Ideogram 4 JSON prompts                     |
-| `.agents/skills/release/`          | Version bump on a release branch and PR to `main`          |
-| `.agents/skills/rocm-upgrade/`     | Upgrade ROCm, `amdgpu`, base OS or kernel across the stack |
-| `.agents/skills/tune-preset/`      | Measurement-first `llama.cpp` preset tuning                |
+| Asset                               | Purpose                                                    |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `AGENTS.md`                         | Project context and rules for AI assistants                |
+| `.github/copilot-instructions.md`   | Copilot PR review guidance                                 |
+| `.agents/plans/`                    | Feature plans, `YYYY-MM-DD-<short-description>.md`         |
+| `.agents/skills/add-model/`         | Wizard to add an LLM across catalog, presets and harnesses |
+| `.agents/skills/cli-command/`       | Add or change Bashly CLI commands and flags                |
+| `.agents/skills/harness-config/`    | Install or update OMP / Pi / OpenCode presets locally      |
+| `.agents/skills/ideogram4-prompt/`  | Generate valid Ideogram 4 JSON prompts                     |
+| `.agents/skills/panther-minor-cli/` | Operate the workstation through `panther-minor` safely     |
+| `.agents/skills/release/`           | Version bump on a release branch and PR to `main`          |
+| `.agents/skills/rocm-upgrade/`      | Upgrade ROCm, `amdgpu`, base OS or kernel across the stack |
+| `.agents/skills/tune-preset/`       | Measurement-first `llama.cpp` preset tuning                |
 
 ---
 
