@@ -3466,7 +3466,8 @@ panther_minor_models_t2i_load_command() {
     panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_LLM "$llm"
     panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_VAE "$vae"
     # Per-model sd-server flags (sampling tuning such as --flow-shift), applied on launch.
-    panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_MODEL_ARGS "$model_args"
+    # Double-quoted because the value holds whitespace-separated flags.
+    panther_upsert_env_key "$PANTHER_ENV_FILE" SD_CPP_MODEL_ARGS "\"$model_args\""
 
     if [[ -n "$exclusive" ]]; then
       # Exclusive mode: hand image generation its dedicated SD_VISIBLE_DEVICES GPU by
