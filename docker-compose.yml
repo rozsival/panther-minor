@@ -45,8 +45,6 @@ services:
       LLAMA_CPP_PARALLEL: '${LLAMA_CPP_PARALLEL}'
       LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_CPP_UBATCH_SIZE: '${LLAMA_CPP_UBATCH_SIZE}'
-    tmpfs:
-      - '/home/llama-cpp/.cache/slots:size=${LLAMA_CPP_SLOTS_SIZE},mode=1777'
     volumes:
       - 'llama-cpp-comgr:/home/llama-cpp/.cache/comgr'
       - './models/.huggingface:/home/llama-cpp/.cache/huggingface/hub'

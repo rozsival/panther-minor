@@ -17,5 +17,4 @@ exec /opt/llama-cpp/build/bin/llama-server \
   --slots \
   --spec-default \
   --sleep-idle-seconds "$LLAMA_CPP_SLEEP_IDLE_SECONDS" \
-  --slot-save-path "$HOME/.cache/slots" \
   --ubatch-size "$LLAMA_CPP_UBATCH_SIZE"
