@@ -12,9 +12,11 @@ panther_setup_packages() {
     augeas-tools \
     bind9-dnsutils \
     build-essential \
+    fio \
     htop \
     jq \
     lm-sensors \
+    nvme-cli \
     nvtop \
     python3 \
     python3-pip \

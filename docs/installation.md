@@ -36,10 +36,6 @@
 | IOMMU             | Enabled                                                                      |
 | iGPU              | Disabled                                                                     |
 | PCIe GPU slots    | Gen5 (the CPU bifurcates its x16 into x8/x8, so each card trains at Gen5 x8) |
-| `M2_1` slot       | Gen4 for the NVMe SSD                                                        |
-
-> [!NOTE]
-> Gen5 GPU + Gen4 SSD is the sweet spot for maximizing GPU performance while maintaining system stability.
 
 ### Software and accounts
 
