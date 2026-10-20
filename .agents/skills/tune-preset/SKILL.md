@@ -34,12 +34,14 @@ behind any number.
 3. **Change exactly ONE knob.** Never combine `n-cpu-moe` + `tensor-split` + `spec-draft-n-max` in one
    edit — if throughput moves you won't know which change did it, and if it OOMs you won't know which
    change to revert.
-4. **Reload weights, then re-bench**:
+4. **Restart llama-cpp, then re-bench**:
    ```bash
-   ./bin/panther-minor models llm unload <preset>
-   ./bin/panther-minor models llm load <preset>
+   docker compose restart llama-cpp   # or ./bin/panther-minor cluster restart llama-cpp
    ./bin/panther-minor models llm bench <preset> --loads 3
    ```
+   The router reads `llama-cpp/preset.ini` once at startup, so `models llm unload` + `load` reloads
+   weights with the **old** values. Confirm the new ones landed in the `srv load: --<flag>` lines of
+   `./bin/panther-minor logs llama-cpp --tail 400`.
    Presets map 1:1 to models — `load`/`unload` take the **preset** name from `llama-cpp/preset.ini`,
    `download`/`remove` take the **model** name from `models/llm.config.json`. Reasoning mode
    (`chat_template_kwargs.enable_thinking`, `reasoning_effort`) is a per-request switch, not a preset

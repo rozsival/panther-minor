@@ -106,13 +106,19 @@ cache. Measured on v0.7.0 with MTP only (`--spec-default` ngram off — see belo
 |          27 |               — |       28.3 |         345 |
 |          27 |            1024 |       21.0 |         339 |
 |          31 |            6656 |       32.2 |         322 |
-|          40 |           18432 |       42.3 |         296 |
-|          40 |           20480 |   **45.0** |         310 |
+|          40 |       **18432** |   **42.3** |         296 |
+|          40 |           20480 |       45.0 |         310 |
 
-That is +59% decode for −10% prefill. v0.7.0 alone is slightly slower than v0.6.0 at the old placement — 28.3 vs
-30.0 t/s, with greedy MTP acceptance down from 80.9% to 71.8% — so the net gain over the previous release is +50%.
-The gain holds at long context: an 85K-token prompt decoded at 31.5 t/s with 462 t/s prefill. The 20480 MiB cache
-leaves GPU 0 ~0.5 GB free, so shrink it before adding anything to GPU 0.
+18432 is the production value: +50% decode for −14% prefill. v0.7.0 alone is slightly slower than v0.6.0 at the old
+placement — 28.3 vs 30.0 t/s, with greedy MTP acceptance down from 80.9% to 71.8% — so the net gain over the previous
+release is +41%. The gain holds at long context: at 20480, an 85K-token prompt decoded at 31.5 t/s with 462 t/s prefill.
+
+> [!CAUTION]
+> **Keep GPU 0 to Flash-Next alone.** On a full GPU, amdgpu does not fail a new allocation; it evicts resident VRAM
+> to system RAM. 20480 left GPU 0 ~0.5 GB free, so when Qwen3.5-2B loaded its vision projector there (the default
+> device, regardless of `main-gpu`), Flash-Next fell from 40 to 4 t/s decode and from 495 to 52 t/s prefill, with
+> nothing in the logs. Side kicks with an `mmproj` need `mmproj-device = ROCm1`, and 18432 leaves ~2.6 GB of slack.
+> Check per-process VRAM with `amd-smi process`.
 
 > [!WARNING]
 > **`bench` overstates speculative decode.** `--spec-default` (in `llama-cpp/entrypoint.sh`) adds `ngram-mod`
