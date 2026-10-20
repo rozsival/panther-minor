@@ -44,25 +44,59 @@ panther_assert_loadable_llm() {
 }
 # Asks llama-manager to make a model resident. Prints nothing and returns 0 on success; on failure
 # prints a human-readable reason and returns 1, so callers decide between warning and exiting.
+# Two outcomes are not failures or are retried instead:
+# - HTTP 400 "model is already running": the llama-server router rejects loading a resident or
+#   loading model, but that is the state the caller wants, so it counts as success.
+# - HTTP 502/503/504: llama-manager is up but the router behind it is not yet (e.g. right after a
+#   llama-cpp recreate or restart). Polled every 3s for up to <timeout> seconds (default 120).
+# An unreachable llama-manager means the cluster is down, not warming, so it fails immediately, as
+# does any other error (unknown model, 404, 500 with a message, ...). Callers capture stdout, so the
+# one-off waiting notice goes to stderr.
 panther_llm_request_load() {
   local model="$1"
-  local response http_code body
+  local timeout="${2:-120}"
+  local deadline=$((SECONDS + timeout))
+  local response http_code body message reason waiting=0
 
-  if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
-    -H 'Content-Type: application/json' \
-    --insecure \
-    -d "{\"model\": \"$model\"}")"; then
-    printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
-    return 1
-  fi
+  while true; do
+    if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
+      -H 'Content-Type: application/json' \
+      --insecure \
+      -d "{\"model\": \"$model\"}")"; then
+      printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
+      return 1
+    fi
 
-  http_code="${response: -3}"
-  body="${response%???}"
+    http_code="${response: -3}"
+    body="${response%???}"
 
-  if [[ "$http_code" == '200' ]]; then
-    return 0
-  fi
+    if [[ "$http_code" == '200' ]]; then
+      return 0
+    fi
 
-  printf 'HTTP %s: %s\n' "$http_code" "$(jq -r '.error.message // tostring' <<<"$body" 2>/dev/null | head -1)"
-  return 1
+    message="$(jq -r '.error.message // tostring' <<<"$body" 2>/dev/null | head -1)"
+    if [[ "$http_code" == '400' && "$message" == *'already running'* ]]; then
+      return 0
+    fi
+
+    reason="HTTP ${http_code}: ${message}"
+
+    case "$http_code" in
+    502 | 503 | 504) ;;
+    *)
+      printf '%s\n' "$reason"
+      return 1
+      ;;
+    esac
+
+    if ((SECONDS >= deadline)); then
+      printf '%s (kept failing for %ss)\n' "$reason" "$timeout"
+      return 1
+    fi
+    if ((!waiting)); then
+      panther_log_info "llama-cpp is not accepting loads yet (${reason}); retrying for up to ${timeout}s..." >&2
+      waiting=1
+    fi
+    sleep 3
+  done
 }
