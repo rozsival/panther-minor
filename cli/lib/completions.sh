@@ -17,5 +17,5 @@ panther_complete_t2i_models() {
   jq -r '.models.[] | .name' "$(panther_repo_root)/models/t2i.config.json"
 }
 panther_complete_services() {
-  yq '.services | keys[]' "$(panther_repo_root)/docker-compose.yml"
+  (cd "$(panther_repo_root)" && docker compose config --no-interpolate --services)
 }

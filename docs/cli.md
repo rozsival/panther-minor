@@ -90,7 +90,7 @@ Run with `sudo`. `setup` alone runs `setup all`. Details: [Installation](install
 | `all`       | Interactive full workstation setup, every step below                      | `-n` `--server-name`, `-u` `--allowed-user`, `-p` `--ssh-port`, `-t` `--timezone`, `-d` `--lvm-device` |
 | `init`      | Extend storage and set timezone                                           | `-t` `--timezone` (`panther_timezone`), `-d` `--lvm-device` (`panther_lvm_device`)                     |
 | `packages`  | Install essential packages                                                | —                                                                                                      |
-| `brew`      | Install Homebrew, `llmfit`, `hf`, `yq`                                    | `-u` `--allowed-user` (`panther_allowed_user`)                                                         |
+| `brew`      | Install Homebrew, `llmfit`, `hf`                                          | `-u` `--allowed-user` (`panther_allowed_user`)                                                         |
 | `docker`    | Install Docker, add user to the `docker` group                            | `-u` `--allowed-user`                                                                                  |
 | `tailscale` | Install Tailscale                                                         | —                                                                                                      |
 | `ssh`       | Harden SSH                                                                | `-u` `--allowed-user`, `-p` `--ssh-port` (`panther_ssh_port`)                                          |

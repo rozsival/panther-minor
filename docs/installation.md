@@ -76,7 +76,7 @@ step below in order.
 | --- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1   | `init`      | Extends the LVM root volume (`/dev/ubuntu-vg/ubuntu-lv`) and sets the timezone (`Europe/Prague`)                                                       |
 | 2   | `packages`  | `build-essential`, `jq`, `nvtop`, `htop` and more, plus unattended upgrades                                                                            |
-| 3   | `brew`      | Homebrew, `llmfit`, Hugging Face CLI (`hf`) and `yq` for the allowed user                                                                              |
+| 3   | `brew`      | Homebrew, `llmfit` and Hugging Face CLI (`hf`) for the allowed user                                                                                    |
 | 4   | `docker`    | Docker Engine + Compose; adds the allowed user to the `docker` group                                                                                   |
 | 5   | `tailscale` | Tailscale agent                                                                                                                                        |
 | 6   | `ssh`       | Hardened `/etc/ssh/sshd_config`: port `2222`, key-only auth, `AllowUsers` restricted                                                                   |
