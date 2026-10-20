@@ -32,6 +32,7 @@ Most models fit VRAM whole; only `n-gpu-layers` matters. A model larger than tot
 | Knob               | Effect                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------- |
 | `n-cpu-moe = N`    | Keeps the first N blocks' experts in system RAM                                     |
+| `moe-cache-mib`    | GPU LRU cache for those host experts — see [MoE expert cache](#moe-expert-cache)    |
 | `tensor-split`     | Balances the remaining layers across cards                                          |
 | `load-mode = none` | "No special loading mode" — mmap stays on, so most of the process stays file-backed |
 
@@ -89,6 +90,37 @@ Sweeping one placement knob at a time yields a linear cost model — for `Qwen3.
 What matters for procurement is that only the slope term is bandwidth-exposed: +20% DRAM bandwidth is capped at
 **≤7.5%** end to end, which is why the two physical memory experiments came back flat.
 
+### MoE expert cache
+
+`moe-cache-mib` (llama.cpp v0.7.0+, [ggml-org/llama.cpp#29887](https://github.com/ggml-org/llama.cpp/pull/29887))
+runs the `n-cpu-moe` layers on the GPU for batches of ≤32 tokens — decode and MTP verify — from an LRU cache of their
+experts, uploading only misses over PCIe. Larger batches (prefill) keep the regular path. The cache sits only on the
+GPU that owns the host-expert layers under `tensor-split`, and `split-mode = tensor` refuses it.
+
+A small cache is a net loss; it pays only once it holds a large share of the host experts. So rather than squeezing
+it into leftover VRAM, `Qwen3.8-Flash-Next` empties every GPU 0 block (`n-cpu-moe = 40`) and gives that VRAM to the
+cache. Measured on v0.7.0 with MTP only (`--spec-default` ngram off — see below), `--loads 3`, 0% spread:
+
+| `n-cpu-moe` | `moe-cache-mib` | Decode t/s | Prefill t/s |
+| ----------: | --------------: | ---------: | ----------: |
+|          27 |               — |       28.3 |         345 |
+|          27 |            1024 |       21.0 |         339 |
+|          31 |            6656 |       32.2 |         322 |
+|          40 |           18432 |       42.3 |         296 |
+|          40 |           20480 |   **45.0** |         310 |
+
+That is +59% decode for −10% prefill. v0.7.0 alone is slightly slower than v0.6.0 at the old placement — 28.3 vs
+30.0 t/s, with greedy MTP acceptance down from 80.9% to 71.8% — so the net gain over the previous release is +50%.
+The gain holds at long context: an 85K-token prompt decoded at 31.5 t/s with 462 t/s prefill. The 20480 MiB cache
+leaves GPU 0 ~0.5 GB free, so shrink it before adding anything to GPU 0.
+
+> [!WARNING]
+> **`bench` overstates speculative decode.** `--spec-default` (in `llama-cpp/entrypoint.sh`) adds `ngram-mod`
+> alongside each preset's `draft-mtp`, and the bench repeats one greedy prompt, so after the first runs the
+> n-gram drafter replays earlier outputs. With it on, the old placement read 79.5 t/s on v0.6.0 (99.6% acceptance)
+> and 39.1 t/s on v0.7.0, and the cached one 70.6 t/s. Compare MTP-only numbers like the ones above; production
+> `bench.log` lines carry the replay.
+
 ### Context length
 
 > [!WARNING]
@@ -129,9 +161,8 @@ speculative pass costs ~39 ms more than a plain token (93.9 vs 54.6) and returns
 39 ms between the two draft forwards and the wider verify batch requires a model rather than a measurement, so treat
 any finer breakdown as estimated. A spec-off pass is strikingly repeatable (σ ≈ 0.1 ms/token), so nearly all
 run-to-run spread in speculative throughput is acceptance, not the machine. These and every other MTP figure on this
-page were measured on the `unslothai/llama.cpp#144` fork with the `shared-Q8_0` head at `n-cpu-moe = 28`. The
-upstream v0.6.0 build with the self-contained head and `n-cpu-moe = 29` is faster on both ends — ~+100 t/s prefill
-and ~+5 t/s decode in Grafana — but has not been through `models llm bench` yet.
+page were measured on the `unslothai/llama.cpp#144` fork with the `shared-Q8_0` head at `n-cpu-moe = 28`; the current
+placement and its measured speed are in [MoE expert cache](#moe-expert-cache).
 
 > [!IMPORTANT]
 > **MTP for `qwen4exp` needs `llama.cpp` v0.6.0 or newer** ([ggml-org/llama.cpp#29761](https://github.com/ggml-org/llama.cpp/pull/29761));

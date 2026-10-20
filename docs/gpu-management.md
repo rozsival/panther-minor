@@ -57,8 +57,9 @@ sequenceDiagram
 
 Embedding models are deliberately excluded from `/models` bookkeeping, so the RAG model stays resident throughout and
 is never unloaded to make room. Models that would otherwise crowd it out free VRAM in `llama-cpp/preset.ini` instead:
-`Qwen3.8-Flash-Next` moves blocks 0-26's routed experts to system RAM with `n-cpu-moe = 27`. Its 26.82 GiB n-gram
-table is read host-side and never enters VRAM at all.
+`Qwen3.8-Flash-Next` moves blocks 0-39's routed experts to system RAM with `n-cpu-moe = 40` and caches the hot ones
+in GPU 0 VRAM (`moe-cache-mib`, see [MoE expert cache](llm.md#moe-expert-cache)), leaving GPU 1 to the side kicks.
+Its 26.82 GiB n-gram table is read host-side and never enters VRAM at all.
 
 ## 🎨 Image generation VRAM
 
