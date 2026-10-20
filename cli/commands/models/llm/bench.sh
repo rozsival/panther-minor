@@ -75,6 +75,8 @@ panther_llm_bench() {
       panther_log_info "Restarting llama-cpp for load ${load}/${loads}; a fresh process re-rolls its throughput mode."
       panther_compose restart llama-cpp >/dev/null 2>&1 || panther_log_error 'Could not restart llama-cpp.'
       panther_await_service_health llama-cpp 300 || panther_log_error 'llama-cpp did not report healthy after the restart.'
+    else
+      panther_await_service_health llama-cpp 300 || panther_log_error 'llama-cpp did not report healthy.'
     fi
 
     if ! failure="$(panther_llm_request_load "$model")"; then
