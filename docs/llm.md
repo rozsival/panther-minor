@@ -118,7 +118,9 @@ release is +41%. The gain holds at long context: at 20480, an 85K-token prompt d
 > to system RAM. 20480 left GPU 0 ~0.5 GB free, so when Qwen3.5-2B loaded its vision projector there (the default
 > device, regardless of `main-gpu`), Flash-Next fell from 40 to 4 t/s decode and from 495 to 52 t/s prefill, with
 > nothing in the logs. Side kicks with an `mmproj` need `mmproj-device = ROCm1`, and 18432 leaves ~2.6 GB of slack.
-> Check per-process VRAM with `amd-smi process`.
+> Signs: `amd-smi process` shows a second process on GPU 0, `/sys/class/drm/card0/device/mem_info_gtt_used` jumps
+> from tens of MiB to ~20 GiB, or — if the co-tenant loaded first — Flash-Next logs `cudaMalloc failed: out of
+memory` at load and then runs degraded.
 
 > [!WARNING]
 > **`bench` overstates speculative decode.** `--spec-default` (in `llama-cpp/entrypoint.sh`) adds `ngram-mod`
