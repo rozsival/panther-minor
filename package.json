@@ -27,8 +27,8 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
-    "@commitlint/cli": "21.2.3",
-    "@commitlint/config-conventional": "21.2.3",
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
     "@types/node": "24.19.2",
     "eslint": "10.13.0",
     "is-ci": "4.1.0",
