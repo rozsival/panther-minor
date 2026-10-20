@@ -5,7 +5,8 @@ panther_compose() {
   )
 }
 panther_services() {
-  panther_compose config | yq '.services | keys[]'
+  # Names don't depend on .env, so skip interpolation: a missing required variable would fail it.
+  panther_compose config --no-interpolate --services
 }
 # Blocks until a service reports healthy. Compose reports an empty string for services without a
 # health check, so callers only use this for services that declare one.

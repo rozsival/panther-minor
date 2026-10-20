@@ -1375,7 +1375,7 @@ panther_complete_t2i_models() {
   jq -r '.models.[] | .name' "$(panther_repo_root)/models/t2i.config.json"
 }
 panther_complete_services() {
-  yq '.services | keys[]' "$(panther_repo_root)/docker-compose.yml"
+  (cd "$(panther_repo_root)" && docker compose config --no-interpolate --services)
 }
 
 panther_compose() {
@@ -1385,7 +1385,8 @@ panther_compose() {
   )
 }
 panther_services() {
-  panther_compose config | yq '.services | keys[]'
+  # Names don't depend on .env, so skip interpolation: a missing required variable would fail it.
+  panther_compose config --no-interpolate --services
 }
 # Blocks until a service reports healthy. Compose reports an empty string for services without a
 # health check, so callers only use this for services that declare one.
@@ -1970,8 +1971,18 @@ panther_t2i_args() {
 }
 
 validate_cluster_service() {
-  local service_names
-  service_names=$(panther_services)
+  local service_names error_file reason
+  error_file=$(mktemp)
+
+  # Distinguish "could not read the list" from "unknown service": an empty or
+  # failed compose config would otherwise report every service as not found.
+  if ! service_names=$(panther_services 2>"$error_file") || [[ -z "$service_names" ]]; then
+    reason=$(grep -m1 . "$error_file" || true)
+    rm -f "$error_file"
+    printf "could not read the service list from 'docker compose config'%s\n" "${reason:+: $reason}"
+    return
+  fi
+  rm -f "$error_file"
 
   if ! echo "$service_names" | grep -q "^$1$"; then
     printf "service '%s' not found in cluster\n\n" "$1"
@@ -2261,10 +2272,6 @@ panther_minor_setup_brew_command() {
       # download commands invoke.
       sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask hf"
       panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
-
-      panther_log_info 'Installing yq via Homebrew...'
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask yq"
-      panther_log_success "yq installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
     else
       panther_log_error 'Homebrew installation failed.'
     fi
