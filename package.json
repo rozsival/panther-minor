@@ -36,7 +36,7 @@
     "prettier": "3.9.10",
     "prettier-plugin-packagejson": "3.0.2",
     "prettier-plugin-sh": "0.20.2",
-    "prettier-plugin-toml": "4.0.0",
+    "prettier-plugin-toml": "4.1.0",
     "shellcheck": "4.1.0",
     "typescript": "6.0.3",
     "ultracite": "8.0.1"
