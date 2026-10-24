@@ -46,20 +46,20 @@ flowchart LR
 
 All services share the `ai` bridge network. Only `proxy` publishes ports; every other service uses `expose:`.
 
-| Service                  | Internal port | Role                                                                                     |
-| ------------------------ | ------------: | ---------------------------------------------------------------------------------------- |
-| `proxy`                  |             — | nginx TLS termination; publishes `3000`, `4200`, `8000`, `8001`, `8080`, `9090`          |
-| `llama-cpp`              |        `8000` | OpenAI-compatible LLM inference (router mode) with RDNA 4 and ROCm 10 support            |
-| `llama-manager`          |        `8000` | Activity-aware reverse proxy with idle unload and large-model switch handling            |
-| `stable-diffusion-cpp`   |        `8000` | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 10 support         |
-| `sd-manager`             |        `8000` | Activity-aware reverse proxy in front of `sd-server`                                     |
-| `open-webui`             |        `8080` | Chat and image-generation interface                                                      |
-| `grafana`                |        `3000` | Dashboards with pre-provisioned GPU, host, `llama.cpp` and `stable-diffusion.cpp` panels |
-| `prometheus`             |        `9090` | Time-series database scraping and storing metrics (30-day retention)                     |
-| `amd-gpu-exporter`       |        `5000` | AMD GPU metrics exporter (`rocm/device-metrics-exporter`)                                |
-| `node-exporter`          |        `9100` | Host metrics exporter for CPU, RAM, disk, network, and temperature                       |
-| `llama-metrics-exporter` |        `9090` | Idle-aware Prometheus exporter for `llama.cpp` metrics                                   |
-| `sd-metrics-exporter`    |        `9090` | Prometheus exporter for `stable-diffusion.cpp` activity                                  |
+| Service                  | Internal port | Role                                                                                        |
+| ------------------------ | ------------: | ------------------------------------------------------------------------------------------- |
+| `proxy`                  |             — | nginx TLS termination; publishes `3000`, `4200`, `8000`, `8001`, `8080`, `9090`             |
+| `llama-cpp`              |        `8000` | OpenAI-compatible LLM inference (router mode) with RDNA 4 and ROCm 10 support               |
+| `llama-manager`          |        `8000` | Activity-aware reverse proxy with idle unload and large-model switch handling               |
+| `stable-diffusion-cpp`   |        `8000` | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 10 support            |
+| `sd-manager`             |        `8000` | Activity-aware reverse proxy in front of `sd-server`                                        |
+| `open-webui`             |        `8080` | Chat and image-generation interface                                                         |
+| `grafana`                |        `3000` | Dashboards: Cockpit home plus GPU, host, power/cost, `llama.cpp` and `stable-diffusion.cpp` |
+| `prometheus`             |        `9090` | Time-series database scraping and storing metrics (30-day retention)                        |
+| `amd-gpu-exporter`       |        `5000` | AMD GPU metrics exporter (`rocm/device-metrics-exporter`)                                   |
+| `node-exporter`          |        `9100` | Host metrics exporter for CPU, RAM, disk, network, and temperature                          |
+| `llama-metrics-exporter` |        `9090` | Idle-aware Prometheus exporter for `llama.cpp` metrics                                      |
+| `sd-metrics-exporter`    |        `9090` | Prometheus exporter for `stable-diffusion.cpp` activity                                     |
 
 `llama-cpp` and `stable-diffusion-cpp` are built locally from pinned upstream refs (`LLAMA_CPP_REPO`/`LLAMA_CPP_REF`,
 `SD_CPP_REPO`/`SD_CPP_REF` in `.env`) for `ROCM_ARCH=gfx1201`. The managers and exporters are plain Node.js scripts

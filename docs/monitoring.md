@@ -1,8 +1,8 @@
 # 📈 Monitoring
 
-> Prometheus scrapes four exporters every 15 seconds and keeps 30 days of history; Grafana ships four provisioned
-> dashboards for the GPUs, the host, `llama.cpp` and `stable-diffusion.cpp`. The inference exporters are
-> activity-aware, so monitoring never wakes an idle model.
+> Prometheus scrapes four exporters every 15 seconds and keeps 30 days of history; Grafana ships six provisioned
+> dashboards, opening on a Cockpit of current vitals, plus GPU, host, power/cost, `llama.cpp` and
+> `stable-diffusion.cpp` detail. The inference exporters are activity-aware, so monitoring never wakes an idle model.
 
 **Related:** [GPU power & VRAM](gpu-management.md) · [Architecture](architecture.md) ·
 [Networking & security](networking.md) · [LLM serving](llm.md)
@@ -22,25 +22,48 @@ Both are reachable only via Tailscale or loopback — see [Networking & security
 
 Defined in `monitoring/prometheus.yml` (`scrape_interval: 15s`, `scrape_timeout: 12s`).
 
-| Job                    | Target                        | Collects                                              |
-| ---------------------- | ----------------------------- | ----------------------------------------------------- |
-| `prometheus`           | `localhost:9090`              | Prometheus self-metrics                               |
-| `node`                 | `node-exporter:9100`          | Host CPU, RAM, disk, network, hwmon and thermal zones |
-| `amd-gpu`              | `amd-gpu-exporter:5000`       | GPU utilization, VRAM, temperature, power, clocks     |
-| `llama-cpp`            | `llama-metrics-exporter:9090` | `llama-server` metrics per model plus exporter state  |
-| `stable-diffusion-cpp` | `sd-metrics-exporter:9090`    | Image activity, upstream health, available models     |
+| Job                    | Target                        | Collects                                                           |
+| ---------------------- | ----------------------------- | ------------------------------------------------------------------ |
+| `prometheus`           | `localhost:9090`              | Prometheus self-metrics                                            |
+| `node`                 | `node-exporter:9100`          | Host CPU, RAM, disk, network, hwmon, thermal zones, RAPL CPU power |
+| `amd-gpu`              | `amd-gpu-exporter:5000`       | GPU utilization, VRAM, temperature, power, clocks                  |
+| `llama-cpp`            | `llama-metrics-exporter:9090` | `llama-server` metrics per model plus exporter state               |
+| `stable-diffusion-cpp` | `sd-metrics-exporter:9090`    | Image activity, upstream health, available models                  |
 
 ## 📊 Dashboards
 
 Provisioned from `monitoring/grafana/dashboards/` (reloaded every 30 s, UI edits disabled) against the default
-`Prometheus` datasource.
+`Prometheus` datasource. Cockpit is the Grafana home dashboard (`GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH`).
 
-| Dashboard              | File                    | Panels                                                                             |
-| ---------------------- | ----------------------- | ---------------------------------------------------------------------------------- |
-| AMD GPU                | `gpu.json`              | Shader clock, temperature, power draw, VRAM used/total/%, clocks, thermals, health |
-| Host                   | `node.json`             | CPU, load, memory, uptime, CPU temperature, root disk, network throughput          |
-| `llama.cpp`            | `llama-cpp.json`        | Average prefill and inference throughput by model, tokens/s over time              |
-| `stable-diffusion.cpp` | `stable-diffusion.json` | Server state, requests in flight, upstream health, discovered models, activity     |
+| Dashboard              | File                    | Panels                                                                                           |
+| ---------------------- | ----------------------- | ------------------------------------------------------------------------------------------------ |
+| Cockpit                | `cockpit.json`          | Gauges for wall power, GPU/CPU power, cost/h, CPU, RAM, load, GPU load/temp/VRAM, disk, services |
+| Power                  | `power.json`            | Wall power gauge, breakdown, CZK/h, range energy and cost, stacked history, daily kWh and CZK    |
+| AMD GPU                | `gpu.json`              | Shader clock, temperature, power draw, VRAM used/total/%, clocks, thermals, health               |
+| Host                   | `node.json`             | CPU usage by mode, CPU temperatures, load, memory and swap history, uptime, root disk, network   |
+| `llama.cpp`            | `llama-cpp.json`        | Average prefill and inference throughput by model, tokens/s over time                            |
+| `stable-diffusion.cpp` | `stable-diffusion.json` | Server state, requests in flight, upstream health, discovered models, activity                   |
+
+## ⚡ Power and cost
+
+`monitoring/prometheus.rules.yml` records the series behind the Cockpit and Power dashboards every 15 s:
+
+| Series                                  | Meaning                                                        |
+| --------------------------------------- | -------------------------------------------------------------- |
+| `panther:cpu_power_watts`               | CPU package power from RAPL (`node_rapl_package_joules_total`) |
+| `panther:gpu_power_watts`               | Sum of `gpu_average_package_power` across GPUs                 |
+| `panther:power_measured_watts`          | CPU + GPUs; whichever source is up                             |
+| `panther:power_wall_watts`              | Wall estimate: `(measured + 40 W) / 0.88`                      |
+| `panther:electricity_price_czk_per_kwh` | Electricity price, `6.51` CZK/kWh                              |
+| `panther:power_cost_czk_per_hour`       | `power_wall_watts / 1000 × price`                              |
+
+- **Wall estimate** — board, RAM, NVMe, fans and PSU losses are not metered; the 40 W platform draw and 0.88 PSU
+  efficiency are assumptions. Calibrate them against a wall meter if you have one.
+- **Price** — variable part of a 2026 single-tariff `D02d` bill in the PREdistribuce area (Praha 4), incl. 21 % VAT:
+  4.03 CZK/kWh average supplier price plus 2.48 CZK/kWh distribution, system services and electricity tax (POZE
+  is 0 for households in 2026). Monthly fixed fees are excluded. The derivation and sources are in the rules file.
+- **History** — the price is recorded as a series, so changing it affects cost from then on, not past cost.
+- **CPU power** — RAPL `energy_uj` is root-only, which is why `node-exporter` runs as `user: root`.
 
 ## 🔢 Exporter metrics
 
@@ -96,6 +119,11 @@ Idle mode serves the last counter values on purpose, so rates drop to zero rathe
 
 Edit or add a JSON file in `monitoring/grafana/dashboards/`. UI edits are disabled for provisioned dashboards, so
 export from the UI and commit the JSON; Grafana picks changes up within 30 seconds.
+
+### How do I change the electricity price or wall-power assumptions?
+
+Edit `monitoring/prometheus.rules.yml` and restart Prometheus (`docker compose restart prometheus`). Energy panels
+integrate with `sum_over_time(...) * 15`, so keep the rule group `interval` at `15s`.
 
 ### Is Grafana safe with anonymous admin?
 
