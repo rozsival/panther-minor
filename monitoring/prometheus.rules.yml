@@ -1,8 +1,11 @@
 # Power and electricity-cost series shared by the Cockpit and Power dashboards.
 #
-# Metered: CPU package (RAPL via node-exporter) and each GPU's package power (amd-gpu-exporter). The board, RAM,
-# NVMe, fans and PSU conversion losses are not metered, so the wall estimate adds a fixed platform draw and divides
-# by PSU efficiency. Calibrate both constants against a wall meter if you have one.
+# Metered: CPU package (RAPL via node-exporter) and each GPU's package power (amd-gpu-exporter). Board, RAM, NVMe
+# and fans are not metered, so a fixed platform draw is added to get the PSU's DC output. PSU conversion loss is
+# then added from the be quiet! Dark Power Pro 13 1300W efficiency curve (manufacturer 230 V data:
+# 73.1 % @ 2 %, 91.6 % @ 10 %, 93.6 % @ 20 %, 94.4 % @ 50 %, 92.8 % @ 100 % load), least-squares fitted as
+# loss = 9.0 + 0.0212 * dc + 0.000038 * dc^2 watts (within 0.3 pp of every datasheet point).
+# Calibrate the platform draw against a wall meter if you have one.
 #
 # The electricity price is recorded as its own series, so historical cost keeps the price in effect at the time.
 # Default 6.51 CZK/kWh incl. 21 % VAT, variable part only (monthly fixed fees do not scale with this machine),
@@ -28,9 +31,13 @@ groups:
         expr: >-
           (panther:cpu_power_watts or vector(0)) + (panther:gpu_power_watts or vector(0))
           and on () (panther:cpu_power_watts or panther:gpu_power_watts)
-      # (measured + 40 W unmetered platform draw) / 0.88 PSU efficiency
+      # PSU DC output: measured + 40 W unmetered platform draw (board, RAM, NVMe, fans).
+      - record: panther:power_dc_watts
+        expr: panther:power_measured_watts + 40
+      # DC output + Dark Power Pro 13 1300W conversion loss (fit above).
       - record: panther:power_wall_watts
-        expr: (panther:power_measured_watts + 40) / 0.88
+        expr: >-
+          panther:power_dc_watts + 9.0 + 0.0212 * panther:power_dc_watts + 0.000038 * panther:power_dc_watts ^ 2
       - record: panther:electricity_price_czk_per_kwh
         expr: vector(6.51)
       - record: panther:power_cost_czk_per_hour
