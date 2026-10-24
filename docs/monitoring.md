@@ -70,7 +70,8 @@ Provisioned from `monitoring/grafana/dashboards/` (reloaded every 30 s, UI edits
   4.03 CZK/kWh average supplier price plus 2.48 CZK/kWh distribution, system services and electricity tax (POZE
   is 0 for households in 2026). Monthly fixed fees are excluded. The derivation and sources are in the rules file.
 - **History** — the price is recorded as a series, so changing it affects cost from then on, not past cost.
-- **CPU power** — RAPL `energy_uj` is root-only, which is why `node-exporter` runs as `user: root`.
+- **CPU power** — RAPL `energy_uj` is root-only, which is why `node-exporter` runs as `user: root`, with
+  `cap_drop: [ALL]` and `no-new-privileges` so uid 0 keeps owner-read on root files and nothing else.
 
 ## 🔢 Exporter metrics
 
