@@ -105,7 +105,7 @@
       ],
       "title": "Total Power (est. at wall)",
       "type": "gauge",
-      "description": "Estimated draw at the wall: CPU package + GPU package power + 40 W unmetered platform, plus Dark Power Pro 13 1300W conversion loss from its 230 V efficiency curve. Constants live in monitoring/prometheus.rules.yml."
+      "description": "Estimated draw at the wall: metered CPU package + GPU package power, plus the modelled platform (board, RAM, SSD, fans, CPU VRM loss) and Dark Power Pro 13 1300W conversion loss. Model lives in monitoring/prometheus.rules.yml."
     },
     {
       "datasource": {

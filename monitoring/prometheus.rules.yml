@@ -1,11 +1,11 @@
 # Power and electricity-cost series shared by the Cockpit and Power dashboards.
 #
-# Metered: CPU package (RAPL via node-exporter) and each GPU's package power (amd-gpu-exporter). Board, RAM, NVMe
-# and fans are not metered, so a fixed platform draw is added to get the PSU's DC output. PSU conversion loss is
-# then added from the be quiet! Dark Power Pro 13 1300W efficiency curve (manufacturer 230 V data:
-# 73.1 % @ 2 %, 91.6 % @ 10 %, 93.6 % @ 20 %, 94.4 % @ 50 %, 92.8 % @ 100 % load), least-squares fitted as
+# Metered: CPU package (RAPL via node-exporter) and each GPU's package power (amd-gpu-exporter). The rest of the
+# platform is modelled per component from datasheets (see panther:platform_power_watts) to get the PSU's DC output.
+# PSU conversion loss is then added from the be quiet! Dark Power Pro 13 1300W efficiency curve (manufacturer 230 V
+# data: 73.1 % @ 2 %, 91.6 % @ 10 %, 93.6 % @ 20 %, 94.4 % @ 50 %, 92.8 % @ 100 % load), least-squares fitted as
 # loss = 9.0 + 0.0212 * dc + 0.000038 * dc^2 watts (within 0.3 pp of every datasheet point).
-# Calibrate the platform draw against a wall meter if you have one.
+# Calibrate the fixed platform constant against a wall meter if you have one.
 #
 # The electricity price is recorded as its own series, so historical cost keeps the price in effect at the time.
 # Default 6.51 CZK/kWh incl. 21 % VAT, variable part only (monthly fixed fees do not scale with this machine),
@@ -31,9 +31,23 @@ groups:
         expr: >-
           (panther:cpu_power_watts or vector(0)) + (panther:gpu_power_watts or vector(0))
           and on () (panther:cpu_power_watts or panther:gpu_power_watts)
-      # PSU DC output: measured + 40 W unmetered platform draw (board, RAM, NVMe, fans).
+      # Unmetered platform draw, from datasheets of the actual parts:
+      #   36 W fixed
+      #     18  ASRock X870E Taichi: 2x Promontory 21 (7 W max each, ~5 W typical), ASM4242 USB4 ~3 W,
+      #         Realtek 5GbE + MT7927 Wi-Fi 7 ~2 W, audio/Super I/O/redrivers/clocks ~3 W
+      #     12  4x 48 GB Crucial Pro DDR5-5600 (2 kits), ~3 W per module incl. on-DIMM PMIC
+      #      6  fans at typical curve speeds; 100 % PWM maximum is 19.3 W: Torrent 2x Dynamic X2 GP-18 4.2 W +
+      #         3x GP-14 1.7 W, Dark Rock Pro 5 Silent Wings 4 3.4 W + Silent Wings 2.4 W
+      #   Samsung 9100 PRO 2TB: 1.6 W desktop idle up to 7.6 W average active, scaled by NVMe busy time
+      #   CPU VRM conversion loss: ~10 % of CPU package power (RAPL measures what the socket receives)
+      - record: panther:platform_power_watts
+        expr: >-
+          36
+          + 1.6 + 6.0 * clamp_max(sum(rate(node_disk_io_time_seconds_total{job="node", device=~"nvme[0-9]+n[0-9]+"}[1m])) or vector(0), 1)
+          + 0.10 * (panther:cpu_power_watts or vector(0))
+      # PSU DC output: measured + unmetered platform.
       - record: panther:power_dc_watts
-        expr: panther:power_measured_watts + 40
+        expr: panther:power_measured_watts + on () panther:platform_power_watts
       # DC output + Dark Power Pro 13 1300W conversion loss (fit above).
       - record: panther:power_wall_watts
         expr: >-

@@ -48,19 +48,24 @@ Provisioned from `monitoring/grafana/dashboards/` (reloaded every 30 s, UI edits
 
 `monitoring/prometheus.rules.yml` records the series behind the Cockpit and Power dashboards every 15 s:
 
-| Series                                  | Meaning                                                              |
-| --------------------------------------- | -------------------------------------------------------------------- |
-| `panther:cpu_power_watts`               | CPU package power from RAPL (`node_rapl_package_joules_total`)       |
-| `panther:gpu_power_watts`               | Sum of `gpu_average_package_power` across GPUs                       |
-| `panther:power_measured_watts`          | CPU + GPUs; whichever source is up                                   |
-| `panther:power_dc_watts`                | PSU DC output estimate: `measured + 40 W` platform draw              |
-| `panther:power_wall_watts`              | Wall estimate: DC output + PSU loss `9.0 + 0.0212·dc + 0.000038·dc²` |
-| `panther:electricity_price_czk_per_kwh` | Electricity price, `6.51` CZK/kWh                                    |
-| `panther:power_cost_czk_per_hour`       | `power_wall_watts / 1000 × price`                                    |
+| Series                                  | Meaning                                                                         |
+| --------------------------------------- | ------------------------------------------------------------------------------- |
+| `panther:cpu_power_watts`               | CPU package power from RAPL (`node_rapl_package_joules_total`)                  |
+| `panther:gpu_power_watts`               | Sum of `gpu_average_package_power` across GPUs                                  |
+| `panther:power_measured_watts`          | CPU + GPUs; whichever source is up                                              |
+| `panther:platform_power_watts`          | Unmetered platform model: 36 W + SSD 1.6–7.6 W by busy time + 10 % CPU VRM loss |
+| `panther:power_dc_watts`                | PSU DC output estimate: `measured + platform`                                   |
+| `panther:power_wall_watts`              | Wall estimate: DC output + PSU loss `9.0 + 0.0212·dc + 0.000038·dc²`            |
+| `panther:electricity_price_czk_per_kwh` | Electricity price, `6.51` CZK/kWh                                               |
+| `panther:power_cost_czk_per_hour`       | `power_wall_watts / 1000 × price`                                               |
 
-- **Wall estimate** — board, RAM, NVMe and fans are not metered; the 40 W platform draw is an assumption, so calibrate
-  it against a wall meter if you have one. PSU loss is a least-squares fit of the be quiet! Dark Power Pro 13 1300W
-  230 V efficiency datasheet (73.1 % at 2 % load up to 94.4 % at 50 %): ~11 W at idle, ~35 W at 600 W DC.
+- **Platform model** — built from datasheets of the actual parts: ASRock X870E Taichi ~18 W (two Promontory 21
+  chipsets, ASM4242 USB4, 5GbE, Wi-Fi 7, audio), 4× 48 GB Crucial Pro DDR5-5600 ~12 W, fans ~6 W (19.3 W at full
+  speed across the Torrent's 2× GP-18 and 3× GP-14 and the Dark Rock Pro 5's two Silent Wings), the Samsung 9100 PRO
+  scaled from 1.6 W idle to 7.6 W active by NVMe busy time, and ~10 % CPU VRM loss on top of RAPL package power.
+  The 36 W fixed part is the main remaining uncertainty; calibrate it against a wall meter if you have one.
+- **PSU loss** — least-squares fit of the be quiet! Dark Power Pro 13 1300W 230 V efficiency datasheet (73.1 % at
+  2 % load up to 94.4 % at 50 %): ~11 W at idle, ~35 W at 600 W DC.
 - **Price** — variable part of a 2026 single-tariff `D02d` bill in the PREdistribuce area (Praha 4), incl. 21 % VAT:
   4.03 CZK/kWh average supplier price plus 2.48 CZK/kWh distribution, system services and electricity tax (POZE
   is 0 for households in 2026). Monthly fixed fees are excluded. The derivation and sources are in the rules file.
