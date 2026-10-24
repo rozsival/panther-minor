@@ -324,8 +324,14 @@ services:
     container_name: node-exporter
     image: prom/node-exporter:v1.12.1
     restart: unless-stopped
-    # Root is required to read RAPL energy_uj (CPU package power) under /sys/class/powercap.
+    # Root (uid 0) is required to read RAPL energy_uj (CPU package power, mode 0400 root) under
+    # /sys/class/powercap. Owner read needs no capabilities, so all are dropped: root-owned host files stay
+    # readable through /rootfs, but other users' private files and signalling non-root processes do not.
     user: root
+    cap_drop:
+      - ALL
+    security_opt:
+      - 'no-new-privileges:true'
     pid: host
     volumes:
       - '/proc:/host/proc:ro'
