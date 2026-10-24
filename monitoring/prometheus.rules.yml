@@ -1,0 +1,37 @@
+# Power and electricity-cost series shared by the Cockpit and Power dashboards.
+#
+# Metered: CPU package (RAPL via node-exporter) and each GPU's package power (amd-gpu-exporter). The board, RAM,
+# NVMe, fans and PSU conversion losses are not metered, so the wall estimate adds a fixed platform draw and divides
+# by PSU efficiency. Calibrate both constants against a wall meter if you have one.
+#
+# The electricity price is recorded as its own series, so historical cost keeps the price in effect at the time.
+# Default 6.51 CZK/kWh incl. 21 % VAT, variable part only (monthly fixed fees do not scale with this machine),
+# PREdistribuce area (Praha 4), single-tariff D02d, 2026:
+#   supply  4.03  average of 8 public no-fixation/standard D02d price lists (ČEZ 3.86, E.ON 3.54, PRE 4.36,
+#                 Centropol 3.95, innogy 4.24, MND 4.07, Pražská plynárenská 4.22 per e15.cz 2026-02;
+#                 PRE PROUD FAVORIT 2 3.98 per pre.cz 2026-10)
+#   regulated 2.48  distribution D02d 2.2442 + system services 0.1987 + electricity tax 0.0342
+#                 (ERÚ price decisions 13/2025 and 14/2025; POZE is 0 for households in 2026)
+groups:
+  - name: panther-power
+    # The Power dashboard integrates energy as sum_over_time(...) * 15 / 3600; keep this interval in sync.
+    interval: 15s
+    rules:
+      # RAPL needs node-exporter to run as root (energy_uj is root-only). Counter wraps every ~65 kJ, which
+      # rate() reads as a reset and slightly under-counts for that window.
+      - record: panther:cpu_power_watts
+        expr: sum(rate(node_rapl_package_joules_total{job="node"}[1m]))
+      - record: panther:gpu_power_watts
+        expr: sum(max by (gpu_id) (gpu_average_package_power{job="amd-gpu"}))
+      # Sum whatever is available, but emit nothing when neither source reports.
+      - record: panther:power_measured_watts
+        expr: >-
+          (panther:cpu_power_watts or vector(0)) + (panther:gpu_power_watts or vector(0))
+          and on () (panther:cpu_power_watts or panther:gpu_power_watts)
+      # (measured + 40 W unmetered platform draw) / 0.88 PSU efficiency
+      - record: panther:power_wall_watts
+        expr: (panther:power_measured_watts + 40) / 0.88
+      - record: panther:electricity_price_czk_per_kwh
+        expr: vector(6.51)
+      - record: panther:power_cost_czk_per_hour
+        expr: panther:power_wall_watts / 1000 * on () panther:electricity_price_czk_per_kwh

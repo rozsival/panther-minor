@@ -324,6 +324,8 @@ services:
     container_name: node-exporter
     image: prom/node-exporter:v1.12.1
     restart: unless-stopped
+    # Root is required to read RAPL energy_uj (CPU package power) under /sys/class/powercap.
+    user: root
     pid: host
     volumes:
       - '/proc:/host/proc:ro'
@@ -349,6 +351,7 @@ services:
     volumes:
       - 'prometheus-data:/prometheus'
       - './monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro'
+      - './monitoring/prometheus.rules.yml:/etc/prometheus/prometheus.rules.yml:ro'
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -379,6 +382,7 @@ services:
       GF_AUTH_ANONYMOUS_ENABLED: true
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_AUTH_DISABLE_LOGIN_FORM: true
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/cockpit.json
     volumes:
       - 'grafana-data:/var/lib/grafana'
       - './monitoring/grafana/provisioning:/etc/grafana/provisioning:ro'
