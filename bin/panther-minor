@@ -2665,30 +2665,34 @@ panther_minor_setup_amdgpu_command() {
     # train, the Ubuntu codename and the ROCm repository's distro directory are
     # pinned here and have to be reviewed as a set whenever the host's release
     # changes.
-    local amdgpu_release='31.50'
+    local amdgpu_release='31.60'
     local ubuntu_codename='resolute'
-    local rocm_release='10.0'
+    local rocm_release='10.1'
     local rocm_distro='ubuntu2604'
 
     # Selects the arch-specific ROCm metapackage. Pinned instead of installing the
-    # target-agnostic 'amdrocm10.0', which depends on the metapackage of every gfx
+    # target-agnostic 'amdrocm10.1', which depends on the metapackage of every gfx
     # target AMD builds and would pull ~25 runtimes this host has no GPU for.
     local rocm_arch="${ROCM_ARCH:-gfx1201}"
 
-    # amdgpu-install is deliberately not used any more. Its 31.50 bundle registers
-    # repo.radeon.com/rocmradeon/apt/26.14, which carries a 10.0.0~pre build of
-    # ROCm, while the package-manager path AMD documents for gfx1201 installs the
-    # released 10.0.0 from stable.repo.amd.com. Losing it also loses the
-    # '--usecase=rocm,graphics' selection, which on this headless host only ever
-    # pulled the empty amdgpu-core/amdgpu-lib/amdgpu-multimedia metapackages.
+    # amdgpu-install is deliberately not used. It registers a third repository,
+    # repo.radeon.com/rocmradeon/apt/<graphics-train>, on its own release train:
+    # the 31.50 bundle's 26.14 carried a 10.0.0~pre ROCm while stable.repo.amd.com
+    # already shipped the released 10.0.0. The 31.60 bundle's 26.16 happens to
+    # match stable's 10.1.0-3, but nothing guarantees that on the next train, and
+    # the package-manager path below is what AMD documents for gfx1201. Losing it
+    # also loses the '--usecase=rocm,graphics' selection, which on this headless
+    # host only ever pulled the empty amdgpu-core/amdgpu-lib/amdgpu-multimedia
+    # metapackages.
     panther_log_info 'Removing any previous AMD GPU & ROCm installation...'
 
     # Purged wholesale rather than by name: the metapackage names carry the ROCm
     # release ('rocm' and 'rocm-core' up to 7.2, 'amdrocm7.14-gfx1201' after that,
-    # 'amdrocm10.0-gfx1201' now), so a hand-written list goes stale on the next
-    # upgrade and silently leaves the previous runtime installed beside the new
-    # one. Everything is reinstalled from the repositories registered below, so
-    # removing all of it is the point rather than a side effect.
+    # then 'amdrocm10.0-gfx1201', 'amdrocm10.1-gfx1201' now), so a hand-written
+    # list goes stale on the next upgrade and silently leaves the previous runtime
+    # installed beside the new one. Everything is reinstalled from the
+    # repositories registered below, so removing all of it is the point rather
+    # than a side effect.
     local -a installed_packages=()
     mapfile -t installed_packages < <(
       dpkg-query -W -f='${db:Status-Status} ${Package}\n' 'amdgpu*' 'amdrocm*' 'rocm*' 2>/dev/null |

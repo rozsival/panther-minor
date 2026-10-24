@@ -59,7 +59,7 @@ release at https://rocm.docs.amd.com/en/latest/install/rocm.html. Confirm:
 - the signing key URLs and whether AMD still uses two separate keys (driver key vs. ROCm key) or has
   consolidated them;
 - the ROCm-arch metapackage name pattern (has changed across releases: `rocm`/`rocm-core` →
-  `amdrocm7.14-gfx1201` → `amdrocm10.0-gfx1201`) — get the new pattern exactly, it feeds
+  `amdrocm7.14-gfx1201` → `amdrocm10.0-gfx1201` → `amdrocm10.1-gfx1201`) — get the new pattern exactly, it feeds
   `"amdrocm${rocm_release}-${rocm_arch}"` in `cli/commands/setup/amdgpu.sh`;
 - whether `amdgpu-install` is still the recommended path or whether AMD still documents the direct
   package-manager path this repo uses instead (see the comment above `panther_setup_amdgpu` explaining
