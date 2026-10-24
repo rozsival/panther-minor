@@ -28,7 +28,6 @@ services:
         LLAMA_CPP_REF: '${LLAMA_CPP_REF}'
         LLAMA_CPP_USER: 'llama-cpp'
         ROCM_ARCH: '${ROCM_ARCH}'
-    privileged: true
     restart: unless-stopped
     devices:
       - '/dev/kfd:/dev/kfd'
@@ -36,6 +35,11 @@ services:
     group_add:
       - '${VIDEO_GID}'
       - '${RENDER_GID}'
+    # GPU access is the two device nodes plus the video/render groups; `privileged` is not needed. seccomp is
+    # unconfined per the ROCm Docker docs ("enables memory mapping"): the default profile blocks
+    # mbind/set_mempolicy/get_mempolicy without SYS_NICE, which ROCm can use for host memory (n-cpu-moe experts).
+    security_opt:
+      - 'seccomp=unconfined'
     environment:
       HF_TOKEN: '${HF_TOKEN}'
       HIP_VISIBLE_DEVICES: '${ROCM_VISIBLE_DEVICES}'
@@ -150,7 +154,6 @@ services:
         SD_CPP_REF: '${SD_CPP_REF}'
         SD_CPP_USER: 'stable-diffusion-cpp'
         ROCM_ARCH: '${ROCM_ARCH}'
-    privileged: true
     restart: unless-stopped
     devices:
       - '/dev/kfd:/dev/kfd'
@@ -158,6 +161,9 @@ services:
     group_add:
       - '${VIDEO_GID}'
       - '${RENDER_GID}'
+    # Same GPU access as llama-cpp; see the comment there. --offload-to-cpu relies on ROCm host memory.
+    security_opt:
+      - 'seccomp=unconfined'
     environment:
       HIP_VISIBLE_DEVICES: '${SD_VISIBLE_DEVICES}'
       # Active text-to-image model, managed by `./bin/panther-minor models t2i load`.
