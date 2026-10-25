@@ -1,6 +1,6 @@
 name: panther-minor
 help: '🐆 Panther Minor CLI'
-version: 13.1.0
+version: 14.0.0
 
 commands:
   - name: setup
