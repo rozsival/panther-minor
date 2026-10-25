@@ -53,12 +53,29 @@
 > `./bin/panther-minor models llm bench <model>` before any OS, driver, ROCm or `llama.cpp` change so a regression
 > is a diff rather than a hunch.
 
-## 🚀 Run the setup
+## 📦 Install
 
-SSH into the server, clone the repository at a release tag (see the [root README](../README.md#-quick-start) for
-the current one) and run:
+SSH into the server as the user who will operate the stack (not `root`) and run:
 
 ```bash
+curl -fsSL https://github.com/rozsival/panther-minor/releases/latest/download/install.sh | bash
+```
+
+The installer downloads the latest release's runtime archive (`panther-minor.tar.gz`) into `~/panther-minor` — set
+`PANTHER_MINOR_DIR` to install elsewhere (`curl … | PANTHER_MINOR_DIR=/srv/panther-minor bash`). It needs only `curl`
+and `tar`, refuses a non-empty directory, and installs nothing else: host setup is the next step.
+
+The archive holds only what the host runs: `bin/panther-minor`, `docker-compose.yml`, `.env.example`, the service
+directories (`llama-cpp/`, `stable-diffusion-cpp/`, `monitoring/`, `proxy/nginx.conf`, `terminfo/`) and the model
+catalogs. No `.git`, CLI sources, docs, tests or Node.js tooling: everything else runs in Docker. Its `.manifest`
+lists the shipped files and `.release` the installed version, both read by [`update`](operations.md#-updating).
+
+## 🚀 Run the setup
+
+From the install directory:
+
+```bash
+cd ~/panther-minor
 sudo ./bin/panther-minor setup
 ```
 
@@ -84,9 +101,8 @@ step below in order.
 | 8   | `fail2ban`  | Brute-force protection on the SSH port                                                                                                                 |
 | 9   | `amdgpu`    | Latest AMD kernel driver (DKMS) and ROCm                                                                                                               |
 | 10  | `grub`      | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                                                                 |
-| 11  | `git`       | Default name, email and rebase pull strategy                                                                                                           |
-| 12  | `shell`     | Starship prompt; Ghostty terminfo in `/etc/terminfo`; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
-| 13  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, fills `BIND_ADDR`                                                                |
+| 11  | `shell`     | Starship prompt; Ghostty terminfo in `/etc/terminfo`; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
+| 12  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, fills `BIND_ADDR`                                                                |
 
 Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot,
 open a second SSH session on the new port before closing the current one, authenticate Tailscale, and set

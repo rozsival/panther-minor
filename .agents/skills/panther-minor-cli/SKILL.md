@@ -4,7 +4,7 @@ description: >
   Operate a Panther Minor workstation through its CLI (`panther-minor` / `./bin/panther-minor`): start, stop,
   restart or rebuild the Compose cluster, check container status, tail service logs, load/unload/bench LLM
   presets, download/remove/prune model weights, load/unload text-to-image models, renew certificates, run
-  single host setup steps, and update the checkout to the latest release. Use whenever the user asks to
+  single host setup steps, and update the install to the latest release (or another version). Use whenever the user asks to
   "start the stack", "restart llama-cpp", "load Qwen…", "free VRAM", "what's running", "show me the logs",
   "download a model", "switch the image model", "update the server" — even if they never name the CLI.
   Not for changing the CLI's own code or flags (that is `cli-command`) or for preset tuning loops
@@ -119,9 +119,14 @@ Side effects worth stating before you run:
   so "it was loaded a minute ago" is normal.
 - `models llm bench --loads N>1` restarts `llama-cpp` between loads and appends to `models/bench.log`. For
   anything beyond a one-off number, use the `tune-preset` skill.
-- `update` runs `git checkout main`, pulls, then detaches `HEAD` at the latest release tag. Run it only on
-  the host's deployment checkout, never on a development clone with work in progress. Follow it with
-  `cluster build` and `cluster start` when the release changed images.
+- `update [version]` (default `latest`; also a release tag or a branch) prints the exact resolved version and
+  asks y/N; a downgrade or a branch asks a second time. It replaces the shipped runtime files and deletes the ones
+  the target no longer ships (local edits to shipped files are lost; `.env`, certificates, weights, `extra/` and
+  `docker-compose.override.yml` stay). On a Git checkout it asks a second time, then removes `.git` and every
+  non-runtime file; it refuses uncommitted tracked changes or unpushed commits. Never run it in a development
+  clone. Never answer the prompts (or set `PANTHER_CONFIRMED=1`) for a downgrade, branch or Git conversion
+  without the user's explicit go-ahead. Follow it with `cluster build` and `cluster restart` — not `start`:
+  running containers keep the old bind-mounted files.
 
 ## Recipes
 
@@ -190,7 +195,7 @@ panther-minor logs <service> --tail 100
 ```bash
 panther-minor update
 panther-minor cluster build          # long; add -n/--no-cache only after changing a build pin in .env
-panther-minor cluster start
+panther-minor cluster restart        # recreates containers so they mount the new files
 panther-minor cluster status
 ```
 
@@ -206,6 +211,9 @@ panther-minor cluster status
 | `[CONFIRM] …` then exit 1                                 | Prompt declined for lack of a TTY; nothing deleted → confirm with the user, re-run with `PANTHER_CONFIRMED=1`.                             |
 | `This command must be run as root (use sudo).`            | A `setup` step → hand it to the user.                                                                                                      |
 | `Run install as the user who uses the CLI, not with sudo` | Re-run `install` without `sudo`.                                                                                                           |
+| `No release or branch named '…'`                          | Typo or unpushed branch → `update` with an existing release tag, `latest`, or a pushed branch.                                             |
+| `… predates archive installs and cannot be installed …`   | Target release/branch has no runtime archive or `release/package.sh` → pick a newer release or rebase the branch.                          |
+| `Run update as the user who owns …, not with sudo.`       | Re-run `update` without `sudo`.                                                                                                            |
 
 When reporting back, give the command you ran, its exit code, and the lines that matter (the `[OK]`/`[ERROR]`
 line, the status row, the bench summary) — not the whole scroll.

@@ -26,7 +26,7 @@ panther_minor_usage() {
   printf "  %s   Manage proxy SSL and certificate automation\n" "proxy      "
   printf "  %s   Manage the Panther Minor Docker Compose cluster\n" "cluster    "
   printf "  %s   Stream logs by default or show a one-time tail for cluster services\n" "logs       "
-  printf "  %s   Update the repository from upstream\n" "update     "
+  printf "  %s   Install another Panther Minor version from GitHub\n" "update     "
   printf "  %s   Put panther-minor on your PATH, with bash completion\n" "install    "
   printf "  %s   Print the shell completion script for eval\n" "completions"
   echo
@@ -65,7 +65,6 @@ panther_minor_setup_usage() {
   printf "  %s   Install and configure fail2ban\n" "fail2ban "
   printf "  %s   Install AMD GPU drivers and ROCm\n" "amdgpu   "
   printf "  %s   Update GRUB kernel parameters\n" "grub     "
-  printf "  %s   Configure Git defaults for the selected user\n" "git      "
   printf "  %s   Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user\n" "shell    "
   printf "  %s   Create .env and sync GPU group IDs\n" "env      "
   echo
@@ -94,7 +93,7 @@ panther_minor_setup_all_usage() {
     printf "%s\n" "Options:"
 
     printf "  %s\n" "--server-name, -n NAME"
-    printf "    Server name for logs and Git config (defaults to host name)\n"
+    printf "    Server name for the setup summary (defaults to host name)\n"
     echo
 
     printf "  %s\n" "--allowed-user, -u USER"
@@ -403,43 +402,6 @@ panther_minor_setup_grub_usage() {
 
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_git_usage() {
-  printf "panther-minor setup git - Configure Git defaults for the selected user\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup git [OPTIONS]\n"
-  printf "  panther-minor setup git --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--server-name, -n NAME"
-    printf "    Server name for Git identity (defaults to host name)\n"
-    echo
-
-    printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to configure for Git\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_SERVER_NAME"
-    printf "    Default server name for setup commands\n"
-    echo
-
-    printf "  %s\n" "PANTHER_ALLOWED_USER"
-    printf "    Default user for setup commands\n"
     echo
 
   fi
@@ -1253,10 +1215,15 @@ panther_minor_logs_usage() {
 }
 
 panther_minor_update_usage() {
-  printf "panther-minor update - Update the repository from upstream\n\n"
+  if [[ -n $long_usage ]]; then
+    printf "panther-minor update\n\n"
+    printf "  Install another Panther Minor version from GitHub\n  \n  Resolves the version on GitHub, asks for confirmation, then replaces the\n  installed runtime files with that version's. Local state stays: .env,\n  certificates, models, docker-compose.override.yml and extra/. Downgrades\n  and branches ask a second time.\n\n"
+  else
+    printf "panther-minor update - Install another Panther Minor version from GitHub\n\n"
+  fi
 
   printf "%s\n" "Usage:"
-  printf "  panther-minor update\n"
+  printf "  panther-minor update [VERSION]\n"
   printf "  panther-minor update --help | -h\n"
   echo
 
@@ -1268,13 +1235,26 @@ panther_minor_update_usage() {
     printf "    Show this help\n"
     echo
 
+    printf "%s\n" "Arguments:"
+
+    printf "  %s\n" "VERSION"
+    printf "    Release tag (v14.0.0 or 14.0.0), branch name (unstable), or latest\n"
+    printf "    %s\n" "Default: latest"
+    echo
+
+    printf "%s\n" "Examples:"
+    printf "  panther-minor update\n"
+    printf "  panther-minor update v14.0.0\n"
+    printf "  panther-minor update feat/my-branch\n"
+    echo
+
   fi
 }
 
 panther_minor_install_usage() {
   if [[ -n $long_usage ]]; then
     printf "panther-minor install\n\n"
-    printf "  Put panther-minor on your PATH, with bash completion\n  \n  Symlinks ~/.local/bin/panther-minor onto this checkout's bin/panther-minor and\n  writes ~/.local/share/bash-completion/completions/panther-minor, which\n  bash-completion lazy-loads. Idempotent; then checks that a fresh login shell\n  finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the\n  allowed user.\n\n"
+    printf "  Put panther-minor on your PATH, with bash completion\n  \n  Symlinks ~/.local/bin/panther-minor onto this install's bin/panther-minor and\n  writes ~/.local/share/bash-completion/completions/panther-minor, which\n  bash-completion lazy-loads. Idempotent; then checks that a fresh login shell\n  finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the\n  allowed user.\n\n"
   else
     printf "panther-minor install - Put panther-minor on your PATH, with bash completion\n\n"
   fi
@@ -1952,9 +1932,8 @@ panther_print_setup_summary() {
   printf "\033[0;32m║  7. fail2ban : %-30s║\033[0m\n" "active"
   printf "\033[0;32m║  8. AMD GPU  : %-30s║\033[0m\n" "installed"
   printf "\033[0;32m║  9. GRUB     : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 10. Git      : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 11. Shell    : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 12. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║ 10. Shell    : %-30s║\033[0m\n" "configured"
+  printf "\033[0;32m║ 11. Env      : %-30s║\033[0m\n" "synced"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
   if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then
@@ -2002,6 +1981,208 @@ panther_t2i_model_files() {
 panther_t2i_args() {
   local model="$1"
   panther_t2i_config "$model" | jq -r '(.args // []) | join(" ")'
+}
+
+# `update` replaces the installed runtime files (release/package.sh) with another
+# version's. Releases ship them as the panther-minor.tar.gz asset; a branch has no
+# asset, so its source tarball is packaged by the branch's own release/package.sh.
+# .manifest lists the shipped files, so files a version drops are deleted and
+# everything else in the install (.env, proxy/ssl, models/.huggingface, extra/,
+# docker-compose.override.yml) is never touched.
+
+# Calls the GitHub REST API and stores the response body in PANTHER_UPDATE_API_BODY.
+# Returns 1 on 404, so a caller can probe; any other failure is fatal. Runs in the
+# current shell, not $(...), so a fatal error exits the command, not a subshell.
+panther_update_api() {
+  local path="$1"
+  local body status message
+
+  body="$(mktemp)"
+  if ! status="$(curl -sSL -o "$body" -w '%{http_code}' \
+    -H 'Accept: application/vnd.github+json' \
+    "https://api.github.com/repos/$PANTHER_GITHUB_REPO/$path")"; then
+    rm -f "$body"
+    panther_log_error "Cannot reach the GitHub API."
+  fi
+
+  case "$status" in
+  200)
+    PANTHER_UPDATE_API_BODY="$(<"$body")"
+    rm -f "$body"
+    ;;
+  404)
+    rm -f "$body"
+    return 1
+    ;;
+  *)
+    message="$(jq -r '.message? // empty' "$body" 2>/dev/null || true)"
+    rm -f "$body"
+    panther_log_error "GitHub API /$path returned HTTP $status${message:+: $message}."
+    ;;
+  esac
+}
+
+# Sets PANTHER_UPDATE_TARGET_{CHANNEL,REF,COMMIT,URL} for a version argument:
+# `latest`, a release tag (the `v` is optional), or a branch name.
+panther_update_resolve() {
+  local version="$1"
+  local tag
+
+  if [[ "$version" == latest ]]; then
+    panther_update_api releases/latest || panther_log_error "$PANTHER_GITHUB_REPO has no published release."
+    panther_update_resolve_release
+    return
+  fi
+
+  # Characters valid in tags and branch names that need no URL encoding; anything
+  # else cannot name a release or branch this command can fetch.
+  [[ "$version" =~ ^[A-Za-z0-9._/-]+$ ]] || panther_log_error "No release or branch named '$version' in $PANTHER_GITHUB_REPO."
+
+  tag="$version"
+  [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]] && tag="v$tag"
+  if panther_update_api "releases/tags/$tag"; then
+    panther_update_resolve_release
+    return
+  fi
+
+  if panther_update_api "branches/$version"; then
+    PANTHER_UPDATE_TARGET_CHANNEL=branch
+    PANTHER_UPDATE_TARGET_REF="$(jq -r '.name' <<<"$PANTHER_UPDATE_API_BODY")"
+    PANTHER_UPDATE_TARGET_COMMIT="$(jq -r '.commit.sha' <<<"$PANTHER_UPDATE_API_BODY")"
+    # Checked before any prompt: such a branch has nothing to package.
+    panther_update_api "contents/release/package.sh?ref=$PANTHER_UPDATE_TARGET_COMMIT" ||
+      panther_log_error "Branch $PANTHER_UPDATE_TARGET_REF has no release/package.sh: it predates archive installs and cannot be installed by update."
+    # The resolved commit, not the branch: a push during the update cannot change what is installed.
+    PANTHER_UPDATE_TARGET_URL="https://github.com/$PANTHER_GITHUB_REPO/archive/$PANTHER_UPDATE_TARGET_COMMIT.tar.gz"
+    return
+  fi
+
+  panther_log_error "No release or branch named '$version' in $PANTHER_GITHUB_REPO."
+}
+
+panther_update_resolve_release() {
+  PANTHER_UPDATE_TARGET_CHANNEL=release
+  PANTHER_UPDATE_TARGET_REF="$(jq -r '.tag_name' <<<"$PANTHER_UPDATE_API_BODY")"
+  PANTHER_UPDATE_TARGET_COMMIT=''
+  PANTHER_UPDATE_TARGET_URL="$(jq -r --arg name "$PANTHER_RELEASE_ASSET" \
+    '.assets[] | select(.name == $name) | .browser_download_url' <<<"$PANTHER_UPDATE_API_BODY")"
+  [[ -n "$PANTHER_UPDATE_TARGET_URL" ]] ||
+    panther_log_error "Release $PANTHER_UPDATE_TARGET_REF has no $PANTHER_RELEASE_ASSET: it predates archive installs and cannot be installed by update."
+}
+
+# Sets PANTHER_UPDATE_INSTALLED_{CHANNEL,REF,COMMIT} from .release. A Git checkout
+# from before archive installs reads as channel `git`, with its release tag as the
+# ref when HEAD sits on one, so a downgrade from it is still detected.
+panther_update_read_installed() {
+  local root="$1"
+
+  if [[ -f "$root/.release" ]]; then
+    PANTHER_UPDATE_INSTALLED_CHANNEL="$(sed -n 's/^channel=//p' "$root/.release")"
+    PANTHER_UPDATE_INSTALLED_REF="$(sed -n 's/^ref=//p' "$root/.release")"
+    PANTHER_UPDATE_INSTALLED_COMMIT="$(sed -n 's/^commit=//p' "$root/.release")"
+  elif [[ -d "$root/.git" ]]; then
+    PANTHER_UPDATE_INSTALLED_CHANNEL=git
+    PANTHER_UPDATE_INSTALLED_REF="$(git -C "$root" describe --tags --exact-match 2>/dev/null || git -C "$root" rev-parse --short HEAD)"
+    PANTHER_UPDATE_INSTALLED_COMMIT="$(git -C "$root" rev-parse HEAD)"
+  else
+    panther_log_error "$root has no .release file: reinstall with $PANTHER_INSTALL_COMMAND"
+  fi
+}
+
+# Human-readable version: `v14.0.0`, `feat/x@1a2b3c4`, `v13.1.0 (Git checkout)`.
+panther_update_describe() {
+  local channel="$1" ref="$2" commit="$3"
+
+  case "$channel" in
+  branch) printf 'branch %s@%s\n' "$ref" "${commit:0:7}" ;;
+  git) printf '%s (Git checkout)\n' "$ref" ;;
+  *) printf '%s\n' "$ref" ;;
+  esac
+}
+
+# Succeeds when release tag $1 is older than release tag $2, by SemVer 2.0.0
+# precedence: `v` prefix optional, build metadata ignored, a pre-release is older
+# than its release, and pre-release identifiers compare numerically when both
+# are numeric, lexically (ASCII) otherwise, numeric before alphanumeric.
+panther_update_is_older() {
+  local a="${1#v}" b="${2#v}"
+  local a_pre='' b_pre='' i x y
+  local -a a_ids b_ids
+
+  a="${a%%+*}"
+  b="${b%%+*}"
+  [[ "$a" != *-* ]] || a_pre="${a#*-}"
+  [[ "$b" != *-* ]] || b_pre="${b#*-}"
+
+  IFS=. read -ra a_ids <<<"${a%%-*}"
+  IFS=. read -ra b_ids <<<"${b%%-*}"
+  for i in 0 1 2; do
+    x="${a_ids[i]:-0}"
+    y="${b_ids[i]:-0}"
+    ((10#$x == 10#$y)) || return "$((10#$x < 10#$y ? 0 : 1))"
+  done
+
+  [[ -n "$a_pre" ]] || return 1
+  [[ -n "$b_pre" ]] || return 0
+  IFS=. read -ra a_ids <<<"$a_pre"
+  IFS=. read -ra b_ids <<<"$b_pre"
+  for ((i = 0; i < ${#a_ids[@]} && i < ${#b_ids[@]}; i++)); do
+    x="${a_ids[i]}"
+    y="${b_ids[i]}"
+    [[ "$x" != "$y" ]] || continue
+    if [[ "$x" =~ ^[0-9]+$ && "$y" =~ ^[0-9]+$ ]]; then
+      return "$((10#$x < 10#$y ? 0 : 1))"
+    fi
+    [[ ! "$x" =~ ^[0-9]+$ ]] || return 0
+    [[ ! "$y" =~ ^[0-9]+$ ]] || return 1
+    [[ "$(printf '%s\n%s\n' "$x" "$y" | LC_ALL=C sort | sed -n 1p)" == "$x" ]]
+    return
+  done
+  ((${#a_ids[@]} < ${#b_ids[@]}))
+}
+
+# Downloads the target into <stage> as a runtime tree with .manifest and .release.
+panther_update_fetch() {
+  local stage="$1" work="$2"
+  local src="$work/source"
+
+  if [[ "$PANTHER_UPDATE_TARGET_CHANNEL" == release ]]; then
+    curl -fsSL "$PANTHER_UPDATE_TARGET_URL" | tar -xzf - -C "$stage" --strip-components=1 ||
+      panther_log_error "Cannot download $PANTHER_UPDATE_TARGET_URL."
+  else
+    mkdir -p "$src"
+    curl -fsSL "$PANTHER_UPDATE_TARGET_URL" | tar -xzf - -C "$src" --strip-components=1 ||
+      panther_log_error "Cannot download $PANTHER_UPDATE_TARGET_URL."
+    bash "$src/release/package.sh" "$src" "$stage" branch "$PANTHER_UPDATE_TARGET_REF" "$PANTHER_UPDATE_TARGET_COMMIT" ||
+      panther_log_error "Packaging branch $PANTHER_UPDATE_TARGET_REF failed."
+  fi
+
+  [[ -f "$stage/.manifest" && -f "$stage/.release" && -f "$stage/bin/panther-minor" ]] ||
+    panther_log_error "$PANTHER_UPDATE_TARGET_URL is not a Panther Minor runtime archive."
+}
+
+# Moves the staged files into <root> and deletes the files the installed version
+# shipped and the new one does not. Every file is renamed into place, never
+# rewritten: the running bin/panther-minor keeps reading its old inode. .release
+# goes last: until it names the new version, a re-run takes the install for the
+# old one and redoes the whole update rather than reporting it already installed.
+panther_update_apply() {
+  local root="$1" stage="$2" old_manifest="$3"
+  local file dir
+
+  while IFS= read -r file; do
+    mkdir -p "$root/$(dirname "$file")"
+    mv -f "$stage/$file" "$root/$file"
+  done <"$stage/.manifest"
+
+  while IFS= read -r file; do
+    rm -f "$root/$file"
+    dir="$(dirname "$file")"
+    [[ "$dir" == . ]] || (cd "$root" && rmdir -p --ignore-fail-on-non-empty "$dir" 2>/dev/null) || true
+  done < <(LC_ALL=C comm -23 <(LC_ALL=C sort -u "$old_manifest") <(LC_ALL=C sort -u "$stage/.manifest"))
+
+  mv -f "$stage/.manifest" "$root/.manifest"
+  mv -f "$stage/.release" "$root/.release"
 }
 
 validate_cluster_service() {
@@ -2119,7 +2300,7 @@ panther_minor_setup_all_command() {
   panther_setup_all() {
     local step
 
-    for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env; do
+    for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env; do
       "panther_minor_setup_${step}_command"
     done
 
@@ -2931,25 +3112,6 @@ AUGEOF
   }
 
   panther_setup_grub
-
-}
-
-panther_minor_setup_git_command() {
-
-  panther_setup_git() {
-    # Resolved before the message below expands it: see setup/ssh.sh.
-    panther_resolve_setup_context
-    panther_prepare_setup_step "Configure Git for ${PANTHER_ALLOWED_USER}."
-
-    panther_log_info "Configuring Git for ${PANTHER_ALLOWED_USER}..."
-    sudo -u "${PANTHER_ALLOWED_USER}" git config --global user.name "${PANTHER_SERVER_NAME}"
-    sudo -u "${PANTHER_ALLOWED_USER}" git config --global user.email "${PANTHER_ALLOWED_USER}@${PANTHER_SERVER_NAME}"
-    sudo -u "${PANTHER_ALLOWED_USER}" git config --global pull.rebase true
-    sudo -u "${PANTHER_ALLOWED_USER}" git config --global credential.helper store
-    panther_log_success "Git configured for ${PANTHER_ALLOWED_USER}."
-  }
-
-  panther_setup_git
 
 }
 
@@ -4006,17 +4168,83 @@ panther_minor_logs_command() {
 panther_minor_update_command() {
 
   panther_update() {
-    panther_log_info 'Fetching latest changes from upstream...'
-    (
-      cd "$PANTHER_REPO_ROOT" || exit 1
-      git checkout main
-      git fetch --prune
-      git pull --rebase
-      # Checkout latest tag
-      latest_tag=$(git describe --tags --abbrev=0)
-      git switch --detach "$latest_tag"
-    )
-    panther_log_success 'Repository updated.'
+    local root="$PANTHER_REPO_ROOT"
+    local installed target work stage old_manifest lock_fd
+
+    # The install lives in the operator's home; root would leave root-owned files behind.
+    [[ $EUID -ne 0 ]] || panther_log_error "Run update as the user who owns $root, not with sudo."
+
+    # One update per install, held until exit: two runs would interleave their renames
+    # into a mix of versions. Failing fast, not waiting, means no run acts on state
+    # read before another one changed it.
+    exec {lock_fd}<"$root"
+    flock -n "$lock_fd" || panther_log_error "Another update is already running in $root."
+
+    panther_update_read_installed "$root"
+    panther_log_info "Resolving '${args[version]}' on GitHub..."
+    panther_update_resolve "${args[version]}"
+
+    installed="$(panther_update_describe "$PANTHER_UPDATE_INSTALLED_CHANNEL" "$PANTHER_UPDATE_INSTALLED_REF" "$PANTHER_UPDATE_INSTALLED_COMMIT")"
+    target="$(panther_update_describe "$PANTHER_UPDATE_TARGET_CHANNEL" "$PANTHER_UPDATE_TARGET_REF" "$PANTHER_UPDATE_TARGET_COMMIT")"
+
+    # A release tag names one build; a branch moves, so only its commit identifies it.
+    if [[ "$PANTHER_UPDATE_INSTALLED_CHANNEL" == "$PANTHER_UPDATE_TARGET_CHANNEL" &&
+      "$PANTHER_UPDATE_INSTALLED_REF" == "$PANTHER_UPDATE_TARGET_REF" &&
+      ("$PANTHER_UPDATE_TARGET_CHANNEL" == release || "$PANTHER_UPDATE_INSTALLED_COMMIT" == "$PANTHER_UPDATE_TARGET_COMMIT") ]]; then
+      panther_log_success "Panther Minor $installed is already installed."
+      return 0
+    fi
+
+    # Converting deletes .git and every tracked non-runtime file: refuse whatever exists only here.
+    if [[ "$PANTHER_UPDATE_INSTALLED_CHANNEL" == git ]]; then
+      [[ -z "$(git -C "$root" status --porcelain --untracked-files=no)" ]] ||
+        panther_log_error "$root has uncommitted changes to tracked files, which converting to an archive install would delete. Commit and push them, or discard them, then re-run."
+      # Every local ref and HEAD (a detached HEAD, stashes, tags), not just branches.
+      [[ -z "$(git -C "$root" rev-list --max-count=1 HEAD --all --not --remotes)" ]] ||
+        panther_log_error "$root has commits (or stashes) on no remote, which removing .git would delete. Push or drop them, then re-run."
+    fi
+
+    panther_confirm "Update Panther Minor in $root from $installed to $target?"
+
+    if [[ "$PANTHER_UPDATE_INSTALLED_CHANNEL" == git ]]; then
+      panther_log_warn "$root is a Git checkout: this removes .git and every file the runtime does not need (cli/, docs/, tests, tooling). Never run it in a development clone."
+      panther_confirm "Convert $root into an archive install?"
+    fi
+
+    if [[ "$PANTHER_UPDATE_TARGET_CHANNEL" == branch ]]; then
+      panther_log_warn "$target is not a release: it is unstable, may be broken, and may change the host or .env incompatibly."
+      panther_confirm "Install the unstable $target anyway?"
+    elif [[ "$PANTHER_UPDATE_INSTALLED_REF" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+ && "$PANTHER_UPDATE_INSTALLED_CHANNEL" != branch ]] &&
+      panther_update_is_older "$PANTHER_UPDATE_TARGET_REF" "$PANTHER_UPDATE_INSTALLED_REF"; then
+      panther_log_warn "$target is older than the installed $installed: a downgrade can leave .env, models and service data in a state the older version does not expect."
+      panther_confirm "Downgrade to $target anyway?"
+    fi
+
+    work="$(mktemp -d)"
+    # Staged inside the install, on its filesystem, so files move into place by rename.
+    stage="$(mktemp -d "$root/.update.XXXXXX")"
+    # shellcheck disable=SC2064 # expand now: the locals are gone when the trap fires
+    trap "rm -rf '$work' '$stage'" EXIT
+
+    panther_log_info "Downloading $target..."
+    panther_update_fetch "$stage" "$work"
+
+    old_manifest="$work/installed.manifest"
+    if [[ -f "$root/.manifest" ]]; then
+      cp "$root/.manifest" "$old_manifest"
+    else
+      # A Git checkout: every tracked file is the previous version's, and leaves with it.
+      git -C "$root" ls-files >"$old_manifest"
+    fi
+
+    panther_update_apply "$root" "$stage" "$old_manifest"
+    if [[ "$PANTHER_UPDATE_INSTALLED_CHANNEL" == git ]]; then
+      rm -rf "$root/.git"
+      panther_log_info "Converted the Git checkout into an archive install: removed .git and every file the runtime does not need."
+    fi
+
+    panther_log_success "Panther Minor $target installed in $root."
+    panther_log_info "Rebuild and recreate the containers so they mount the new files: panther-minor cluster build && panther-minor cluster restart"
   }
 
   panther_update
@@ -4291,13 +4519,6 @@ panther_minor_setup_parse_requirements() {
       action="grub"
       shift
       panther_minor_setup_grub_parse_requirements "$@"
-      shift $#
-      ;;
-
-    git)
-      action="git"
-      shift
-      panther_minor_setup_git_parse_requirements "$@"
       shift $#
       ;;
 
@@ -5140,84 +5361,6 @@ panther_minor_setup_grub_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-panther_minor_setup_git_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_git_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="setup git"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --server-name | -n)
-
-        if [[ -n ${2+x} ]]; then
-          args['--server-name']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--server-name requires an argument: --server-name, -n NAME" >&2
-          exit 1
-        fi
-        ;;
-
-      --allowed-user | -u)
-
-        if [[ -n ${2+x} ]]; then
-          args['--allowed-user']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
-          exit 1
-        fi
-        ;;
 
       --)
         shift
@@ -7651,8 +7794,13 @@ panther_minor_update_parse_requirements() {
         while [[ $# -gt 0 ]]; do
           key="$1"
 
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
+          if [[ -z ${args['version']+x} ]]; then
+            args['version']=$1
+            shift
+          else
+            printf "invalid argument: %s\n" "$key" >&2
+            exit 1
+          fi
 
         done
         break
@@ -7665,13 +7813,20 @@ panther_minor_update_parse_requirements() {
 
       *)
 
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
+        if [[ -z ${args['version']+x} ]]; then
+          args['version']=$1
+          shift
+        else
+          printf "invalid argument: %s\n" "$key" >&2
+          exit 1
+        fi
 
         ;;
 
     esac
   done
+
+  [[ -n ${args['version']:-} ]] || args['version']="latest"
 
 }
 
@@ -8129,11 +8284,6 @@ panther_minor_setup_completion() {
         panther_minor_setup_grub_completion "$completion_current" "$@"
         return
         ;;
-      git)
-        shift
-        panther_minor_setup_git_completion "$completion_current" "$@"
-        return
-        ;;
       shell)
         shift
         panther_minor_setup_shell_completion "$completion_current" "$@"
@@ -8154,7 +8304,7 @@ panther_minor_setup_completion() {
         ;;
     esac
   done
-  completion_candidates "$completion_current" all init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env
+  completion_candidates "$completion_current" all init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env
 
   panther_minor_setup_all_completion "$completion_current"
   if [[ $completion_current == -* ]]; then
@@ -8544,50 +8694,6 @@ panther_minor_setup_grub_completion() {
 
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
-  fi
-
-}
-
-panther_minor_setup_git_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --server-name | -n)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--server-name"]=1
-
-        ;;
-      --allowed-user | -u)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--allowed-user"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --server-name "$completion_current" --server-name -n
-    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
   fi
 
 }
@@ -9753,6 +9859,7 @@ panther_minor_logs_completion() {
 
 panther_minor_update_completion() {
   local completion_current="$1"
+  local completion_arg_index=0
   shift
 
   while [[ $# -gt 0 ]]; do
@@ -9762,7 +9869,12 @@ panther_minor_update_completion() {
         shift
         ;;
       *)
-        return
+        if [[ $completion_arg_index -ge 1 ]]; then
+          return
+        fi
+        completion_arg_index=$((completion_arg_index + 1))
+        shift
+
         ;;
     esac
   done
@@ -9859,6 +9971,9 @@ initialize() {
   declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
   declare -gr PANTHER_SSHD_CONFIG_DIR="/etc/ssh/sshd_config.d"
   declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
+  declare -gr PANTHER_GITHUB_REPO="rozsival/panther-minor"
+  declare -gr PANTHER_RELEASE_ASSET="panther-minor.tar.gz"
+  declare -gr PANTHER_INSTALL_COMMAND="curl -fsSL https://github.com/$PANTHER_GITHUB_REPO/releases/latest/download/install.sh | bash"
 
   panther_is_logs_service() {
     case "${1:-}" in
@@ -9922,7 +10037,6 @@ run() {
     "setup fail2ban") panther_minor_setup_fail2ban_command ;;
     "setup amdgpu") panther_minor_setup_amdgpu_command ;;
     "setup grub") panther_minor_setup_grub_command ;;
-    "setup git") panther_minor_setup_git_command ;;
     "setup shell") panther_minor_setup_shell_command ;;
     "setup env") panther_minor_setup_env_command ;;
     "models") panther_minor_models_command ;;

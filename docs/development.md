@@ -59,17 +59,31 @@ Tests live next to their subject as `*.test.js` (`llama-cpp/`, `stable-diffusion
 
 ## 🔁 CI and releases
 
-| Workflow                        | Trigger                        | Jobs                                                                                              |
-| ------------------------------- | ------------------------------ | ------------------------------------------------------------------------------------------------- |
-| `.github/workflows/ci.yml`      | Push / PR to `main`            | `qa`: commitlint, `biome ci`, `prettier --check`, ShellCheck; `test`: `pnpm run test`             |
-| `.github/workflows/release.yml` | Push to `main` or tag `v*.*.*` | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog |
+| Workflow                        | Trigger                        | Jobs                                                                                                                                                           |
+| ------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.github/workflows/ci.yml`      | Push / PR to `main`            | `qa`: commitlint, `biome ci`, `prettier --check`, ShellCheck; `test`: `pnpm run test`                                                                          |
+| `.github/workflows/release.yml` | Push to `main` or tag `v*.*.*` | On a `chore(release): vX.Y.Z` commit: tags it, publishes a GitHub release with a commit changelog, the runtime archive `panther-minor.tar.gz` and `install.sh` |
 
 Releases go through a `release/vX.Y.Z` branch: bump every version-carrying file (`cli/bashly.yml`, `package.json`,
-`models/*.config.json`, `llama-cpp/preset.ini`, the root README quick start), commit as `chore(release): vX.Y.Z` and
-open a PR. Rebase-merging it is the release: `release.yml` creates the tag on the merged commit, since a tag pushed
-with `GITHUB_TOKEN` would not trigger a workflow. A missed release is recovered by pushing the `vX.Y.Z` tag onto its
-release commit yourself, which runs the same workflow. The `release` agent skill prepares the PR, stops for your
-merge, then watches the release run and verifies the tag.
+`models/*.config.json`, `llama-cpp/preset.ini`), commit as `chore(release): vX.Y.Z` and open a PR. Rebase-merging it
+is the release: `release.yml` creates the tag on the merged commit, since a tag pushed with `GITHUB_TOKEN` would not
+trigger a workflow. A missed release is recovered by pushing the `vX.Y.Z` tag onto its release commit yourself, which
+runs the same workflow. The `release` agent skill prepares the PR, stops for your merge, then watches the release run
+and verifies the tag.
+
+### Runtime archive
+
+Hosts never get a Git checkout. `release/package.sh` defines what a host runs — `bin/panther-minor`,
+`docker-compose.yml`, `.env.example`, the service directories minus tests, the model catalogs, `terminfo/` and
+`LICENSE` — and writes it with a `.manifest` (the shipped files) and `.release` (channel, ref, commit). The release
+workflow tars that tree as `panther-minor.tar.gz`; `release/install.sh`, uploaded next to it, is the curl installer
+from the README. `panther-minor update <branch>` runs the branch's own `package.sh` on its source tarball, so a branch
+is packaged by its own rules.
+
+> [!IMPORTANT]
+> A new file the host needs at runtime (a mounted config, a new service directory) must be added to `runtime_paths`
+> in `release/package.sh`, or installs and updates silently lack it. Check with
+> `release/package.sh . /tmp/pm release v0.0.0 HEAD && cat /tmp/pm/.manifest`.
 
 ## 🤖 Agent assets
 

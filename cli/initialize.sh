@@ -8,6 +8,9 @@ declare -gr PANTHER_ENV_EXAMPLE_FILE="$PANTHER_REPO_ROOT/.env.example"
 declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
 declare -gr PANTHER_SSHD_CONFIG_DIR="/etc/ssh/sshd_config.d"
 declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
+declare -gr PANTHER_GITHUB_REPO="rozsival/panther-minor"
+declare -gr PANTHER_RELEASE_ASSET="panther-minor.tar.gz"
+declare -gr PANTHER_INSTALL_COMMAND="curl -fsSL https://github.com/$PANTHER_GITHUB_REPO/releases/latest/download/install.sh | bash"
 
 panther_is_logs_service() {
   case "${1:-}" in

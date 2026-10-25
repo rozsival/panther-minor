@@ -41,10 +41,9 @@ and **smart GPU usage management**.
 [Installation](docs/installation.md#-prerequisites) for hardware and BIOS settings.
 
 ```bash
-# 1. Clone a release and prepare the host (reboot afterwards)
-git clone https://github.com/rozsival/panther-minor.git
-cd panther-minor
-git checkout v13.1.0
+# 1. Install the latest release into ~/panther-minor and prepare the host (reboot afterwards)
+curl -fsSL https://github.com/rozsival/panther-minor/releases/latest/download/install.sh | bash
+cd ~/panther-minor
 sudo ./bin/panther-minor setup
 sudo reboot
 

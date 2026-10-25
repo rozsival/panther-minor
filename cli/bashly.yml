@@ -13,7 +13,7 @@ commands:
           - long: --server-name
             short: -n
             arg: name
-            help: Server name for logs and Git config (defaults to host name)
+            help: Server name for the setup summary (defaults to host name)
           - long: --allowed-user
             short: -u
             arg: user
@@ -138,23 +138,6 @@ commands:
         help: Install AMD GPU drivers and ROCm
       - name: grub
         help: Update GRUB kernel parameters
-
-      - name: git
-        help: Configure Git defaults for the selected user
-        flags:
-          - long: --server-name
-            short: -n
-            arg: name
-            help: Server name for Git identity (defaults to host name)
-          - long: --allowed-user
-            short: -u
-            arg: user
-            help: User to configure for Git
-        environment_variables:
-          - name: panther_server_name
-            help: Default server name for setup commands
-          - name: panther_allowed_user
-            help: Default user for setup commands
 
       - name: shell
         help: Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user
@@ -479,13 +462,27 @@ commands:
         validate: integer
 
   - name: update
-    help: Update the repository from upstream
+    help: |-
+      Install another Panther Minor version from GitHub
+
+      Resolves the version on GitHub, asks for confirmation, then replaces the
+      installed runtime files with that version's. Local state stays: .env,
+      certificates, models, docker-compose.override.yml and extra/. Downgrades
+      and branches ask a second time.
+    args:
+      - name: version
+        help: Release tag (v14.0.0 or 14.0.0), branch name (unstable), or latest
+        default: latest
+    examples:
+      - panther-minor update
+      - panther-minor update v14.0.0
+      - panther-minor update feat/my-branch
 
   - name: install
     help: |-
       Put panther-minor on your PATH, with bash completion
 
-      Symlinks ~/.local/bin/panther-minor onto this checkout's bin/panther-minor and
+      Symlinks ~/.local/bin/panther-minor onto this install's bin/panther-minor and
       writes ~/.local/share/bash-completion/completions/panther-minor, which
       bash-completion lazy-loads. Idempotent; then checks that a fresh login shell
       finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the

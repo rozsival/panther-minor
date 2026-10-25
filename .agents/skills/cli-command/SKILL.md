@@ -21,14 +21,14 @@ precisely — see `docs/cli.md` for the human-facing summary of the same rules.
 
 ## Files you edit
 
-| Path                                | Responsibility                                                                                                                           |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `cli/bashly.yml`                    | Schema source of truth: command tree, flags, args, examples, env vars, `version`                                                         |
-| `cli/commands/<group>/<cmd>.sh`     | Command entrypoint (the function Bashly calls for that leaf command); path = command name, spaces → `/`                                  |
-| `cli/lib/*.sh`                      | Shared helper logic (`logging.sh`, `core.sh`, `compose.sh`, `models.sh`, `llm.sh`, `t2i.sh`, `setup.sh`, `install.sh`, `completions.sh`) |
-| `cli/lib/validations/validate_*.sh` | Custom argument validators referenced from `bashly.yml` via `validate: <name>`                                                           |
-| `cli/initialize.sh`                 | Pre-parse normalization and bootstrapping (runs before any command)                                                                      |
-| `bashly-settings.yml`               | Bashly settings (`completions: full` enables the native bash/zsh completion engine)                                                      |
+| Path                                | Responsibility                                                                                                                                        |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cli/bashly.yml`                    | Schema source of truth: command tree, flags, args, examples, env vars, `version`                                                                      |
+| `cli/commands/<group>/<cmd>.sh`     | Command entrypoint (the function Bashly calls for that leaf command); path = command name, spaces → `/`                                               |
+| `cli/lib/*.sh`                      | Shared helper logic (`logging.sh`, `core.sh`, `compose.sh`, `models.sh`, `llm.sh`, `t2i.sh`, `setup.sh`, `install.sh`, `update.sh`, `completions.sh`) |
+| `cli/lib/validations/validate_*.sh` | Custom argument validators referenced from `bashly.yml` via `validate: <name>`                                                                        |
+| `cli/initialize.sh`                 | Pre-parse normalization and bootstrapping (runs before any command)                                                                                   |
+| `bashly-settings.yml`               | Bashly settings (`completions: full` enables the native bash/zsh completion engine)                                                                   |
 
 Existing validators — reuse one of these instead of inventing a new one if the argument shape already
 fits:

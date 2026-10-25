@@ -79,20 +79,24 @@ additionally unloads idle models and serializes large-model switches — see [GP
 
 ## 📁 Repository layout
 
-| Path                    | Contents                                                                                          |
-| ----------------------- | ------------------------------------------------------------------------------------------------- |
-| `bin/panther-minor`     | Generated CLI — never edit by hand ([CLI reference](cli.md))                                      |
-| `cli/`                  | Authored Bashly CLI sources                                                                       |
-| `llama-cpp/`            | `Dockerfile`, `entrypoint.sh`, `preset.ini`, `manager.js`, `metrics-exporter.js`, `models.js`     |
-| `stable-diffusion-cpp/` | `Dockerfile`, `entrypoint.sh`, `manager.js`, `metrics-exporter.js`, `models.js`                   |
-| `models/`               | Model catalogs (`*.config.json`), schemas, `bench.log`, and the `.huggingface` weight cache       |
-| `monitoring/`           | `prometheus.yml`, Grafana provisioning and dashboards                                             |
-| `proxy/`                | `nginx.conf`, TLS material in `proxy/ssl/`                                                        |
-| `harnesses/`            | Coding-agent provider presets ([Coding harnesses](harnesses.md))                                  |
-| `terminfo/`             | `xterm-ghostty` source that `setup shell` compiles into `/etc/terminfo`                           |
-| `docs/`                 | This documentation                                                                                |
-| `.agents/skills/`       | Agent skills for recurring maintenance tasks ([Development](development.md#-agent-assets))        |
-| `extra/`                | Untracked space for your own override assets ([Operations](operations.md#-extending-the-cluster)) |
+| Path                    | Contents                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `bin/panther-minor`     | Generated CLI — never edit by hand ([CLI reference](cli.md))                                                          |
+| `cli/`                  | Authored Bashly CLI sources                                                                                           |
+| `release/`              | `package.sh` (the runtime file set) and `install.sh` (curl installer) — [Development](development.md#runtime-archive) |
+| `llama-cpp/`            | `Dockerfile`, `entrypoint.sh`, `preset.ini`, `manager.js`, `metrics-exporter.js`, `models.js`                         |
+| `stable-diffusion-cpp/` | `Dockerfile`, `entrypoint.sh`, `manager.js`, `metrics-exporter.js`, `models.js`                                       |
+| `models/`               | Model catalogs (`*.config.json`), schemas, `bench.log`, and the `.huggingface` weight cache                           |
+| `monitoring/`           | `prometheus.yml`, Grafana provisioning and dashboards                                                                 |
+| `proxy/`                | `nginx.conf`, TLS material in `proxy/ssl/`                                                                            |
+| `harnesses/`            | Coding-agent provider presets ([Coding harnesses](harnesses.md))                                                      |
+| `terminfo/`             | `xterm-ghostty` source that `setup shell` compiles into `/etc/terminfo`                                               |
+| `docs/`                 | This documentation                                                                                                    |
+| `.agents/skills/`       | Agent skills for recurring maintenance tasks ([Development](development.md#-agent-assets))                            |
+| `extra/`                | Untracked space for your own override assets ([Operations](operations.md#-extending-the-cluster))                     |
+
+A host install holds only the runtime subset of this layout (no `cli/`, `docs/`, `harnesses/`, `.agents/`, tests,
+schemas or tooling) — see [Installation](installation.md#-install).
 
 ---
 

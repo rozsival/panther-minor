@@ -46,14 +46,15 @@ commit goes through a `release/vX.Y.Z` branch instead.
 
 Update the version in **every file that carries it**. As of this writing those are:
 
-| File                     | Occurrence                                         |
-| ------------------------ | -------------------------------------------------- |
-| `cli/bashly.yml`         | `version: X.Y.Z`                                   |
-| `package.json`           | `"version": "X.Y.Z"`                               |
-| `models/llm.config.json` | `"version": "X.Y.Z"`                               |
-| `llama-cpp/preset.ini`   | `version = X.Y.Z`                                  |
-| `models/t2i.config.json` | `"version": "X.Y.Z"`                               |
-| `README.md`              | `git checkout vX.Y.Z` in the "Quick Start" section |
+| File                     | Occurrence           |
+| ------------------------ | -------------------- |
+| `cli/bashly.yml`         | `version: X.Y.Z`     |
+| `package.json`           | `"version": "X.Y.Z"` |
+| `models/llm.config.json` | `"version": "X.Y.Z"` |
+| `llama-cpp/preset.ini`   | `version = X.Y.Z`    |
+| `models/t2i.config.json` | `"version": "X.Y.Z"` |
+
+The README carries no version: its installer always fetches `releases/latest`.
 
 `bin/panther-minor` also carries the version, at `declare -g version="X.Y.Z"`. It is **not** in that table on
 purpose.

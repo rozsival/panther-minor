@@ -29,7 +29,7 @@
 | `proxy`       | Work with certificate and proxy-related tasks            |
 | `cluster`     | Build, start, and stop the AI stack                      |
 | `logs`        | Inspect service logs                                     |
-| `update`      | Refresh project assets or dependencies                   |
+| `update`      | Install another Panther Minor version from GitHub        |
 | `install`     | Put `panther-minor` on your `PATH`, with bash completion |
 | `completions` | Print shell completion scripts                           |
 
@@ -45,10 +45,10 @@
 ```
 
 Makes `panther-minor` a command, the way `dot` and `devbox` are: a symlink `~/.local/bin/panther-minor` onto this
-checkout's `bin/panther-minor`, and the bash completion script at
+install's `bin/panther-minor`, and the bash completion script at
 `~/.local/share/bash-completion/completions/panther-minor` (`$XDG_DATA_HOME` respected), where bash-completion's lazy
 loader finds it on the first `<TAB>` after `panther-minor` — no rc line, no startup cost. Idempotent: it touches only
-what differs, repoints a symlink onto another checkout, and refuses a `~/.local/bin/panther-minor` that is a real file.
+what differs, repoints a symlink onto another install, and refuses a `~/.local/bin/panther-minor` that is a real file.
 `setup shell` (and so `setup all`) runs it for the allowed user. It also drops the `source '<repo>/.bashrc'` line that
 `setup shell` used to add to `~/.bashrc`, since that file no longer exists.
 
@@ -56,7 +56,7 @@ It finishes with checks and exits non-zero if one fails:
 
 | Check           | Passes when                                                                                                                                                                             |
 | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Symlink         | `~/.local/bin/panther-minor` points at this checkout's `bin/panther-minor`                                                                                                              |
+| Symlink         | `~/.local/bin/panther-minor` points at this install's `bin/panther-minor`                                                                                                               |
 | Completion file | It matches what this `bin/panther-minor` writes                                                                                                                                         |
 | PATH            | A fresh login shell (`$SHELL -lic`, clean environment) resolves `panther-minor` to the symlink; otherwise it prints the `PATH` line to add, or what shadows it                          |
 | bash-completion | That shell defines bash-completion's lazy loader: `apt-get install bash-completion` (Ubuntu's default `~/.bashrc` loads it), or `brew install bash-completion@2` plus its `source` line |
@@ -64,7 +64,7 @@ It finishes with checks and exits non-zero if one fails:
 The probe uses a fresh login shell because the calling one proves nothing: `setup shell` runs `install` through
 `sudo -u`, whose `PATH` has no `~/.local/bin`. On Ubuntu, the default `~/.profile` adds `~/.local/bin` once it exists.
 
-`bin/panther-minor` finds its repository through the symlink (`readlink -f`), so every command behaves the same whether
+`bin/panther-minor` finds its install through the symlink (`readlink -f`), so every command behaves the same whether
 you type `panther-minor` or `./bin/panther-minor`, from any directory.
 
 ### Shell completions
@@ -98,7 +98,6 @@ Run with `sudo`. `setup` alone runs `setup all`. Details: [Installation](install
 | `fail2ban`  | Install and configure fail2ban                                            | `-p` `--ssh-port`                                                                                      |
 | `amdgpu`    | Install AMD GPU drivers and ROCm                                          | —                                                                                                      |
 | `grub`      | Update GRUB kernel parameters                                             | —                                                                                                      |
-| `git`       | Configure Git defaults                                                    | `-n` `--server-name` (`panther_server_name`), `-u` `--allowed-user`                                    |
 | `shell`     | Install Starship and Ghostty terminfo, configure the shell, run `install` | `-u` `--allowed-user`                                                                                  |
 | `env`       | Create `.env`, sync GPU group IDs and `BIND_ADDR`                         | `-u` `--allowed-user`                                                                                  |
 
@@ -146,13 +145,13 @@ name.
 
 ### `logs`, `update`, `install`, `completions`
 
-| Command                     | Purpose                                                         |
-| --------------------------- | --------------------------------------------------------------- |
-| `logs <service>`            | Stream logs                                                     |
-| `logs <service> --tail [n]` | Print the latest `n` lines once (`100` without a value)         |
-| `update`                    | Pull `main` and switch to the latest release tag                |
-| `install`                   | Put `panther-minor` on your `PATH` — see [`install`](#-install) |
-| `completions [bash\|zsh]`   | Print the completion script                                     |
+| Command                     | Purpose                                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `logs <service>`            | Stream logs                                                                                                                      |
+| `logs <service> --tail [n]` | Print the latest `n` lines once (`100` without a value)                                                                          |
+| `update [version]`          | Install a release (default `latest`), an older release or a branch, after confirmation — see [Updating](operations.md#-updating) |
+| `install`                   | Put `panther-minor` on your `PATH` — see [`install`](#-install)                                                                  |
+| `completions [bash\|zsh]`   | Print the completion script                                                                                                      |
 
 ## ✍️ Maintainer workflow
 
