@@ -7,7 +7,7 @@
 panther_setup_all() {
   local step
 
-  for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub git shell env; do
+  for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env; do
     "panther_minor_setup_${step}_command"
   done
 

@@ -55,6 +55,7 @@ Know these files well. Changes to them deserve careful review:
 | `.env` / `.env.example`         | Runtime configuration.                                                                                                                                         |
 | `monitoring/prometheus.yml`     | Prometheus scrape targets.                                                                                                                                     |
 | `cli/*`                         | CLI implementation. Follow `docs/cli.md` rules.                                                                                                                |
+| `release/package.sh`            | Runtime file set of every host install (release archive, branch updates). A new file a service mounts or the CLI reads at runtime must be listed here.         |
 
 ### Concurrency Patterns (review carefully)
 

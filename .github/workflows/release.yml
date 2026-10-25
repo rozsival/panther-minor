@@ -122,11 +122,24 @@ jobs:
           echo "$CHANGELOG" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
 
+      # The runtime-only archive hosts install and update from; install.sh is the curl entry point
+      # (releases/latest/download/install.sh). Asset names carry no version, so the latest/download URLs stay stable.
+      - name: Package runtime archive
+        # language=bash
+        run: |
+          release/package.sh . dist/panther-minor release "${TAG}" "${SHA}"
+          tar -C dist -czf dist/panther-minor.tar.gz panther-minor
+          cp release/install.sh dist/install.sh
+
       - name: Create release and tag
         uses: softprops/action-gh-release@v3
         with:
           body: ${{ steps.changelog.outputs.body }}
           tag_name: ${{ needs.detect.outputs.tag }}
           target_commitish: ${{ needs.detect.outputs.sha }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/panther-minor.tar.gz
+            dist/install.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

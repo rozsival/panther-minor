@@ -32,6 +32,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 - `docs/cli.md` — `./bin/panther-minor` command reference and maintainer workflow (strictly follow rules there for CLI changes)
 - `docs/models.md`, `docs/llm.md`, `docs/image-generation.md` — model catalogs and shared cache; LLM serving (`./bin/panther-minor models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`); text-to-image (`./bin/panther-minor models t2i *`, `models/t2i.config.json`)
 - `docker-compose.yml` — service definitions with health checks
+- `release/package.sh` — the runtime file set every host install ships (release archive and branch updates); add new runtime files here. `release/install.sh` is the curl installer uploaded with each release
 - `llama-cpp/manager.js` — activity-aware reverse proxy; records inference activity, exposes `/status` for the exporter; unloads idle models and arbitrates large-model switches before proxying inference
 - `llama-cpp/models.js` — shared model helpers, including normalization and the static list of model IDs treated as large by the manager
 - `llama-cpp/metrics-exporter.js` — Prometheus exporter; queries `llama-manager /status` to decide idle vs. active scrape cycle

@@ -161,9 +161,8 @@ panther_print_setup_summary() {
   printf "\033[0;32m║  7. fail2ban : %-30s║\033[0m\n" "active"
   printf "\033[0;32m║  8. AMD GPU  : %-30s║\033[0m\n" "installed"
   printf "\033[0;32m║  9. GRUB     : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 10. Git      : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 11. Shell    : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 12. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║ 10. Shell    : %-30s║\033[0m\n" "configured"
+  printf "\033[0;32m║ 11. Env      : %-30s║\033[0m\n" "synced"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
   if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then

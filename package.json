@@ -14,7 +14,7 @@
     "check": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run check:code\" \"pnpm run check:misc\" \"pnpm run check:sh\"",
     "check:code": "biome check .",
     "check:misc": "prettier --check .",
-    "check:sh": "shellcheck bin/panther-minor */entrypoint.sh",
+    "check:sh": "shellcheck bin/panther-minor */entrypoint.sh release/*.sh",
     "fix": "pnpx concurrently --kill-others-on-fail --prefix-colors auto \"pnpm run fix:code\" \"pnpm run format:misc\"",
     "fix:code": "ultracite fix .",
     "fix:code:unsafe": "pnpm run fix:code --unsafe",

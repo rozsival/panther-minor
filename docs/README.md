@@ -48,11 +48,11 @@ quick start live in the [root README](../README.md).
 
 ## ✍️ Documentation conventions
 
-| Rule            | Detail                                                                                                     |
-| --------------- | ---------------------------------------------------------------------------------------------------------- |
-| Location        | All user and maintainer docs live in `docs/`, one domain per file, kebab-case names                        |
-| Page shape      | `# Title` → summary quote → **Related** line → sections → `## ❓ FAQ` (when useful)                        |
-| Source of truth | Config files (`.env.example`, `llama-cpp/preset.ini`, `*.config.json`) win; docs explain them              |
-| Agent context   | `AGENTS.md`, `.github/copilot-instructions.md` and `.agents/skills/*/SKILL.md` stay where their tools look |
-| Formatting      | Prettier (`printWidth: 120`) via `pnpm run fix`; GitHub-flavored Markdown with alerts and Mermaid          |
-| Versions        | Only the root README carries the release tag (`git checkout vX.Y.Z`); the `release` skill bumps it         |
+| Rule            | Detail                                                                                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| Location        | All user and maintainer docs live in `docs/`, one domain per file, kebab-case names                         |
+| Page shape      | `# Title` → summary quote → **Related** line → sections → `## ❓ FAQ` (when useful)                         |
+| Source of truth | Config files (`.env.example`, `llama-cpp/preset.ini`, `*.config.json`) win; docs explain them               |
+| Agent context   | `AGENTS.md`, `.github/copilot-instructions.md` and `.agents/skills/*/SKILL.md` stay where their tools look  |
+| Formatting      | Prettier (`printWidth: 120`) via `pnpm run fix`; GitHub-flavored Markdown with alerts and Mermaid           |
+| Versions        | Docs carry no release tag: the README installs `releases/latest`; the `release` skill bumps versioned files |

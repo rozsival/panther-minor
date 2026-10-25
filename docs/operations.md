@@ -67,16 +67,38 @@ by the `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) set per service in `docker
 ## ⬆️ Updating
 
 ```bash
-./bin/panther-minor update
+./bin/panther-minor update                   # latest release
+./bin/panther-minor update v14.0.0           # a specific release (v optional), also older ones
+./bin/panther-minor update feat/my-branch    # a branch: unstable, for testing unreleased changes
 ```
 
-`update` checks out `main`, fetches and rebases, then switches to the **latest release tag** (detached `HEAD`). After
-an update, rebuild and restart so new build pins and configs take effect:
+`update [version]` (default `latest`) resolves the version on GitHub and prints the exact one — `v14.0.0`, or
+`branch feat/my-branch@1a2b3c4` — before asking to proceed. A downgrade or a branch asks a second time, with a
+warning. An unknown version fails without touching anything, as does a release or branch from before archive installs
+(no `panther-minor.tar.gz` asset, or no `release/package.sh` on the branch). Run it as the user who owns the install,
+not with `sudo`.
+
+Releases install their runtime archive; a branch is downloaded at the resolved commit and packaged by its own
+`release/package.sh`. Files the new version ships replace the installed ones, files it no longer ships are deleted
+(`.manifest` holds the list), and nothing else is touched: `.env`, `proxy/ssl/`, `proxy/acme/`, `models/.huggingface/`,
+`models/bench.log`, `extra/` and `docker-compose.override.yml` survive every update. Local edits to shipped files (e.g.
+`llama-cpp/preset.ini`) do not — put overrides in `.env` or `docker-compose.override.yml`.
+
+After an update, rebuild and restart. `restart` recreates every container (`down` then `up`); `start` would leave
+unchanged containers running on the replaced bind-mounted files (`preset.ini`, `nginx.conf`, the managers), since
+`update` swaps files by rename and a running mount keeps the old one:
 
 ```bash
 ./bin/panther-minor cluster build
-./bin/panther-minor cluster start
+./bin/panther-minor cluster restart
 ```
+
+> [!NOTE]
+> **Hosts installed with `git clone`** convert on their first `update` from a version that has archive installs:
+> every tracked file the runtime does not need, and `.git`, are removed, after a separate confirmation. It refuses a
+> checkout with uncommitted changes to tracked files or with commits on no remote. The old Git-based `update` gets
+> there in two runs — the first switches the checkout to the newest release, the second (now the new `update`)
+> converts it.
 
 > [!TIP]
 > Record a `models llm bench` baseline before updates that move `LLAMA_CPP_REF`, ROCm or the driver — see
@@ -116,9 +138,10 @@ No. Weights live in the `models/.huggingface` bind mount. It does delete Open We
 
 Set `LLAMA_CPP_SLEEP_IDLE_SECONDS` in `.env` (default `900`; `0` disables idle unloading) and restart the cluster.
 
-### `update` left me on a detached `HEAD`. Is that wrong?
+### Which version is installed, and where are the docs and CLI sources?
 
-No. Deployments run from release tags; `update` intentionally switches to the newest one.
+`.release` in the install directory holds the channel (`release` or `branch`), ref and commit. Docs, CLI sources,
+tests and tooling are not installed — the host runs only the runtime files; read the docs on GitHub.
 
 ### Where do I put a service that should reach the models?
 
