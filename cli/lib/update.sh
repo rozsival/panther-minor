@@ -104,7 +104,7 @@ panther_update_read_installed() {
   fi
 }
 
-# Human-readable version: `v14.0.0`, `feat/x@1a2b3c4`, `v13.1.0 (Git checkout)`.
+# Human-readable version: `v14.1.0`, `feat/x@1a2b3c4`, `v13.1.0 (Git checkout)`.
 panther_update_describe() {
   local channel="$1" ref="$2" commit="$3"
 

@@ -1,6 +1,6 @@
 name: panther-minor
 help: '🐆 Panther Minor CLI'
-version: 14.0.0
+version: 14.1.0
 
 commands:
   - name: setup
@@ -471,11 +471,11 @@ commands:
       and branches ask a second time.
     args:
       - name: version
-        help: Release tag (v14.0.0 or 14.0.0), branch name (unstable), or latest
+        help: Release tag (v14.1.0 or 14.1.0), branch name (unstable), or latest
         default: latest
     examples:
       - panther-minor update
-      - panther-minor update v14.0.0
+      - panther-minor update v14.1.0
       - panther-minor update feat/my-branch
 
   - name: install
