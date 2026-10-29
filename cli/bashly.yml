@@ -76,7 +76,7 @@ commands:
             help: Default user for setup commands
 
       - name: docker
-        help: Install Docker and add the selected user to the docker group
+        help: Install Docker, add the selected user to the docker group, and protect the llm.slice memory
         flags:
           - long: --allowed-user
             short: -u
