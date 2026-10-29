@@ -1238,13 +1238,13 @@ panther_minor_update_usage() {
     printf "%s\n" "Arguments:"
 
     printf "  %s\n" "VERSION"
-    printf "    Release tag (v14.0.0 or 14.0.0), branch name (unstable), or latest\n"
+    printf "    Release tag (v14.1.0 or 14.1.0), branch name (unstable), or latest\n"
     printf "    %s\n" "Default: latest"
     echo
 
     printf "%s\n" "Examples:"
     printf "  panther-minor update\n"
-    printf "  panther-minor update v14.0.0\n"
+    printf "  panther-minor update v14.1.0\n"
     printf "  panther-minor update feat/my-branch\n"
     echo
 
@@ -2089,7 +2089,7 @@ panther_update_read_installed() {
   fi
 }
 
-# Human-readable version: `v14.0.0`, `feat/x@1a2b3c4`, `v13.1.0 (Git checkout)`.
+# Human-readable version: `v14.1.0`, `feat/x@1a2b3c4`, `v13.1.0 (Git checkout)`.
 panther_update_describe() {
   local channel="$1" ref="$2" commit="$3"
 
@@ -9970,7 +9970,7 @@ after_hook() {
 }
 
 initialize() {
-  declare -g version="14.0.0"
+  declare -g version="14.1.0"
   set -euo pipefail
 
   PANTHER_REPO_ROOT="$(panther_repo_root)"

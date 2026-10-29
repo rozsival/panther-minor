@@ -68,11 +68,11 @@ by the `LOG_LEVEL` (`debug`, `info`, `warn`, `error`) set per service in `docker
 
 ```bash
 ./bin/panther-minor update                   # latest release
-./bin/panther-minor update v14.0.0           # a specific release (v optional), also older ones
+./bin/panther-minor update v14.1.0           # a specific release (v optional), also older ones
 ./bin/panther-minor update feat/my-branch    # a branch: unstable, for testing unreleased changes
 ```
 
-`update [version]` (default `latest`) resolves the version on GitHub and prints the exact one — `v14.0.0`, or
+`update [version]` (default `latest`) resolves the version on GitHub and prints the exact one — `v14.1.0`, or
 `branch feat/my-branch@1a2b3c4` — before asking to proceed. A downgrade or a branch asks a second time, with a
 warning. An unknown version fails without touching anything, as does a release or branch from before archive installs
 (no `panther-minor.tar.gz` asset, or no `release/package.sh` on the branch). Run it as the user who owns the install,
