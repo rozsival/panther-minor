@@ -58,7 +58,7 @@ panther_minor_setup_usage() {
   printf "  %s   Extend storage and set timezone\n" "init     "
   printf "  %s   Install essential packages\n" "packages "
   printf "  %s   Install Homebrew, llmfit, and Hugging Face CLI\n" "brew     "
-  printf "  %s   Install Docker and add the selected user to the docker group\n" "docker   "
+  printf "  %s   Install Docker, add the selected user to the docker group, and protect the llm.slice memory\n" "docker   "
   printf "  %s   Install Tailscale\n" "tailscale"
   printf "  %s   Harden SSH configuration\n" "ssh      "
   printf "  %s   Configure the firewall\n" "ufw      "
@@ -227,7 +227,7 @@ panther_minor_setup_brew_usage() {
 }
 
 panther_minor_setup_docker_usage() {
-  printf "panther-minor setup docker - Install Docker and add the selected user to the docker group\n\n"
+  printf "panther-minor setup docker - Install Docker, add the selected user to the docker group, and protect the llm.slice memory\n\n"
 
   printf "%s\n" "Usage:"
   printf "  panther-minor setup docker [OPTIONS]\n"
@@ -2533,6 +2533,18 @@ EOF
 
     usermod -aG docker "${PANTHER_ALLOWED_USER}"
     panther_log_success 'User added to docker group.'
+
+    # llama-cpp runs in this slice (cgroup_parent in docker-compose.yml). 96G covers Qwen3.8-Flash-Next's host-resident
+    # weights (~86 GiB: 40 expert blocks + the n-gram table) plus LLAMA_CPP_CACHE_RAM; see docs/llm.md#host-memory-protection.
+    tee /etc/systemd/system/llm.slice <<EOF
+[Unit]
+Description=panther-minor llama.cpp (memory-protected)
+
+[Slice]
+MemoryLow=96G
+EOF
+    systemctl daemon-reload
+    panther_log_success 'llm.slice memory protection configured.'
   }
 
   panther_setup_docker

@@ -45,6 +45,24 @@ resident, since the manager only arbitrates _large_ models.
 > first N layers nearly weightless. So a balanced-looking split isn't: `52,48` put nineteen empty layers on
 > one card and twenty-two heavy ones plus the output head on the other, overflowing it. Count heavy blocks.
 
+### Host memory protection
+
+The host-resident weights are file-backed page cache, so any other workload on the box (CI runners, the devbox) can
+push them out under memory pressure, and decode slows sharply until they page back in. `llama-cpp` therefore runs in
+its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose.yml`), which `setup docker` gives
+`MemoryLow=96G`: the kernel reclaims everything else first.
+
+- **96G** is `Qwen3.8-Flash-Next`'s host share — 40 expert blocks × 1.465 GiB plus the 26.82 GiB n-gram table,
+  ~86 GiB — plus `LLAMA_CPP_CACHE_RAM` (8 GiB). Its process measured 66 GiB RSS right after a load, before decode has
+  touched every expert. Protection only covers memory actually charged to the slice, so a smaller model costs nothing.
+- **Not `mem_reservation`.** Docker maps it to `memory.low` on the container's scope, but `memory.low` takes effect only
+  up to the ancestors' protection, and `system.slice`, where containers land by default, has none.
+- **Pages are charged to whoever first read them.** Weights already cached before the switch (a download, an earlier
+  container) stay charged elsewhere and unprotected until reclaimed once; from the next read on they belong to
+  `llm.slice`. Pages of a recreated container stay in the slice.
+- Without the slice unit (a host that hasn't re-run `setup docker`), systemd creates `llm.slice` on demand with no
+  protection; everything else works as before.
+
 ## 🎛️ Management
 
 ```bash

@@ -55,6 +55,11 @@ services:
       - './llama-cpp/preset.ini:/home/llama-cpp/.cache/huggingface/preset.ini:ro'
     ulimits:
       memlock: -1
+    # Top-level systemd slice, whose MemoryLow (set by `setup docker`) keeps the host-resident weights cached under
+    # pressure from other workloads. A container under the default system.slice can't be protected: memory.low only
+    # takes effect up to its ancestors' protection, and system.slice has none. No dash in the name: systemd reads a
+    # dash as nesting (a-b.slice sits inside a.slice). See docs/llm.md#host-memory-protection.
+    cgroup_parent: llm.slice
     expose:
       - 8000
     networks:
