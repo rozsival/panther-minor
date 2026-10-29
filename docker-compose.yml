@@ -71,7 +71,7 @@ services:
   # through llama-server when the cluster stays idle.
   llama-manager:
     container_name: llama-manager
-    image: node:24-trixie-slim
+    image: node:26-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
@@ -108,7 +108,7 @@ services:
   # -- llama.cpp metrics exporter ---------------------------------------------
   llama-metrics-exporter:
     container_name: llama-metrics-exporter
-    image: node:24-trixie-slim
+    image: node:26-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
@@ -199,7 +199,7 @@ services:
   # generation streams no bytes for tens of seconds.
   sd-manager:
     container_name: sd-manager
-    image: node:24-trixie-slim
+    image: node:26-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
@@ -233,7 +233,7 @@ services:
   # -- stable-diffusion.cpp metrics exporter ----------------------------------
   sd-metrics-exporter:
     container_name: sd-metrics-exporter
-    image: node:24-trixie-slim
+    image: node:26-trixie-slim
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
