@@ -20,5 +20,11 @@
         }
       }
     }
-  ]
+  ],
+  // Prettier owns YAML (single quotes, no bracket spacing); Biome 2.6 formats it too and would fight it.
+  "yaml": {
+    "formatter": {
+      "enabled": false
+    }
+  }
 }

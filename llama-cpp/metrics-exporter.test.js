@@ -79,9 +79,9 @@ llamacpp_tokens_predicted_total 100
     'qwen35-35b-a3b-q8_0': sample,
   }).join('\n');
 
-  assert.equal((merged.match(/# HELP llamacpp_tokens_predicted_total/g) ?? []).length, 1);
-  assert.match(merged, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 100/);
-  assert.match(merged, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 200/);
+  assert.equal((merged.match(/# HELP llamacpp_tokens_predicted_total/gu) ?? []).length, 1);
+  assert.match(merged, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"\} 100/u);
+  assert.match(merged, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 200/u);
 });
 
 test('exporterStatusLines reports discovered and loaded states', () => {
@@ -93,14 +93,14 @@ test('exporterStatusLines reports discovered and loaded states', () => {
     new Set(['qwen35-35b-a3b-q8_0'])
   ).join('\n');
 
-  assert.match(lines, /llama_metrics_exporter_idle 0/);
-  assert.match(lines, /llama_metrics_exporter_discovered_models 2/);
-  assert.match(lines, /llama_metrics_exporter_loaded_models 1/);
-  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 1/);
-  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"} 1/);
-  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
-  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 1/);
-  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
+  assert.match(lines, /llama_metrics_exporter_idle 0/u);
+  assert.match(lines, /llama_metrics_exporter_discovered_models 2/u);
+  assert.match(lines, /llama_metrics_exporter_loaded_models 1/u);
+  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 1/u);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"\} 1/u);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"\} 1/u);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
 });
 
 test('exporterStatusLines reports idle state with all models unloaded and no scrape', () => {
@@ -113,13 +113,13 @@ test('exporterStatusLines reports idle state with all models unloaded and no scr
     true
   ).join('\n');
 
-  assert.match(lines, /llama_metrics_exporter_idle 1/);
-  assert.match(lines, /llama_metrics_exporter_loaded_models 0/);
-  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 0/);
-  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"} 0/);
-  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
-  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 0/);
-  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
+  assert.match(lines, /llama_metrics_exporter_idle 1/u);
+  assert.match(lines, /llama_metrics_exporter_loaded_models 0/u);
+  assert.match(lines, /llama_metrics_exporter_metrics_scrape_up 0/u);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"\} 0/u);
+  assert.match(lines, /llama_metrics_exporter_model_loaded\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"\} 0/u);
+  assert.match(lines, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
 });
 
 test('shouldScrapeFreshMetrics keeps one live scrape after unseen activity', () => {
@@ -166,7 +166,7 @@ test('refreshMetricsCache reuses the in-flight refresh work', async () => {
 
   assert.equal(modelsCalls, 1);
   assert.equal(firstPayload, secondPayload);
-  assert.match(firstPayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 42/);
+  assert.match(firstPayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"\} 42/u);
 });
 
 test('recordActivity and buildIdlePayload serve stale model metrics', async () => {
@@ -197,11 +197,11 @@ test('recordActivity and buildIdlePayload serve stale model metrics', async () =
   // Build idle payload — should serve stale model metrics
   const idlePayload = await buildIdlePayload(fetchImpl);
 
-  assert.match(idlePayload, /llama_metrics_exporter_idle 1/);
-  assert.match(idlePayload, /llama_metrics_exporter_metrics_scrape_up 0/);
-  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"} 0/);
+  assert.match(idlePayload, /llama_metrics_exporter_idle 1/u);
+  assert.match(idlePayload, /llama_metrics_exporter_metrics_scrape_up 0/u);
+  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"\} 0/u);
   // Stale model counter metrics are still present to prevent Grafana "No data"
-  assert.match(idlePayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 42/);
+  assert.match(idlePayload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"\} 42/u);
 });
 
 test('buildIdlePayload with no prior scrape returns only status lines', async () => {
@@ -216,9 +216,9 @@ test('buildIdlePayload with no prior scrape returns only status lines', async ()
         { status: 200 }
       )
   );
-  assert.match(payload, /llama_metrics_exporter_up 1/);
-  assert.match(payload, /llama_metrics_exporter_idle 1/);
-  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/);
+  assert.match(payload, /llama_metrics_exporter_up 1/u);
+  assert.match(payload, /llama_metrics_exporter_idle 1/u);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total/u);
 });
 
 test('buildMetricsPayload scrapes metrics only for loaded models', async () => {
@@ -256,14 +256,14 @@ test('buildMetricsPayload scrapes metrics only for loaded models', async () => {
   assert.ok(calls.includes('http://llama-cpp:8000/models'));
   assert.ok(calls.includes('http://llama-cpp:8000/metrics?model=qwen35-35b-a3b-q8_0&autoload=false'));
   assert.ok(!calls.includes('http://llama-cpp:8000/metrics?model=qwen3-coder-30b-a3b-instruct-q8_0&autoload=false'));
-  assert.match(payload, /llama_metrics_exporter_idle 0/);
-  assert.match(payload, /llama_metrics_exporter_discovered_models 2/);
-  assert.match(payload, /llama_metrics_exporter_loaded_models 1/);
-  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 1/);
-  assert.match(payload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"} 100/);
-  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 200/);
-  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 1/);
-  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
+  assert.match(payload, /llama_metrics_exporter_idle 0/u);
+  assert.match(payload, /llama_metrics_exporter_discovered_models 2/u);
+  assert.match(payload, /llama_metrics_exporter_loaded_models 1/u);
+  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 1/u);
+  assert.match(payload, /llamacpp_tokens_predicted_total\{model="qwen35-35b-a3b-q8_0"\} 100/u);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 200/u);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"\} 1/u);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
 });
 
 test('buildMetricsPayload skips model scrapes when none are loaded', async () => {
@@ -292,13 +292,13 @@ test('buildMetricsPayload skips model scrapes when none are loaded', async () =>
 
   assert.equal(calls.length, 1);
   assert.ok(calls.includes('http://llama-cpp:8000/models'));
-  assert.match(payload, /llama_metrics_exporter_idle 0/);
-  assert.match(payload, /llama_metrics_exporter_loaded_models 0/);
-  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/);
-  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"} 0/);
-  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"} 0/);
-  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
-  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/);
+  assert.match(payload, /llama_metrics_exporter_idle 0/u);
+  assert.match(payload, /llama_metrics_exporter_loaded_models 0/u);
+  assert.match(payload, /llama_metrics_exporter_metrics_scrape_up 0/u);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen35-35b-a3b-q8_0"\} 0/u);
+  assert.match(payload, /llama_metrics_exporter_model_up\{model="qwen3-coder-30b-a3b-instruct-q8_0"\} 0/u);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/u);
+  assert.doesNotMatch(payload, /llamacpp_tokens_predicted_total\{/u);
 });
 
 test('buildIdlePayload fetches the current /models list instead of using a stale cache', async () => {
@@ -340,6 +340,6 @@ test('buildIdlePayload fetches the current /models list instead of using a stale
   });
 
   assert.equal(modelsRequestCount, 2);
-  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="panther-coder-large"} 0/);
-  assert.doesNotMatch(idlePayload, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"} 0/);
+  assert.match(idlePayload, /llama_metrics_exporter_model_loaded\{model="panther-coder-large"\} 0/u);
+  assert.doesNotMatch(idlePayload, /llama_metrics_exporter_model_loaded\{model="qwen35-35b-a3b-q8_0"\} 0/u);
 });
