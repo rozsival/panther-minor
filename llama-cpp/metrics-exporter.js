@@ -2,8 +2,8 @@ import { createServer } from 'node:http';
 import { normalizeModelsPayload } from './models.js';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
-const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/, '');
-const MANAGER_URL = (process.env.MANAGER_URL ?? 'http://llama-manager:8000').replace(/\/$/, '');
+const LLAMA_SERVER_URL = (process.env.LLAMA_SERVER_URL ?? 'http://llama-cpp:8000').replace(/\/$/u, '');
+const MANAGER_URL = (process.env.MANAGER_URL ?? 'http://llama-manager:8000').replace(/\/$/u, '');
 const PORT = Number.parseInt(process.env.PORT ?? '9090', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
@@ -15,7 +15,7 @@ const LOG_PRIORITY = {
   warn: 1,
 };
 
-const METRICS_RAW_LINE_REGEX = /\r?\n/;
+const METRICS_RAW_LINE_REGEX = /\r?\n/u;
 
 function shouldLog(level) {
   return (LOG_PRIORITY[level] ?? LOG_PRIORITY.info) <= (LOG_PRIORITY[LOG_LEVEL] ?? LOG_PRIORITY.info);
@@ -38,8 +38,8 @@ function log(level, message, fields) {
   console.log(`${base} ${context}`);
 }
 
-const METRIC_LINE_RE = /^([a-zA-Z_:][a-zA-Z0-9_:]*)(\{[^}]*})?(\s+.+)$/;
-const HELP_TYPE_RE = /^#\s+(HELP|TYPE)\s+([a-zA-Z_:][a-zA-Z0-9_:]*)\b/;
+const METRIC_LINE_RE = /^(?<metricName>[a-zA-Z_:][a-zA-Z0-9_:]*)(?<labels>\{[^}]*\})?(?<suffix>\s+.+)$/u;
+const HELP_TYPE_RE = /^#\s+(?<kind>HELP|TYPE)\s+(?<metricName>[a-zA-Z_:][a-zA-Z0-9_:]*)\b/u;
 
 /** @type {{ payload: string | null, timestampMs: number }} */
 const cache = {
@@ -96,7 +96,7 @@ export function injectModelLabel(metricLine, model) {
     return metricLine;
   }
 
-  const [, metricName, labels, suffix] = match;
+  const { metricName, labels, suffix } = match.groups;
   if (labels?.includes('model=')) {
     return metricLine;
   }
@@ -122,7 +122,7 @@ export function mergeMetricsForModels(modelToMetrics) {
 
       const headerMatch = line.match(HELP_TYPE_RE);
       if (headerMatch) {
-        const headerKey = `${headerMatch[1]}:${headerMatch[2]}`;
+        const headerKey = `${headerMatch.groups.kind}:${headerMatch.groups.metricName}`;
         if (seenHeaders.has(headerKey)) {
           continue;
         }

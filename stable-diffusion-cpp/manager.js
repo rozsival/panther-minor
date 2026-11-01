@@ -1,7 +1,7 @@
 import { createServer, request as httpRequest } from 'node:http';
 import { isImageInferencePath } from './models.js';
 
-const SD_SERVER_URL = (process.env.SD_SERVER_URL ?? 'http://stable-diffusion-cpp:8000').replace(/\/$/, '');
+const SD_SERVER_URL = (process.env.SD_SERVER_URL ?? 'http://stable-diffusion-cpp:8000').replace(/\/$/u, '');
 const PORT = Number.parseInt(process.env.PORT ?? '8000', 10);
 // Image generation streams no bytes for tens of seconds, so the proxied socket
 // must tolerate a long period of upstream silence. Keep this well above the

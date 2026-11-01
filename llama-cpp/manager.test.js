@@ -508,7 +508,7 @@ test('a wedged upstream is cut off by PROXY_TIMEOUT_SECONDS with 502, not held o
 
     assert.equal(status, 502);
     assert.ok(elapsedMs < 10_000, `expected cutoff near the 1s proxy timeout, took ${elapsedMs}ms`);
-    assert.match(log(), /proxy_upstream_timeout/);
+    assert.match(log(), /proxy_upstream_timeout/u);
   } finally {
     child.kill('SIGKILL');
     await upstream.close();

@@ -2,8 +2,8 @@ import { createServer } from 'node:http';
 import { normalizeModelsPayload } from './models.js';
 
 const CACHE_TTL_SECONDS = Number.parseFloat(process.env.CACHE_TTL_SECONDS ?? '5');
-const SD_SERVER_URL = (process.env.SD_SERVER_URL ?? 'http://stable-diffusion-cpp:8000').replace(/\/$/, '');
-const MANAGER_URL = (process.env.MANAGER_URL ?? 'http://sd-manager:8000').replace(/\/$/, '');
+const SD_SERVER_URL = (process.env.SD_SERVER_URL ?? 'http://stable-diffusion-cpp:8000').replace(/\/$/u, '');
+const MANAGER_URL = (process.env.MANAGER_URL ?? 'http://sd-manager:8000').replace(/\/$/u, '');
 const PORT = Number.parseInt(process.env.PORT ?? '9090', 10);
 const UPSTREAM_TIMEOUT_SECONDS = Number.parseFloat(process.env.UPSTREAM_TIMEOUT_SECONDS ?? '4');
 const LOG_LEVEL = (process.env.LOG_LEVEL ?? 'info').toLowerCase();
