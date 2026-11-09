@@ -166,9 +166,6 @@ importers:
 
   .:
     devDependencies:
-      '@biomejs/biome':
-        specifier: 2.6.4
-        version: 2.6.4
       '@commitlint/cli':
         specifier: 21.2.4
         version: 21.2.4(conventional-commits-parser@7.1.0)(typescript@7.0.2)
@@ -2083,6 +2080,7 @@ snapshots:
       '@biomejs/cli-linux-x64-musl': 2.6.4
       '@biomejs/cli-win32-arm64': 2.6.4
       '@biomejs/cli-win32-x64': 2.6.4
+    optional: true
 
   '@biomejs/cli-android-arm64@2.6.4':
     optional: true
