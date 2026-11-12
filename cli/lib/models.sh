@@ -26,12 +26,14 @@ panther_llm_referenced_files() {
     "$(panther_llm_config_file)"
 }
 
-# Every hub-relative path referenced by any model in either config.
+# Every hub-relative path referenced by any model in either config, in byte order
+# (`LC_ALL=C`): panther_prune_orphans merges it against the cache list with `comm`,
+# and a locale-collated `sort` and `comm` can disagree, which drops matches.
 panther_referenced_files() {
   {
     panther_t2i_referenced_files
     panther_llm_referenced_files
-  } | sort -u
+  } | LC_ALL=C sort -u
 }
 
 # Hub-relative paths of weight files actually present in the cache, ignoring the
@@ -73,7 +75,7 @@ panther_prune_orphans() {
   local line
   while IFS= read -r line; do
     [[ -n "$line" ]] && orphans+=("$line")
-  done < <(comm -23 <(panther_cache_files | sort -u) <(panther_referenced_files))
+  done < <(LC_ALL=C comm -23 <(panther_cache_files | LC_ALL=C sort -u) <(panther_referenced_files))
 
   if [[ ${#orphans[@]} -gt 0 ]]; then
     panther_log_warn "Found ${#orphans[@]} orphaned cached file(s) not referenced by any config:"
