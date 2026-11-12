@@ -99,7 +99,9 @@ other weights are `sd-server`'s own totals.
 
 When the image GPU has less free VRAM than the peak, `sd-server` degrades instead of failing: it streams the diffusion
 weights in segments and tiles the VAE decode. At ~2 GiB free it cannot fit a segment and returns HTTP 500 at once; the
-LLMs keep serving. Measured with the pinned small models resident:
+LLMs keep serving. Measured with the pinned small models resident, at the previous chat quants (`Qwen3.8-27B`
+`UD-Q6_K_XL`, `Qwen3.8-Flash-Next` `UD-Q4_K_XL`); the current quants should leave GPU 1 3-4 GiB more free (computed
+from the GGUF headers, not measured):
 
 | Large chat model     | GPU 1 used before image | `Qwen-Image-2.1`           | `Ideogram-4`                |
 | -------------------- | ----------------------: | -------------------------- | --------------------------- |

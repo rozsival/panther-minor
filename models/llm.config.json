@@ -6,7 +6,7 @@
       "components": [
         {
           "repository": "unsloth/Qwen3.8-27B-GGUF",
-          "file": "Qwen3.8-27B-UD-Q6_K_XL.gguf"
+          "file": "Qwen3.8-27B-UD-Q4_K_XL.gguf"
         },
         {
           "repository": "unsloth/Qwen3.8-27B-GGUF",
@@ -54,19 +54,19 @@
       "components": [
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",
-          "file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00001-of-00004.gguf"
+          "file": "UD-IQ3_XXS/Qwen3.8-Flash-Next-UD-IQ3_XXS-00001-of-00004.gguf"
         },
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",
-          "file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00002-of-00004.gguf"
+          "file": "UD-IQ3_XXS/Qwen3.8-Flash-Next-UD-IQ3_XXS-00002-of-00004.gguf"
         },
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",
-          "file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00003-of-00004.gguf"
+          "file": "UD-IQ3_XXS/Qwen3.8-Flash-Next-UD-IQ3_XXS-00003-of-00004.gguf"
         },
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",
-          "file": "UD-Q4_K_XL/Qwen3.8-Flash-Next-UD-Q4_K_XL-00004-of-00004.gguf"
+          "file": "UD-IQ3_XXS/Qwen3.8-Flash-Next-UD-IQ3_XXS-00004-of-00004.gguf"
         },
         {
           "repository": "unsloth/Qwen3.8-Flash-Next-GGUF",

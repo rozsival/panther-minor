@@ -24,10 +24,23 @@ model's **`components`** are its weight files — main weight first, then extras
 | Server-wide runtime | `.env` (`LLAMA_CPP_*`)   | Batch sizes, RAM cache, max resident models, parallel slots                |
 | Large-model list    | `llama-cpp/models.js`    | Models `llama-manager` arbitrates VRAM for                                 |
 
+### Quant choice
+
+The Qwen3.8 models run Unsloth Dynamic V3.1 quants
+([benchmarks](https://unsloth.ai/docs/basics/dynamic-3.0-ggufs/dynamic-3.1-ggufs)), picked by recovered accuracy
+against BF16 rather than by bit width:
+
+| Model                | Quant        | Size     | Why                                                                                                                                  |
+| -------------------- | ------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `Qwen3.8-27B`        | `UD-Q4_K_XL` | 16.4 GiB | ~99.5% average coding recovery; `UD-Q6_K_XL` (23.6 GiB) was never re-cut for V3.1, and dense decode streams every byte               |
+| `Qwen3.8-Flash-Next` | `UD-IQ3_XXS` | 77.9 GiB | 99.9% average recovery over 12 benchmarks; experts shrink from 1.465 to 0.72-1.04 GiB per block, so fewer bytes stream from host RAM |
+
+Unsloth benchmarked at `xhigh` reasoning; the presets serve `medium`.
+
 ### Weight placement
 
 Most models fit VRAM whole; only `n-gpu-layers` matters. A model larger than total VRAM (`Qwen3.8-Flash-Next` at
-`UD-Q4_K_XL` is 103.7 GiB against 2x 31.86 GiB) needs manual placement:
+`UD-IQ3_XXS` is 77.9 GiB against 2x 31.86 GiB) needs manual placement:
 
 | Knob               | Effect                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------- |
@@ -52,9 +65,10 @@ push them out under memory pressure, and decode slows sharply until they page ba
 its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose.yml`), which `setup docker` gives
 `MemoryLow=96G`: the kernel reclaims everything else first.
 
-- **96G** is `Qwen3.8-Flash-Next`'s host share — 40 expert blocks × 1.465 GiB plus the 26.82 GiB n-gram table,
-  ~86 GiB — plus `LLAMA_CPP_CACHE_RAM` (8 GiB). Its process measured 66 GiB RSS right after a load, before decode has
-  touched every expert. Protection only covers memory actually charged to the slice, so a smaller model costs nothing.
+- **96G** covers `Qwen3.8-Flash-Next`'s host share — 40 expert blocks (38.5 GiB at `UD-IQ3_XXS`) plus the 26.82 GiB
+  n-gram table, ~65 GiB — plus `LLAMA_CPP_CACHE_RAM` (8 GiB), with headroom left from `UD-Q4_K_XL` (40 × 1.465 GiB,
+  ~86 GiB). Its process measured 66 GiB RSS right after a load at `UD-Q4_K_XL`, before decode had touched every
+  expert. Protection only covers memory actually charged to the slice, so a smaller model costs nothing.
 - **Not `mem_reservation`.** Docker maps it to `memory.low` on the container's scope, but `memory.low` takes effect only
   up to the ancestors' protection, and `system.slice`, where containers land by default, has none.
 - **Pages are charged to whoever first read them.** Weights already cached before the switch (a download, an earlier
@@ -96,12 +110,12 @@ Results append to `models/bench.log`; the procedure, pitfalls and per-knob guida
 
 ### Placement cost model
 
-Sweeping one placement knob at a time yields a linear cost model — for `Qwen3.8-Flash-Next`,
+Sweeping one placement knob at a time yields a linear cost model — for `Qwen3.8-Flash-Next` at `UD-Q4_K_XL`,
 `ms/pass = 54.0 + 1.60 * n-cpu-moe` (R² = 0.975).
 
 - The **slope** is just bytes — 1.60 ms/block is what those experts cost at the DRAM ceiling this box actually
   reaches (45.3 GiB/s, measured; a single core already gets 37.3 GiB/s), so there is no per-block handoff overhead
-  hiding in it.
+  hiding in it. `UD-IQ3_XXS` blocks are 0.72-1.04 GiB instead of 1.465, so the slope shrinks with them.
 - The **intercept** is only the fit extrapolated to `n-cpu-moe = 0`; it is not the same quantity as the bare pass
   measured at `n-cpu-moe = 28` (which still streams 28 blocks), so don't read the two as cross-confirming.
 
@@ -117,7 +131,8 @@ GPU that owns the host-expert layers under `tensor-split`, and `split-mode = ten
 
 A small cache is a net loss; it pays only once it holds a large share of the host experts. So rather than squeezing
 it into leftover VRAM, `Qwen3.8-Flash-Next` empties every GPU 0 block (`n-cpu-moe = 40`) and gives that VRAM to the
-cache. Measured on v0.7.0 with MTP only (`--spec-default` ngram off — see below), `--loads 3`, 0% spread:
+cache. Measured at `UD-Q4_K_XL` on v0.7.0 with MTP only (`--spec-default` ngram off — see below), `--loads 3`, 0%
+spread:
 
 | `n-cpu-moe` | `moe-cache-mib` | Decode t/s | Prefill t/s |
 | ----------: | --------------: | ---------: | ----------: |
@@ -127,7 +142,8 @@ cache. Measured on v0.7.0 with MTP only (`--spec-default` ngram off — see belo
 |          40 |       **18432** |   **42.3** |         296 |
 |          40 |           20480 |       45.0 |         310 |
 
-18432 is the production value: +50% decode for −14% prefill. v0.7.0 alone is slightly slower than v0.6.0 at the old
+18432 is the production value: +50% decode for −14% prefill. At `UD-IQ3_XXS` the same 18432 MiB holds ~47% of the
+host experts instead of ~30%; the placement was carried over unchanged. v0.7.0 alone is slightly slower than v0.6.0 at the old
 placement — 28.3 vs 30.0 t/s, with greedy MTP acceptance down from 80.9% to 71.8% — so the net gain over the previous
 release is +41%. The gain holds at long context: at 20480, an 85K-token prompt decoded at 31.5 t/s with 462 t/s prefill.
 
@@ -192,7 +208,7 @@ placement and its measured speed are in [MoE expert cache](#moe-expert-cache).
 
 > [!IMPORTANT]
 > **MTP for `qwen4exp` needs `llama.cpp` v0.6.0 or newer** ([ggml-org/llama.cpp#29761](https://github.com/ggml-org/llama.cpp/pull/29761));
-> older mainline builds drop the head and silently ignore `spec-draft-model`. The main UD-Q4_K_XL shards are
+> older mainline builds drop the head and silently ignore `spec-draft-model`. The main shards are
 > unaffected, but Unsloth re-cut the self-contained heads for it on 2026-10-05 — a cached
 > `MTP/mtp-Qwen3.8-Flash-Next-Q8_0.gguf` from before that date must be re-downloaded.
 
