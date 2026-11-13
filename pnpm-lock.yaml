@@ -188,17 +188,17 @@ importers:
         specifier: 2.2.2
         version: 2.2.2
       prettier:
-        specifier: 3.10.0
-        version: 3.10.0
+        specifier: 3.10.1
+        version: 3.10.1
       prettier-plugin-packagejson:
         specifier: 3.1.0
-        version: 3.1.0(prettier@3.10.0)
+        version: 3.1.0(prettier@3.10.1)
       prettier-plugin-sh:
         specifier: 0.20.2
-        version: 0.20.2(prettier@3.10.0)
+        version: 0.20.2(prettier@3.10.1)
       prettier-plugin-toml:
         specifier: 4.1.0
-        version: 4.1.0(prettier@3.10.0)
+        version: 4.1.0(prettier@3.10.1)
       shellcheck:
         specifier: 4.1.0
         version: 4.1.0
@@ -207,7 +207,7 @@ importers:
         version: 7.0.2
       ultracite:
         specifier: 8.2.0
-        version: 8.2.0(@biomejs/biome@2.6.7)(eslint@10.14.0(jiti@2.6.1))(prettier@3.10.0)
+        version: 8.2.0(@biomejs/biome@2.6.7)(eslint@10.14.0(jiti@2.6.1))(prettier@3.10.1)
 
 packages:
 
@@ -1715,8 +1715,8 @@ packages:
     peerDependencies:
       prettier: ^3.0.3
 
-  prettier@3.10.0:
-    resolution: {integrity: sha512-mBi4765LgjO1PFjlEs7pUeK0nb1bw71c+N4/ItfeUWNdY5cV2pRKaFpbbFRYmDJMO+5ZwzGxHRqHxFZna7iv5w==}
+  prettier@3.10.1:
+    resolution: {integrity: sha512-70vp3ZUYoPlFbF9uiTdXHUUCGEIp7d4+6p+8DYbkm2jP7x/3i/paXVF6dopSI3zd/CEitrZN1rc4i85xWmmXlg==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -3374,24 +3374,24 @@ snapshots:
 
   prelude-ls@1.2.1: {}
 
-  prettier-plugin-packagejson@3.1.0(prettier@3.10.0):
+  prettier-plugin-packagejson@3.1.0(prettier@3.10.1):
     dependencies:
       sort-package-json: 4.1.0
     optionalDependencies:
-      prettier: 3.10.0
+      prettier: 3.10.1
 
-  prettier-plugin-sh@0.20.2(prettier@3.10.0):
+  prettier-plugin-sh@0.20.2(prettier@3.10.1):
     dependencies:
       '@reteps/dockerfmt': 0.5.4
-      prettier: 3.10.0
+      prettier: 3.10.1
       sh-syntax: 0.7.0
 
-  prettier-plugin-toml@4.1.0(prettier@3.10.0):
+  prettier-plugin-toml@4.1.0(prettier@3.10.1):
     dependencies:
-      prettier: 3.10.0
+      prettier: 3.10.1
       tombit: 0.1.5
 
-  prettier@3.10.0: {}
+  prettier@3.10.1: {}
 
   pretty-ms@9.3.0:
     dependencies:
@@ -3682,7 +3682,7 @@ snapshots:
 
   uint8array-extras@1.6.0: {}
 
-  ultracite@8.2.0(@biomejs/biome@2.6.7)(eslint@10.14.0(jiti@2.6.1))(prettier@3.10.0):
+  ultracite@8.2.0(@biomejs/biome@2.6.7)(eslint@10.14.0(jiti@2.6.1))(prettier@3.10.1):
     dependencies:
       '@clack/prompts': 1.8.1
       cli-truncate: 6.1.1
@@ -3706,7 +3706,7 @@ snapshots:
     optionalDependencies:
       '@biomejs/biome': 2.6.7
       eslint: 10.14.0(jiti@2.6.1)
-      prettier: 3.10.0
+      prettier: 3.10.1
 
   unbzip2-stream@1.4.3:
     dependencies:
