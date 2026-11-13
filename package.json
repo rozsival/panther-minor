@@ -39,7 +39,7 @@
     "prettier-plugin-toml": "4.1.0",
     "shellcheck": "4.1.0",
     "typescript": "7.0.2",
-    "ultracite": "8.1.1"
+    "ultracite": "8.2.0"
   },
   "packageManager": "pnpm@12.18.0",
   "engines": {
