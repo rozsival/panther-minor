@@ -3,7 +3,7 @@ allowBuilds:
 
 autoInstallPeers: false
 
-minimumReleaseAge: 1140
+minimumReleaseAge: 1440
 
 strictPeerDependencies: true
 
