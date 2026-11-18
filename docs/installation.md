@@ -157,10 +157,12 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
 
    ```bash
    sudo hostnamectl set-hostname <name>
-   sudo tailscale set --hostname=<name>   # if the host is on the tailnet
+   sudo sed -i 's/\bpanther-minor\b/<name>/g' /etc/hosts   # the 127.0.1.1 line, or sudo cannot resolve the host
+   sudo tailscale set --hostname=<name>                     # if the host is on the tailnet
    ```
 
-   Then update whatever reached the host by its old name (SSH config, bookmarks).
+   Then update whatever reached the host by its old name (SSH config, bookmarks, Funnel URLs served by the host
+   node).
 
 After the first `cluster start`, `panther-minor` appears in the
 [machines list](https://login.tailscale.com/admin/machines) and the services answer on
