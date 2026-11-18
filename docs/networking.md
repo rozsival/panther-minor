@@ -259,15 +259,17 @@ move to the sidecar without downtime: the sidecar runs next to the old path unti
    Before the next Compose command, remove the `ts-proxy` service, the `ts-serve` config and the `ts-proxy-state`
    volume from `docker-compose.override.yml` (delete the file if nothing else is in it) — left in place, its
    `https+insecure` serve config overrides the new one and fails against plain-HTTP nginx. Remove the `BIND_ADDR=`
-   line from `.env` too. Then rebuild and restart as after every update:
+   line from `.env` too. Then apply it:
 
    ```bash
-   ./bin/panther-minor cluster build
-   ./bin/panther-minor cluster restart
+   ./bin/panther-minor cluster start
    ```
 
-   The restart is the usual post-update one; the tailnet URLs stay the same and the volume keeps the node, so clients
-   need no further change.
+   `cluster start` recreates only the containers whose definition changed — `proxy` and `ts-proxy` — so clients see a
+   seconds-long blip; the models stay loaded, the tailnet URLs stay the same and the volume keeps the node. If the
+   update also spans other changes (build pins, managers, `preset.ini`), follow the usual
+   [post-update](operations.md#-updating) `cluster build` and `cluster restart` instead, which restarts the whole
+   stack.
 
 5. **Clean up** what the new version no longer uses:
 
