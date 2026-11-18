@@ -1793,7 +1793,7 @@ panther_check_env_ts_authkey() {
   key="${key//[\"\']/}"
   if [[ -z "$key" ]]; then
     panther_log_warn "TS_AUTHKEY is empty in $env_file; the ts-proxy sidecar cannot join the tailnet."
-    panther_register_action "Set TS_AUTHKEY in .env (reusable, pre-approved, tagged tag:panther) before the first 'panther-minor cluster start'."
+    panther_register_action "Set TS_AUTHKEY in .env (reusable, pre-approved, tagged tag:panther-minor) before the first 'panther-minor cluster start'."
   fi
 }
 panther_prepare_setup_step() {

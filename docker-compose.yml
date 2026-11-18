@@ -8,7 +8,7 @@ networks:
 # -- Tailscale serve config ---------------------------------------------------
 # One HTTPS listener per private service on the tailnet node, each forwarded to
 # the nginx listener of the same port. containerboot replaces ${TS_CERT_DOMAIN}
-# with the node's FQDN (panther.<tailnet>.ts.net); $$ escapes it from Compose
+# with the node's FQDN (panther-minor.<tailnet>.ts.net); $$ escapes it from Compose
 # interpolation. Public services (Funnel) get their own port and nginx listener
 # plus an AllowFunnel entry; see docs/networking.md#-public-services.
 configs:
@@ -473,7 +473,7 @@ services:
       - prometheus
 
   # -- Tailscale sidecar ------------------------------------------------------
-  # The tailnet node panther.<tailnet>.ts.net: terminates TLS with its Tailscale
+  # The tailnet node panther-minor.<tailnet>.ts.net: terminates TLS with its Tailscale
   # certificate and forwards each port to nginx (config ts-serve). Its own
   # network namespace holds the tailnet interface, so the tailnet reaches only
   # the ports in the serve config. The auth key is used on the first login
@@ -484,14 +484,14 @@ services:
     image: tailscale/tailscale:v1.104.7
     restart: unless-stopped
     # Node name in the tailnet; must differ from the host's own node.
-    hostname: panther
+    hostname: panther-minor
     environment:
       TS_AUTH_ONCE: true
       TS_AUTHKEY: '${TS_AUTHKEY:-}'
       # Health endpoint for the healthcheck only: the default [::]:9002 would
       # also answer on the tailnet.
       TS_ENABLE_HEALTH_CHECK: true
-      TS_EXTRA_ARGS: '--advertise-tags=tag:panther'
+      TS_EXTRA_ARGS: '--advertise-tags=tag:panther-minor'
       TS_LOCAL_ADDR_PORT: '127.0.0.1:9002'
       TS_SERVE_CONFIG: /config/serve.json
       TS_STATE_DIR: /var/lib/tailscale

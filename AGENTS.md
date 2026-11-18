@@ -15,7 +15,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See `docs/networking.md`. SSH on 2222; services on 3000/8000/8001/8080/9090 via the `ts-proxy`
-  Tailscale sidecar (`https://panther.<tailnet>.ts.net:<port>`) and nginx on loopback
+  Tailscale sidecar (`https://panther-minor.<tailnet>.ts.net:<port>`) and nginx on loopback
 - **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `cli/*`
 
 ## Critical Rules

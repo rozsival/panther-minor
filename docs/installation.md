@@ -124,24 +124,24 @@ sudo tailscale up
 Follow the printed link to authenticate, then reconnect through Tailscale: `ssh -p 2222 <user>@<server-name>`.
 
 > [!IMPORTANT]
-> Do not name the host's node `panther`: that name belongs to the services' sidecar, which would otherwise come up as
-> `panther-1`.
+> Do not name the host or its node `panther-minor`: that name belongs to the services' sidecar, which would otherwise
+> come up as `panther-minor-1`. See [Prepare the tailnet](#-prepare-the-tailnet) for renaming the host.
 
 > [!TIP]
 > [Disable key expiry](https://login.tailscale.com/admin/machines) for the server in Tailscale to avoid losing access.
 
 ## 🧭 Prepare the tailnet
 
-The `ts-proxy` sidecar joins the tailnet as node `panther` with the tag `tag:panther`, terminates TLS with a
+The `ts-proxy` sidecar joins the tailnet as node `panther-minor` with the tag `tag:panther-minor`, terminates TLS with a
 Tailscale certificate and forwards each service port to nginx — see [Networking & security](networking.md). It needs:
 
 1. **MagicDNS and HTTPS Certificates** enabled in the [DNS settings](https://login.tailscale.com/admin/dns). The
-   tailnet DNS name shown there is the `<tailnet>` in `https://panther.<tailnet>.ts.net`.
-2. **`tag:panther` in `tagOwners`** of the [access controls](https://login.tailscale.com/admin/acls). If the policy
-   no longer allows all traffic, also grant your devices the ports `8000`, `8001`, `8080`, `3000` and `9090` on
-   `tag:panther` — the snippet is in [Tailnet policy](networking.md#-tailnet-policy).
+   tailnet DNS name shown there is the `<tailnet>` in `https://panther-minor.<tailnet>.ts.net`.
+2. **`tag:panther-minor` in `tagOwners`** of the [access controls](https://login.tailscale.com/admin/acls). If the
+   policy no longer allows all traffic, also grant your devices the ports `8000`, `8001`, `8080`, `3000` and `9090`
+   on `tag:panther-minor` — the snippet is in [Tailnet policy](networking.md#-tailnet-policy).
 3. **An auth key** from [Settings → Keys](https://login.tailscale.com/admin/settings/keys): reusable, pre-approved,
-   tagged `tag:panther`. Put it in `.env`:
+   tagged `tag:panther-minor`. Put it in `.env`:
 
    ```bash
    TS_AUTHKEY=tskey-auth-…
@@ -150,16 +150,24 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
    The sidecar uses it on its first login only; the node identity then lives in the `ts-proxy-state` volume, and as
    a tagged node it never expires.
 
-4. **A host name other than `panther`.** The host's own Tailscale node (if you add one, see
-   [above](#-connect-the-host-to-tailscale)) takes the OS hostname. If the host is called `panther`, the sidecar comes
-   up as `panther-1`, its certificate is issued for that name, and every `https://panther.<tailnet>.ts.net` URL hits
-   the host node, where nothing listens. Rename the host or its node (`sudo tailscale set --hostname=<name>`) first.
+4. **A host name other than `panther-minor`.** The host's own Tailscale node (if you add one, see
+   [above](#-connect-the-host-to-tailscale)) takes the OS hostname. If the host is called `panther-minor`, the sidecar
+   comes up as `panther-minor-1`, its certificate is issued for that name, and every
+   `https://panther-minor.<tailnet>.ts.net` URL hits the host node, where nothing listens. Rename the host first:
 
-After the first `cluster start`, `panther` appears in the [machines list](https://login.tailscale.com/admin/machines)
-and the services answer on `https://panther.<tailnet>.ts.net:<port>`:
+   ```bash
+   sudo hostnamectl set-hostname <name>
+   sudo tailscale set --hostname=<name>   # if the host is on the tailnet
+   ```
+
+   Then update whatever reached the host by its old name (SSH config, bookmarks).
+
+After the first `cluster start`, `panther-minor` appears in the
+[machines list](https://login.tailscale.com/admin/machines) and the services answer on
+`https://panther-minor.<tailnet>.ts.net:<port>`:
 
 ```bash
-curl https://panther.<tailnet>.ts.net:8000/v1/models
+curl https://panther-minor.<tailnet>.ts.net:8000/v1/models
 ```
 
 Upgrading an install from before the sidecar (own domain, `BIND_ADDR`)? Follow
@@ -188,8 +196,8 @@ before closing the current one, and connect with `ssh -p 2222 <user>@<host>`.
 
 ### `ts-proxy` logs a login URL instead of joining the tailnet. Why?
 
-Its first login found no usable `TS_AUTHKEY`: the key is empty, expired, single-use and already spent, or not
-allowed to apply `tag:panther`. Create a new key as in [Prepare the tailnet](#-prepare-the-tailnet), put it in `.env`,
+Its first login found no usable `TS_AUTHKEY`: the key is empty, expired, single-use and already spent, or not allowed
+to apply `tag:panther-minor`. Create a new key as in [Prepare the tailnet](#-prepare-the-tailnet), put it in `.env`,
 then `./bin/panther-minor cluster restart ts-proxy`.
 
 ### Can I change the defaults (user, SSH port, timezone, LVM device)?
@@ -199,5 +207,5 @@ Yes — through the interactive prompts, flags (`--allowed-user`, `--ssh-port`, 
 
 ### Do I need a domain or a TLS certificate?
 
-No. The sidecar gets and renews a certificate for `panther.<tailnet>.ts.net` itself; nginx serves plain HTTP behind
-it.
+No. The sidecar gets and renews a certificate for `panther-minor.<tailnet>.ts.net` itself; nginx serves plain HTTP
+behind it.

@@ -48,7 +48,7 @@ cd ~/panther-minor
 sudo ./bin/panther-minor setup
 sudo reboot
 
-# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther)
+# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther-minor)
 ssh -p 2222 <user>@<server-ip>
 cd ~/panther-minor
 nano .env    # TS_AUTHKEY=tskey-auth-…
@@ -60,8 +60,8 @@ nano .env    # TS_AUTHKEY=tskey-auth-…
 ./bin/panther-minor cluster start
 ```
 
-Then open `https://panther.<tailnet>.ts.net:8080` (Open WebUI) or point an OpenAI client at
-`https://panther.<tailnet>.ts.net:8000/v1`.
+Then open `https://panther-minor.<tailnet>.ts.net:8080` (Open WebUI) or point an OpenAI client at
+`https://panther-minor.<tailnet>.ts.net:8000/v1`.
 
 > [!WARNING]
 > After `setup`, SSH accepts **keys only on port 2222**. Keep your current session open until a second one connects.

@@ -1,6 +1,6 @@
 providers:
   panther-minor:
-    baseUrl: https://panther.<tailnet>.ts.net:8000/v1
+    baseUrl: https://panther-minor.<tailnet>.ts.net:8000/v1
     apiKey: llama-cpp
     api: openai-completions
     compat:

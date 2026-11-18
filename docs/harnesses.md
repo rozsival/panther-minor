@@ -18,7 +18,7 @@
 
 > [!IMPORTANT]
 > Replace `<tailnet>` in the copied config with your tailnet DNS name so the agent reaches the API
-> (`https://panther.<tailnet>.ts.net:8000/v1`). `tailscale status --json | jq -r .MagicDNSSuffix` prints
+> (`https://panther-minor.<tailnet>.ts.net:8000/v1`). `tailscale status --json | jq -r .MagicDNSSuffix` prints
 > `<tailnet>.ts.net`; the client must be on the tailnet.
 
 > [!TIP]

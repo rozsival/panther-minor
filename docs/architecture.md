@@ -51,7 +51,7 @@ instead; every other service uses `expose:`.
 
 | Service                  | Internal port | Role                                                                                        |
 | ------------------------ | ------------: | ------------------------------------------------------------------------------------------- |
-| `ts-proxy`               |             — | Tailscale node `panther`: TLS termination, forwards each tailnet port to `proxy`            |
+| `ts-proxy`               |             — | Tailscale node `panther-minor`: TLS termination, forwards each tailnet port to `proxy`      |
 | `proxy`                  |             — | nginx, plain HTTP; publishes `3000`, `8000`, `8001`, `8080`, `9090` on `127.0.0.1`          |
 | `llama-cpp`              |        `8000` | OpenAI-compatible LLM inference (router mode) with RDNA 4 and ROCm 10 support               |
 | `llama-manager`          |        `8000` | Activity-aware reverse proxy with idle unload and large-model switch handling               |
