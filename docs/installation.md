@@ -150,6 +150,11 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
    The sidecar uses it on its first login only; the node identity then lives in the `ts-proxy-state` volume, and as
    a tagged node it never expires.
 
+4. **A host name other than `panther`.** The host's own Tailscale node (if you add one, see
+   [above](#-connect-the-host-to-tailscale)) takes the OS hostname. If the host is called `panther`, the sidecar comes
+   up as `panther-1`, its certificate is issued for that name, and every `https://panther.<tailnet>.ts.net` URL hits
+   the host node, where nothing listens. Rename the host or its node (`sudo tailscale set --hostname=<name>`) first.
+
 After the first `cluster start`, `panther` appears in the [machines list](https://login.tailscale.com/admin/machines)
 and the services answer on `https://panther.<tailnet>.ts.net:<port>`:
 
