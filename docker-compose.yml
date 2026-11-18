@@ -9,8 +9,8 @@ networks:
 # One HTTPS listener per private service on the tailnet node, each forwarded to
 # the nginx listener of the same port. containerboot replaces ${TS_CERT_DOMAIN}
 # with the node's FQDN (panther-minor.<tailnet>.ts.net); $$ escapes it from Compose
-# interpolation. Public services (Funnel) get their own port and nginx listener
-# plus an AllowFunnel entry; see docs/networking.md#-public-services.
+# interpolation. Tailnet only: no AllowFunnel. Public services run their own
+# sidecar; see docs/networking.md#-public-services.
 configs:
   ts-serve:
     content: |

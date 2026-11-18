@@ -148,7 +148,14 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
    ```
 
    The sidecar uses it on its first login only; the node identity then lives in the `ts-proxy-state` volume, and as
-   a tagged node it never expires.
+   a tagged node it never expires. Clear `TS_AUTHKEY` and revoke the key once `ts-proxy` is healthy.
+
+   With [Tailnet Lock](networking.md#tailnet-lock-highly-recommended) — highly recommended — sign the key on one of
+   your signing nodes first and put the signed key it prints in `.env` instead, or the sidecar joins locked out:
+
+   ```bash
+   tailscale lock sign tskey-auth-…
+   ```
 
 4. **A host name other than `panther-minor`.** The host's own Tailscale node (if you add one, see
    [above](#-connect-the-host-to-tailscale)) takes the OS hostname. If the host is called `panther-minor`, the sidecar

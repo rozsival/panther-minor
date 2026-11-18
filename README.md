@@ -48,7 +48,8 @@ cd ~/panther-minor
 sudo ./bin/panther-minor setup
 sudo reboot
 
-# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther-minor)
+# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther-minor;
+#    signed with `tailscale lock sign` if you use Tailnet Lock, which is highly recommended)
 ssh -p 2222 <user>@<server-ip>
 cd ~/panther-minor
 nano .env    # TS_AUTHKEY=tskey-auth-…

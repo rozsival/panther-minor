@@ -10,20 +10,20 @@ quick start live in the [root README](../README.md).
 
 ## 🗂️ Document index
 
-| Document                                | Read when you want to…                               | Key topics                                                                    |
-| --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [Architecture](architecture.md)         | Understand how the services fit together             | Service map, request flow, single-tenant model, repository layout             |
-| [Installation](installation.md)         | Prepare hardware and install the stack on a server   | Hardware, BIOS, OS, `setup` steps, tailnet and auth key                       |
-| [Networking & security](networking.md)  | Reach services securely, understand published ports  | `ts-proxy` sidecar, ports, tailnet policy, Funnel, migration                  |
-| [Operations](operations.md)             | Configure, start, stop, update or extend the cluster | `.env` reference, cluster lifecycle, logs, updates, overrides, remote control |
-| [Models](models.md)                     | See which models exist and manage their weights      | LLM and text-to-image catalogs, shared weight cache, download/remove/prune    |
-| [LLM serving](llm.md)                   | Serve, tune, benchmark or switch reasoning on LLMs   | Presets, weight placement, benchmarking, speculative decoding, reasoning      |
-| [Image generation](image-generation.md) | Generate images and share GPUs with the LLMs         | `sd-server`, model switching, GPU assignment, recommended workflows           |
-| [GPU power & VRAM](gpu-management.md)   | Understand idle unloading and large-model switching  | Idle unloading, large-model arbitration, image-generation VRAM                |
-| [Monitoring](monitoring.md)             | Read dashboards and metrics                          | Prometheus targets, Grafana dashboards, exporter metrics                      |
-| [Coding harnesses](harnesses.md)        | Connect a coding agent (OMP, Pi, OpenCode)           | Presets, image formats, thinking and effort control                           |
-| [CLI reference](cli.md)                 | Look up a `./bin/panther-minor` command              | Command tree, flags, completions, maintainer workflow                         |
-| [Development](development.md)           | Contribute, run checks or cut a release              | Toolchain, checks, tests, commit rules, releases, agent skills                |
+| Document                                | Read when you want to…                               | Key topics                                                                          |
+| --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [Architecture](architecture.md)         | Understand how the services fit together             | Service map, request flow, single-tenant model, repository layout                   |
+| [Installation](installation.md)         | Prepare hardware and install the stack on a server   | Hardware, BIOS, OS, `setup` steps, tailnet and auth key                             |
+| [Networking & security](networking.md)  | Reach services securely, understand published ports  | `ts-proxy` sidecar, ports, tailnet policy, Tailnet Lock, public services, migration |
+| [Operations](operations.md)             | Configure, start, stop, update or extend the cluster | `.env` reference, cluster lifecycle, logs, updates, overrides, remote control       |
+| [Models](models.md)                     | See which models exist and manage their weights      | LLM and text-to-image catalogs, shared weight cache, download/remove/prune          |
+| [LLM serving](llm.md)                   | Serve, tune, benchmark or switch reasoning on LLMs   | Presets, weight placement, benchmarking, speculative decoding, reasoning            |
+| [Image generation](image-generation.md) | Generate images and share GPUs with the LLMs         | `sd-server`, model switching, GPU assignment, recommended workflows                 |
+| [GPU power & VRAM](gpu-management.md)   | Understand idle unloading and large-model switching  | Idle unloading, large-model arbitration, image-generation VRAM                      |
+| [Monitoring](monitoring.md)             | Read dashboards and metrics                          | Prometheus targets, Grafana dashboards, exporter metrics                            |
+| [Coding harnesses](harnesses.md)        | Connect a coding agent (OMP, Pi, OpenCode)           | Presets, image formats, thinking and effort control                                 |
+| [CLI reference](cli.md)                 | Look up a `./bin/panther-minor` command              | Command tree, flags, completions, maintainer workflow                               |
+| [Development](development.md)           | Contribute, run checks or cut a release              | Toolchain, checks, tests, commit rules, releases, agent skills                      |
 
 ## 🛤️ Reading paths
 
