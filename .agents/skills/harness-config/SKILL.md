@@ -42,8 +42,8 @@ pass of steps 2–4 per harness, and report each result separately in step 5.
 
 ## 2. Resolve the host
 
-Clients reach the stack through the Tailscale sidecar node `panther`, so the base URL is
-`https://panther.<tailnet>.ts.net:8000/v1`. The preset files carry exactly that, with `<tailnet>` as the
+Clients reach the stack through the Tailscale sidecar node `panther-minor`, so the base URL is
+`https://panther-minor.<tailnet>.ts.net:8000/v1`. The preset files carry exactly that, with `<tailnet>` as the
 placeholder (`baseUrl` in `harnesses/omp.yml` and `harnesses/pi.json`,
 `provider.panther-minor.options.baseURL` in `harnesses/opencode.json`).
 
@@ -57,13 +57,13 @@ On macOS the CLI may only exist inside the app bundle: `/Applications/Tailscale.
 If detection fails (no Tailscale on this machine, not logged in), ask the user for the tailnet DNS name or the
 full host. Accept any of these forms and normalize:
 
-| Input                                               | Resolved base URL                         |
-| --------------------------------------------------- | ----------------------------------------- |
-| `tail1234.ts.net` (detected suffix or tailnet name) | `https://panther.tail1234.ts.net:8000/v1` |
-| `panther.tail1234.ts.net` (full host)               | `https://panther.tail1234.ts.net:8000/v1` |
-| `https://other.host:9443/v1` (full URL)             | used verbatim (append `/v1` if missing)   |
+| Input                                               | Resolved base URL                               |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `tail1234.ts.net` (detected suffix or tailnet name) | `https://panther-minor.tail1234.ts.net:8000/v1` |
+| `panther-minor.tail1234.ts.net` (full host)         | `https://panther-minor.tail1234.ts.net:8000/v1` |
+| `https://other.host:9443/v1` (full URL)             | used verbatim (append `/v1` if missing)         |
 
-Only default the node to `panther`, the port to `8000` and the scheme to `https` when the user did **not**
+Only default the node to `panther-minor`, the port to `8000` and the scheme to `https` when the user did **not**
 supply their own.
 
 **Update (config already exists):** extract the host already installed — grep the provider's URL line out of
@@ -76,7 +76,10 @@ grep -oE '"?base[Uu][Rr][Ll]"?: *"?https?://[^"'"'"':/]+(:[0-9]+)?' <installed-f
 (For OMP's YAML this is the `baseUrl:` line under `providers.panther-minor`; for Pi it's `baseUrl` under
 the same path; for OpenCode it's `baseURL` under `provider.panther-minor.options`.)
 
-- If the value is a real `*.ts.net` host (no `<tailnet>` placeholder), reuse it without asking.
+- If the value is `panther-minor.<suffix>.ts.net` (a real suffix, no `<tailnet>` placeholder), reuse it without asking.
+- If it is another `*.ts.net` host, it points at a node the services no longer answer on (`panther`, the sidecar's
+  name before the rename, or the host itself, which used to be called `panther-minor` but now has its own name):
+  tell the user, then swap the node label for `panther-minor` and keep the tailnet suffix.
 - If it is a loopback host (`localhost`, `127.0.0.1`), the user deliberately points the harness at the host itself
   (a harness on the server, or an SSH tunnel): keep the installed URL as it is, scheme and port included.
 - If it is any other host, it predates the Tailscale sidecar (the old own-domain URL, which no longer
@@ -85,7 +88,7 @@ the same path; for OpenCode it's `baseURL` under `provider.panther-minor.options
   resolve as in the fresh-install case.
 
 Before writing anything, state the resolved base URL back to the user (e.g. "Using
-`https://panther.tail1234.ts.net:8000/v1`").
+`https://panther-minor.tail1234.ts.net:8000/v1`").
 
 ## 3. Install or update
 
@@ -98,7 +101,7 @@ mkdir -p ~/.config/opencode      # OpenCode
 ```
 
 Copy the matching preset over the target path, then replace the literal `<tailnet>.ts.net` with the
-resolved tailnet suffix (the presets only place it inside an existing `https://panther.<tailnet>.ts.net:8000/v1`
+resolved tailnet suffix (the presets only place it inside an existing `https://panther-minor.<tailnet>.ts.net:8000/v1`
 skeleton, so substitute just that segment unless the user supplied their own host or URL, in which case
 replace the whole base URL with the resolved one):
 
@@ -154,12 +157,12 @@ installed file structurally and use a targeted edit — do not regex-splice a wh
    This must return nothing for any file you touched.
 3. **Connectivity smoke test.**
    ```bash
-   curl -s https://panther.<resolved-tailnet>.ts.net:8000/v1/models
+   curl -s https://panther-minor.<resolved-tailnet>.ts.net:8000/v1/models
    ```
    Report the model ids returned. If `curl` fails (timeout, connection refused, DNS failure, TLS error),
    report it as a **reachability problem, not a config error** — leave the written config in place; the
    server may be off, this machine may not be on the tailnet, or the tailnet policy may not grant it access
-   to `tag:panther`.
+   to `tag:panther-minor`.
 
 ## 5. Report
 

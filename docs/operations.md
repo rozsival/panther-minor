@@ -134,7 +134,7 @@ Yes — Compose reads `.env` when containers are created. Build pins (`*_REPO`, 
 
 No. Weights live in the `models/.huggingface` bind mount. It does delete Open WebUI, Prometheus and Grafana data, and
 the `ts-proxy-state` volume that holds the sidecar's tailnet identity: the next start needs a valid `TS_AUTHKEY`, and
-the old `panther` node must be deleted in the admin console first, or the new one comes up as `panther-1`.
+the old `panther-minor` node must be deleted in the admin console first, or the new one comes up as `panther-minor-1`.
 
 ### How do I change how long models stay loaded when idle?
 

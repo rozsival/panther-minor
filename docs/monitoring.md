@@ -11,10 +11,10 @@
 
 ## 🧭 Access
 
-| UI         | URL                                     | Auth                                   |
-| ---------- | --------------------------------------- | -------------------------------------- |
-| Grafana    | `https://panther.<tailnet>.ts.net:3000` | Anonymous `Admin`, login form disabled |
-| Prometheus | `https://panther.<tailnet>.ts.net:9090` | None (lifecycle API enabled)           |
+| UI         | URL                                           | Auth                                   |
+| ---------- | --------------------------------------------- | -------------------------------------- |
+| Grafana    | `https://panther-minor.<tailnet>.ts.net:3000` | Anonymous `Admin`, login form disabled |
+| Prometheus | `https://panther-minor.<tailnet>.ts.net:9090` | None (lifecycle API enabled)           |
 
 Both are reachable only via the tailnet or loopback — see [Networking & security](networking.md).
 
