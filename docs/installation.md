@@ -151,7 +151,9 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
    a tagged node it never expires. Clear `TS_AUTHKEY` and revoke the key once `ts-proxy` is healthy.
 
    With [Tailnet Lock](networking.md#tailnet-lock-highly-recommended) — highly recommended — sign the key on one of
-   your signing nodes first and put the signed key it prints in `.env` instead, or the sidecar joins locked out:
+   your signing nodes first and put the signed key it prints in `.env` instead, or the sidecar joins locked out. A
+   signed key gets past the lock for whoever holds it, so make it single-use rather than reusable, and do the clearing
+   and revoking above without fail:
 
    ```bash
    tailscale lock sign tskey-auth-…

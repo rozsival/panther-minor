@@ -36,14 +36,16 @@ HTTPS listeners in the serve config; the host and the other containers have no t
 
 Everything above trusts the tailnet: any node in it that the policy allows can reach the services, and without
 [Tailnet Lock](https://tailscale.com/kb/1226/tailnet-lock) Tailscale's coordination server alone decides which nodes
-are in it. With it, a node joins only once one of your trusted signing nodes signs its key, so neither a leaked auth
-key nor a compromised coordination server can slip a node in. Enable it in the
+are in it. With it, a node joins only once one of your trusted signing nodes signs its key, so neither an unsigned
+auth key nor a compromised coordination server can slip a node in. Enable it in the
 [device management settings](https://login.tailscale.com/admin/settings/device-management) (Personal and Enterprise
 plans, at least two signing nodes) and keep the disablement secrets in a password manager.
 
 For the sidecar it changes one thing: its auth key has to be signed too, or the node joins locked out and nothing can
 reach it. Sign the key on a signing node before putting it in `.env` — see
-[Installation](installation.md#-prepare-the-tailnet).
+[Installation](installation.md#-prepare-the-tailnet). A signed key carries that signature with it: whoever holds it
+adds a node the lock accepts. So prefer a single-use key, and once `ts-proxy` is healthy empty `TS_AUTHKEY` and revoke
+the key.
 
 ### Why loopback, not a firewall rule
 
