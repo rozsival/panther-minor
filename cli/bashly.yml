@@ -329,44 +329,6 @@ commands:
       - name: prune
         help: Delete cached model files no config references anymore
 
-  - name: proxy
-    help: Manage proxy SSL and certificate automation
-    commands:
-      - name: certbot
-        help: Issue and install the proxy certificate with acme-dns
-        flags:
-          - long: --domain
-            short: -d
-            arg: domain
-            help: Domain name to issue the certificate for
-            required: true
-          - long: --challenge-record
-            short: -c
-            arg: record
-            help: ACME challenge CNAME record to create
-            required: true
-          - long: --force
-            short: -f
-            help: Re-register acme-dns credentials even if they already exist
-
-      - name: renew-ssl
-        help: Renew existing proxy certificates and reload nginx
-      - name: setup-cron
-        help: Install a cron entry that renews proxy certificates daily
-        flags:
-          - long: --schedule
-            short: -s
-            arg: cron
-            help: Cron schedule to install (defaults to 0 2 * * *)
-          - long: --user
-            short: -u
-            arg: user
-            help: User whose crontab should receive the renewal entry (defaults to current user)
-          - long: --log-path
-            short: -l
-            arg: path
-            help: File to append renewal logs to (defaults to proxy/renew-ssl.log)
-
   - name: cluster
     help: Manage the Panther Minor Docker Compose cluster
     commands:
@@ -467,8 +429,8 @@ commands:
 
       Resolves the version on GitHub, asks for confirmation, then replaces the
       installed runtime files with that version's. Local state stays: .env,
-      certificates, models, docker-compose.override.yml and extra/. Downgrades
-      and branches ask a second time.
+      models, docker-compose.override.yml and extra/. Downgrades and branches
+      ask a second time.
     args:
       - name: version
         help: Release tag (v14.1.0 or 14.1.0), branch name (unstable), or latest
