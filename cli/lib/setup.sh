@@ -116,15 +116,12 @@ panther_check_env_ts_authkey() {
   # The key only matters for the sidecar's first login: once the node exists,
   # its identity lives in the state volume and an empty or expired key is fine.
   # The volume alone does not prove a login (Compose creates it on the first
-  # start either way), so ask the running sidecar instead. Its LocalAPI socket
-  # is containerboot's /tmp/tailscaled.sock, not the CLI default. A secret
-  # cannot be derived from the host, so a missing one is a reminder, not an
-  # error.
-  local status
-  status="$(panther_compose exec -T ts-proxy tailscale --socket=/tmp/tailscaled.sock status --json 2>/dev/null || true)"
-  if [[ "$status" =~ \"BackendState\":\ *\"Running\" ]]; then
-    return 0
-  fi
+  # start either way), so ask Compose for the sidecar's health instead: its
+  # /healthz answers 503 until the node has a tailnet address. A secret cannot
+  # be derived from the host, so a missing one is a reminder, not an error.
+  local health
+  health="$(panther_compose ps --format '{{.Health}}' ts-proxy 2>/dev/null | head -1 || true)"
+  [[ "$health" == 'healthy' ]] && return 0
 
   local key
   key="$(sed -n 's/^TS_AUTHKEY=//p' "$env_file" | tail -1)"
