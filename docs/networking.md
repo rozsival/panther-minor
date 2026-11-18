@@ -215,12 +215,12 @@ move to the sidecar without downtime: the sidecar runs next to the old path unti
    services:
      ts-proxy:
        container_name: ts-proxy
-       image: tailscale/tailscale:stable
+       image: tailscale/tailscale:v1.104.7
        restart: unless-stopped
        hostname: panther
        environment:
          TS_AUTH_ONCE: 'true'
-         TS_AUTHKEY: '${TS_AUTHKEY}'
+         TS_AUTHKEY: '${TS_AUTHKEY:-}'
          TS_EXTRA_ARGS: '--advertise-tags=tag:panther'
          TS_SERVE_CONFIG: /config/serve.json
          TS_STATE_DIR: /var/lib/tailscale
@@ -318,6 +318,25 @@ not reachable, since only tailnet devices can connect.
 Check the sidecar: `./bin/panther-minor logs ts-proxy --tail 100` and `cluster status` (its healthcheck turns
 unhealthy without a tailnet address). Loopback and SSH tunnels keep working meanwhile. A first start without
 `TS_AUTHKEY` logs a login URL instead of joining.
+
+### Are tailnet connections direct or relayed?
+
+Check from a client with `tailscale ping panther`: it should end with `via <ip>:<port>`, a direct path. `via DERP(…)`
+means relayed traffic, which adds latency to every streamed token. The sidecar sits behind Docker's NAT and UFW denies
+incoming traffic, so NAT traversal usually finds a direct path but is not guaranteed to. If it stays relayed, give
+the sidecar a fixed WireGuard port and publish it — on a port other than the host node's `41641`:
+
+```yaml
+services:
+  ts-proxy:
+    environment:
+      TS_TAILSCALED_EXTRA_ARGS: '--port=41642'
+    ports:
+      - '41642:41642/udp'
+```
+
+in `docker-compose.override.yml`, then `./bin/panther-minor cluster start`. The port is open to the internet like any
+Tailscale node's, which is safe: WireGuard drops every packet that is not from an authenticated peer.
 
 ### The node came back as `panther-1`. Why?
 
