@@ -58,7 +58,7 @@ writing a new one.
    the way sibling entries already do.
 2. **Add or edit the authored command file.** A new leaf command named `<group> <subgroup> <cmd>` needs
    `cli/commands/<group>/<subgroup>/<cmd>.sh` (Bashly maps spaces to `/` and keeps hyphens, e.g.
-   `proxy renew-ssl` → `cli/commands/proxy/renew-ssl.sh`) defining a `panther_<subgroup>_<cmd>()`
+   `models llm bench` → `cli/commands/models/llm/bench.sh`) defining a `panther_<subgroup>_<cmd>()`
    function (follow the naming pattern already used by sibling files, e.g. `cli/commands/models/llm/bench.sh` defines and calls
    `panther_llm_bench`). Put shared logic used by more than one command in `cli/lib/*.sh`, not
    duplicated across command files. Quote `args` keys with a hyphen inside the name:

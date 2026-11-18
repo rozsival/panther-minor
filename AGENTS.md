@@ -14,7 +14,8 @@ Grafana, and exporters for monitoring GPU and node performance.
 - **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
-- **Network**: See `docs/networking.md`. SSH on 2222, services on 3000/5000/8000/8001/8080/9090
+- **Network**: See `docs/networking.md`. SSH on 2222; services on 3000/8000/8001/8080/9090 via the `ts-proxy`
+  Tailscale sidecar (`https://panther.<tailnet>.ts.net:<port>`) and nginx on loopback
 - **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `cli/*`
 
 ## Critical Rules
@@ -28,7 +29,7 @@ Grafana, and exporters for monitoring GPU and node performance.
 
 - `README.md` — minimal project overview, quick start, ownership; links to `docs/`
 - `docs/README.md` — documentation index; one domain per file in `docs/` (follow its conventions when adding or editing docs)
-- `docs/networking.md` — port configuration, `BIND_ADDR`, and access methods
+- `docs/networking.md` — `ts-proxy` sidecar, port reference, tailnet policy, public (Funnel) services, migration
 - `docs/cli.md` — `./bin/panther-minor` command reference and maintainer workflow (strictly follow rules there for CLI changes)
 - `docs/models.md`, `docs/llm.md`, `docs/image-generation.md` — model catalogs and shared cache; LLM serving (`./bin/panther-minor models llm *`, `models/llm.config.json`, `llama-cpp/preset.ini`); text-to-image (`./bin/panther-minor models t2i *`, `models/t2i.config.json`)
 - `docker-compose.yml` — service definitions with health checks

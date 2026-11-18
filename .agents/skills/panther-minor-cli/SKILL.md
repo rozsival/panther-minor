@@ -3,7 +3,7 @@ name: panther-minor-cli
 description: >
   Operate a Panther Minor workstation through its CLI (`panther-minor` / `./bin/panther-minor`): start, stop,
   restart or rebuild the Compose cluster, check container status, tail service logs, load/unload/bench LLM
-  presets, download/remove/prune model weights, load/unload text-to-image models, renew certificates, run
+  presets, download/remove/prune model weights, load/unload text-to-image models, run
   single host setup steps, and update the install to the latest release (or another version). Use whenever the user asks to
   "start the stack", "restart llama-cpp", "load Qwen…", "free VRAM", "what's running", "show me the logs",
   "download a model", "switch the image model", "update the server" — even if they never name the CLI.
@@ -18,14 +18,12 @@ stack actually lives, never hang on a prompt, and never trade the user's data fo
 ## Where to run it
 
 The CLI drives `docker compose` in the repository root and talks to `llama-manager` at
-`https://localhost:8000`, so stack commands only work **on the Panther host** (Ubuntu, AMD GPUs). Help,
-`list` and completions work anywhere.
+`http://localhost:8000` (nginx's loopback listener), so stack commands only work **on the Panther host** (Ubuntu,
+AMD GPUs). Help, `list` and completions work anywhere.
 
 1. Probe: `uname -s` first. `Darwin`, or no Docker → you are on a dev machine; run stack commands over SSH.
    On Linux, `panther-minor cluster status` (or `./bin/panther-minor cluster status` from the repo root):
    - a container table → you are on the host; run commands directly.
-   - `required variable BIND_ADDR is missing` → host whose Tailscale address was never recorded (see
-     [Reading failures](#reading-failures)).
 2. Over SSH: SSH listens on port `2222` with key-only auth. If `~/.ssh/config` has an alias that clearly
    points at the workstation, use it without asking for read-only commands and for whatever the user
    asked you to do; otherwise ask the user for `user@host` once. `~/.local/bin` (where `install` puts the
@@ -86,9 +84,8 @@ You have no TTY, so four behaviours matter:
   file list; never set the variable pre-emptively — it is the only thing standing between a typo and deleted
   weights.
 - **`logs <service>` follows forever.** Always pass `--tail <n>` (`logs llama-manager --tail 200`).
-- **Some commands are interactive by design** — `setup all` (reads five values and a final y/N),
-  `proxy certbot` (waits for you to create a DNS record and press Enter), and anything needing `sudo` over
-  SSH. Give the user the exact command to run themselves and stop.
+- **Some commands are interactive by design** — `setup all` (reads five values and a final y/N) and anything
+  needing `sudo` over SSH. Give the user the exact command to run themselves and stop.
 
 Long runners — `cluster build` (compiles llama.cpp for ROCm: many minutes), `models llm|t2i download`
 (tens of GB), `models llm bench` (minutes; longer with `--loads`), `models llm load` of a large model — need
@@ -100,12 +97,12 @@ Run read-only commands freely. State-changing commands are fine when the user as
 what else they disrupt. Destructive commands need the user's explicit go-ahead for that exact command,
 even if a broader request implied it.
 
-| Tier           | Commands                                                                                                                                                                                                                                                                                                                         |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Read-only      | `--help`, `--version`, `cluster status`, `logs <svc> --tail n`, `models llm list`, `models t2i list`, `__complete …`, `completions`                                                                                                                                                                                              |
-| State-changing | `cluster start/stop/restart/build` (without `-v`), `models llm load/unload`, `models llm bench`, `models t2i load/unload`, `models llm/t2i download`, `proxy renew-ssl`, `proxy setup-cron`, `install`, `update`                                                                                                                 |
-| Destructive    | `cluster stop -v`, `cluster restart -v` (delete named volumes: Open WebUI chats/users, Prometheus history, Grafana state), `cluster cleanup` (`down -v --rmi all`: all of that plus every image, so the next start rebuilds llama.cpp), `models llm/t2i remove`, `models prune`, `download --force` (deletes before re-fetching) |
-| Hand to user   | `setup …` (root; `setup all` interactive), `proxy certbot`                                                                                                                                                                                                                                                                       |
+| Tier           | Commands                                                                                                                                                                                                                                                                                                                                                          |
+| -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Read-only      | `--help`, `--version`, `cluster status`, `logs <svc> --tail n`, `models llm list`, `models t2i list`, `__complete …`, `completions`                                                                                                                                                                                                                               |
+| State-changing | `cluster start/stop/restart/build` (without `-v`), `models llm load/unload`, `models llm bench`, `models t2i load/unload`, `models llm/t2i download`, `install`, `update`                                                                                                                                                                                         |
+| Destructive    | `cluster stop -v`, `cluster restart -v` (delete named volumes: Open WebUI chats/users, Prometheus history, Grafana state, the `ts-proxy` tailnet identity), `cluster cleanup` (`down -v --rmi all`: all of that plus every image, so the next start rebuilds llama.cpp), `models llm/t2i remove`, `models prune`, `download --force` (deletes before re-fetching) |
+| Hand to user   | `setup …` (root; `setup all` interactive)                                                                                                                                                                                                                                                                                                                         |
 
 Side effects worth stating before you run:
 
@@ -121,7 +118,7 @@ Side effects worth stating before you run:
   anything beyond a one-off number, use the `tune-preset` skill.
 - `update [version]` (default `latest`; also a release tag or a branch) prints the exact resolved version and
   asks y/N; a downgrade or a branch asks a second time. It replaces the shipped runtime files and deletes the ones
-  the target no longer ships (local edits to shipped files are lost; `.env`, certificates, weights, `extra/` and
+  the target no longer ships (local edits to shipped files are lost; `.env`, weights, `extra/` and
   `docker-compose.override.yml` stay). On a Git checkout it asks a second time, then removes `.git` and every
   non-runtime file; it refuses uncommitted tracked changes or unpushed commits. Never run it in a development
   clone. Never answer the prompts (or set `PANTHER_CONFIRMED=1`) for a downgrade, branch or Git conversion
@@ -134,7 +131,7 @@ Side effects worth stating before you run:
 
 ```bash
 panther-minor cluster status
-curl -sk https://localhost:8000/models | jq -r '.data[] | "\(.id)\t\(.status.value)"'   # LLM residency
+curl -s http://localhost:8000/models | jq -r '.data[] | "\(.id)\t\(.status.value)"'   # LLM residency
 ```
 
 The manager counts model-list requests as activity, so polling this in a loop postpones idle unloading.
@@ -201,19 +198,19 @@ panther-minor cluster status
 
 ## Reading failures
 
-| Output                                                    | Meaning → action                                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `required variable BIND_ADDR is missing a value`          | Not the host, or Tailscale was down at `setup env`. On the host: user runs `sudo tailscale up`, then `sudo ./bin/panther-minor setup env`. |
-| `cannot reach llama-manager at https://localhost:8000`    | Stack down or proxy not bound → `cluster status`, then `cluster start` / `logs proxy --tail 100`.                                          |
-| `validation error in MODEL: must be one of: …`            | Wrong preset/model name for that command → pick from the printed list.                                                                     |
-| `Text-to-image model '…' is not downloaded`               | `models t2i download <model>` first.                                                                                                       |
-| `HTTP 4xx/5xx: …` from `load`                             | Manager or llama-server refused → `logs llama-cpp --tail 200` and `logs llama-manager --tail 200`.                                         |
-| `[CONFIRM] …` then exit 1                                 | Prompt declined for lack of a TTY; nothing deleted → confirm with the user, re-run with `PANTHER_CONFIRMED=1`.                             |
-| `This command must be run as root (use sudo).`            | A `setup` step → hand it to the user.                                                                                                      |
-| `Run install as the user who uses the CLI, not with sudo` | Re-run `install` without `sudo`.                                                                                                           |
-| `No release or branch named '…'`                          | Typo or unpushed branch → `update` with an existing release tag, `latest`, or a pushed branch.                                             |
-| `… predates archive installs and cannot be installed …`   | Target release/branch has no runtime archive or `release/package.sh` → pick a newer release or rebase the branch.                          |
-| `Run update as the user who owns …, not with sudo.`       | Re-run `update` without `sudo`.                                                                                                            |
+| Output                                                    | Meaning → action                                                                                                             |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `cannot reach llama-manager at http://localhost:8000`     | Stack down or proxy not bound → `cluster status`, then `cluster start` / `logs proxy --tail 100`.                            |
+| Services fine on the host, unreachable from the tailnet   | Sidecar problem → `logs ts-proxy --tail 100`. A login URL there means no usable `TS_AUTHKEY`: hand key creation to the user. |
+| `validation error in MODEL: must be one of: …`            | Wrong preset/model name for that command → pick from the printed list.                                                       |
+| `Text-to-image model '…' is not downloaded`               | `models t2i download <model>` first.                                                                                         |
+| `HTTP 4xx/5xx: …` from `load`                             | Manager or llama-server refused → `logs llama-cpp --tail 200` and `logs llama-manager --tail 200`.                           |
+| `[CONFIRM] …` then exit 1                                 | Prompt declined for lack of a TTY; nothing deleted → confirm with the user, re-run with `PANTHER_CONFIRMED=1`.               |
+| `This command must be run as root (use sudo).`            | A `setup` step → hand it to the user.                                                                                        |
+| `Run install as the user who uses the CLI, not with sudo` | Re-run `install` without `sudo`.                                                                                             |
+| `No release or branch named '…'`                          | Typo or unpushed branch → `update` with an existing release tag, `latest`, or a pushed branch.                               |
+| `… predates archive installs and cannot be installed …`   | Target release/branch has no runtime archive or `release/package.sh` → pick a newer release or rebase the branch.            |
+| `Run update as the user who owns …, not with sudo.`       | Re-run `update` without `sudo`.                                                                                              |
 
 When reporting back, give the command you ran, its exit code, and the lines that matter (the `[OK]`/`[ERROR]`
 line, the status row, the bench summary) — not the whole scroll.

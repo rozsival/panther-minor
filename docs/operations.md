@@ -13,18 +13,18 @@
 Runtime configuration lives in `.env`, created from `.env.example` by `setup env`. Defaults are provided for every
 non-sensitive value; `.env.example` documents each variable inline and is the source of truth.
 
-| Group                  | Variables                                                                                                                     | Notes                                                                      |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `llama.cpp` build      | `LLAMA_CPP_REPO`, `LLAMA_CPP_REF`                                                                                             | Upstream release tag; see [LLM serving](llm.md#-speculative-decoding)      |
-| `llama.cpp` runtime    | `LLAMA_CPP_BATCH_SIZE`, `LLAMA_CPP_UBATCH_SIZE`, `LLAMA_CPP_CACHE_RAM`, `LLAMA_CPP_MODELS_MAX`, `LLAMA_CPP_PARALLEL`          | Server-wide knobs; per-model settings live in `llama-cpp/preset.ini`       |
-| Idle timeouts          | `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `SD_CPP_SLEEP_IDLE_SECONDS`                                                                   | `0` disables LLM idle unloading; see [GPU power & VRAM](gpu-management.md) |
-| LLM GPU sets           | `LLAMA_CPP_GPUS_STANDALONE`, `LLAMA_CPP_GPUS_SHARED`, `ROCM_VISIBLE_DEVICES` ⚙️                                               | See [GPU assignment](image-generation.md#gpu-assignment)                   |
-| `stable-diffusion.cpp` | `SD_CPP_REPO`, `SD_CPP_REF`, `SD_VISIBLE_DEVICES`                                                                             | Build pin and the image GPU                                                |
-| Active image model     | `SD_CPP_MODEL`, `SD_CPP_DIFFUSION_MODEL`, `SD_CPP_UNCOND_DIFFUSION_MODEL`, `SD_CPP_LLM`, `SD_CPP_VAE`, `SD_CPP_MODEL_ARGS` ⚙️ | Written by `models t2i load`                                               |
-| ROCm                   | `ROCM_ARCH`                                                                                                                   | `gfx1201`; changes only with a new GPU ISA                                 |
-| Permissions            | `HOST_UID`, `HOST_GID`, `VIDEO_GID` ⚙️, `RENDER_GID` ⚙️                                                                       | GPU group IDs synced by `setup env`                                        |
-| Network                | `BIND_ADDR` ⚙️                                                                                                                | Mandatory; see [Networking & security](networking.md)                      |
-| Hugging Face           | `HF_TOKEN`                                                                                                                    | Optional, avoids download rate limits                                      |
+| Group                  | Variables                                                                                                                     | Notes                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `llama.cpp` build      | `LLAMA_CPP_REPO`, `LLAMA_CPP_REF`                                                                                             | Upstream release tag; see [LLM serving](llm.md#-speculative-decoding)                    |
+| `llama.cpp` runtime    | `LLAMA_CPP_BATCH_SIZE`, `LLAMA_CPP_UBATCH_SIZE`, `LLAMA_CPP_CACHE_RAM`, `LLAMA_CPP_MODELS_MAX`, `LLAMA_CPP_PARALLEL`          | Server-wide knobs; per-model settings live in `llama-cpp/preset.ini`                     |
+| Idle timeouts          | `LLAMA_CPP_SLEEP_IDLE_SECONDS`, `SD_CPP_SLEEP_IDLE_SECONDS`                                                                   | `0` disables LLM idle unloading; see [GPU power & VRAM](gpu-management.md)               |
+| LLM GPU sets           | `LLAMA_CPP_GPUS_STANDALONE`, `LLAMA_CPP_GPUS_SHARED`, `ROCM_VISIBLE_DEVICES` ⚙️                                               | See [GPU assignment](image-generation.md#gpu-assignment)                                 |
+| `stable-diffusion.cpp` | `SD_CPP_REPO`, `SD_CPP_REF`, `SD_VISIBLE_DEVICES`                                                                             | Build pin and the image GPU                                                              |
+| Active image model     | `SD_CPP_MODEL`, `SD_CPP_DIFFUSION_MODEL`, `SD_CPP_UNCOND_DIFFUSION_MODEL`, `SD_CPP_LLM`, `SD_CPP_VAE`, `SD_CPP_MODEL_ARGS` ⚙️ | Written by `models t2i load`                                                             |
+| ROCm                   | `ROCM_ARCH`                                                                                                                   | `gfx1201`; changes only with a new GPU ISA                                               |
+| Permissions            | `HOST_UID`, `HOST_GID`, `VIDEO_GID` ⚙️, `RENDER_GID` ⚙️                                                                       | GPU group IDs synced by `setup env`                                                      |
+| Tailscale sidecar      | `TS_AUTHKEY`                                                                                                                  | First login of `ts-proxy` only; see [Installation](installation.md#-prepare-the-tailnet) |
+| Hugging Face           | `HF_TOKEN`                                                                                                                    | Optional, avoids download rate limits                                                    |
 
 ⚙️ Managed by the CLI — prefer the owning command over hand edits.
 
@@ -80,7 +80,7 @@ not with `sudo`.
 
 Releases install their runtime archive; a branch is downloaded at the resolved commit and packaged by its own
 `release/package.sh`. Files the new version ships replace the installed ones, files it no longer ships are deleted
-(`.manifest` holds the list), and nothing else is touched: `.env`, `proxy/ssl/`, `proxy/acme/`, `models/.huggingface/`,
+(`.manifest` holds the list), and nothing else is touched: `.env`, `models/.huggingface/`,
 `models/bench.log`, `extra/` and `docker-compose.override.yml` survive every update. Local edits to shipped files (e.g.
 `llama-cpp/preset.ini`) do not — put overrides in `.env` or `docker-compose.override.yml`.
 
@@ -132,7 +132,9 @@ Yes — Compose reads `.env` when containers are created. Build pins (`*_REPO`, 
 
 ### Will `cluster stop --volumes` delete my downloaded models?
 
-No. Weights live in the `models/.huggingface` bind mount. It does delete Open WebUI, Prometheus and Grafana data.
+No. Weights live in the `models/.huggingface` bind mount. It does delete Open WebUI, Prometheus and Grafana data, and
+the `ts-proxy-state` volume that holds the sidecar's tailnet identity: the next start needs a valid `TS_AUTHKEY`, and
+the old `panther` node must be deleted in the admin console first, or the new one comes up as `panther-1`.
 
 ### How do I change how long models stay loaded when idle?
 

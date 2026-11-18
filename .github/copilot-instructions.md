@@ -29,8 +29,9 @@ You are a **disciplined, high-signal PR reviewer** for Panther Minor — a self-
 ### Architecture (high-level)
 
 ```
-Client → llama-manager (port 8000) → llama.cpp server (port 8000 inside Docker)
-                              ↘ Open WebUI (port 3000)
+Client (tailnet) → ts-proxy (Tailscale sidecar, TLS) → proxy (nginx, plain HTTP, one listener per port)
+  :8000 → llama-manager → llama.cpp server (port 8000 inside Docker)
+  :8080 → Open WebUI · :3000 → Grafana · :9090 → Prometheus · :8001 → sd-manager
 Prometheus → scraping /status on llama-manager for GPU metrics
 ```
 

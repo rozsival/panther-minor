@@ -1,7 +1,7 @@
 # 🛠️ Installation
 
 > From bare metal to a running stack: hardware and BIOS requirements, a clean Ubuntu Server install, one
-> `setup` command that prepares and hardens the host, then Tailscale and TLS certificates.
+> `setup` command that prepares and hardens the host, then the tailnet the services are reached through.
 
 **Related:** [Networking & security](networking.md) · [Operations](operations.md) · [CLI reference](cli.md) ·
 [Architecture](architecture.md)
@@ -42,8 +42,8 @@
 - 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS or newer** (Linux kernel 7)
 - A non-root user with `sudo` privileges, created during the OS install
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
-- A [Tailscale](https://tailscale.com/) account for secure remote access
-- A domain you control, required for TLS certificate issuance and secure service access
+- A [Tailscale](https://tailscale.com/) tailnet you administer: the services are reached through a Tailscale node
+  with a Tailscale-issued certificate, so no domain or certificate of your own is needed
 
 > [!WARNING]
 > **Install a major release cleanly rather than upgrading in place.** `do-release-upgrade` leaves the
@@ -95,69 +95,70 @@ step below in order.
 | 2   | `packages`  | `build-essential`, `jq`, `nvtop`, `htop` and more, plus unattended upgrades                                                                            |
 | 3   | `brew`      | Homebrew, `llmfit` and Hugging Face CLI (`hf`) for the allowed user                                                                                    |
 | 4   | `docker`    | Docker Engine + Compose; adds the allowed user to the `docker` group                                                                                   |
-| 5   | `tailscale` | Tailscale agent                                                                                                                                        |
+| 5   | `tailscale` | Tailscale agent for the host itself (SSH over the tailnet)                                                                                             |
 | 6   | `ssh`       | Hardened `/etc/ssh/sshd_config`: port `2222`, key-only auth, `AllowUsers` restricted                                                                   |
-| 7   | `ufw`       | Firewall rules for ports `2222`, `80` and `443`                                                                                                        |
+| 7   | `ufw`       | Firewall rules: only SSH (`2222`) is open                                                                                                              |
 | 8   | `fail2ban`  | Brute-force protection on the SSH port                                                                                                                 |
 | 9   | `amdgpu`    | Latest AMD kernel driver (DKMS) and ROCm                                                                                                               |
 | 10  | `grub`      | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                                                                 |
 | 11  | `shell`     | Starship prompt; Ghostty terminfo in `/etc/terminfo`; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
-| 12  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, fills `BIND_ADDR`                                                                |
+| 12  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, reminds you to set `TS_AUTHKEY`                                                  |
 
 Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot,
 open a second SSH session on the new port before closing the current one, authenticate Tailscale, and set
-`BIND_ADDR`.
+`TS_AUTHKEY`.
 
 > [!TIP]
 > Every step can be re-run on its own, e.g. `sudo ./bin/panther-minor setup ssh`. Flags per step are listed in the
 > [CLI reference](cli.md#setup).
 
-## 🔐 Connect Tailscale
+## 🔐 Connect the host to Tailscale
 
-After the reboot, join the server to your [Tailscale network](https://login.tailscale.com/admin/):
+Optional for the services, which have their own tailnet node, but convenient for SSH. After the reboot, join the
+server to your [tailnet](https://login.tailscale.com/admin/):
 
 ```bash
 sudo tailscale up
 ```
 
-Follow the printed link to authenticate, then reconnect through Tailscale and record the node's address in `.env` —
-this is what scopes every published port away from the public internet:
-
-```bash
-ssh -p 2222 <user>@<server-name>
-sudo ./bin/panther-minor setup env
-```
+Follow the printed link to authenticate, then reconnect through Tailscale: `ssh -p 2222 <user>@<server-name>`.
 
 > [!IMPORTANT]
-> `setup all` runs before Tailscale is authenticated, so `BIND_ADDR` is empty until this step. The cluster refuses to
-> start with an empty `BIND_ADDR` rather than publishing its ports on `0.0.0.0` — see
-> [Networking & security](networking.md).
+> Do not name the host's node `panther`: that name belongs to the services' sidecar, which would otherwise come up as
+> `panther-1`.
 
 > [!TIP]
 > [Disable key expiry](https://login.tailscale.com/admin/machines) for the server in Tailscale to avoid losing access.
 
-## 🔒 Issue TLS certificates
+## 🧭 Prepare the tailnet
 
-Every service is served over HTTPS by the `proxy`, which loads `proxy/ssl/fullchain.pem` and `proxy/ssl/privkey.pem`.
+The `ts-proxy` sidecar joins the tailnet as node `panther` with the tag `tag:panther`, terminates TLS with a
+Tailscale certificate and forwards each service port to nginx — see [Networking & security](networking.md). It needs:
 
-1. Enable HTTPS in the Tailscale [DNS settings](https://login.tailscale.com/admin/dns).
-2. At your DNS provider, add an `A` record pointing your (sub)domain to the server's
-   [Tailscale IP address](https://login.tailscale.com/admin/machines).
-3. Issue the certificate:
-
-   ```bash
-   ./bin/panther-minor proxy certbot --domain [<subdomain>.]<domain> --challenge-record _acme-challenge[.<subdomain>]
-   ```
-
-   > [!IMPORTANT]
-   > The command prints the ACME DNS `CNAME` record value. Add that record at your DNS provider before continuing,
-   > otherwise issuance fails.
-
-4. Enable automatic daily renewal (default schedule `0 2 * * *`, log `proxy/renew-ssl.log`):
+1. **MagicDNS and HTTPS Certificates** enabled in the [DNS settings](https://login.tailscale.com/admin/dns). The
+   tailnet DNS name shown there is the `<tailnet>` in `https://panther.<tailnet>.ts.net`.
+2. **`tag:panther` in `tagOwners`** of the [access controls](https://login.tailscale.com/admin/acls). If the policy
+   no longer allows all traffic, also grant your devices the ports `8000`, `8001`, `8080`, `3000` and `9090` on
+   `tag:panther` — the snippet is in [Tailnet policy](networking.md#-tailnet-policy).
+3. **An auth key** from [Settings → Keys](https://login.tailscale.com/admin/settings/keys): reusable, pre-approved,
+   tagged `tag:panther`. Put it in `.env`:
 
    ```bash
-   ./bin/panther-minor proxy setup-cron
+   TS_AUTHKEY=tskey-auth-…
    ```
+
+   The sidecar uses it on its first login only; the node identity then lives in the `ts-proxy-state` volume, and as
+   a tagged node it never expires.
+
+After the first `cluster start`, `panther` appears in the [machines list](https://login.tailscale.com/admin/machines)
+and the services answer on `https://panther.<tailnet>.ts.net:<port>`:
+
+```bash
+curl https://panther.<tailnet>.ts.net:8000/v1/models
+```
+
+Upgrading an install from before the sidecar (own domain, `BIND_ADDR`)? Follow
+[Migrating from the domain setup](networking.md#-migrating-from-the-domain-setup).
 
 ## ✅ Next steps
 
@@ -180,16 +181,18 @@ compare against a `models llm bench` baseline.
 SSH moved to port `2222` with key-only auth and an `AllowUsers` list. Always open a second session on the new port
 before closing the current one, and connect with `ssh -p 2222 <user>@<host>`.
 
-### `cluster start` fails mentioning `BIND_ADDR`. Why?
+### `ts-proxy` logs a login URL instead of joining the tailnet. Why?
 
-`BIND_ADDR` is empty because Tailscale was not up when `setup env` ran. Run `sudo tailscale up`, then
-`sudo ./bin/panther-minor setup env`.
+Its first login found no usable `TS_AUTHKEY`: the key is empty, expired, single-use and already spent, or not
+allowed to apply `tag:panther`. Create a new key as in [Prepare the tailnet](#-prepare-the-tailnet), put it in `.env`,
+then `./bin/panther-minor cluster restart ts-proxy`.
 
 ### Can I change the defaults (user, SSH port, timezone, LVM device)?
 
 Yes — through the interactive prompts, flags (`--allowed-user`, `--ssh-port`, `--timezone`, `--lvm-device`,
 `--server-name`) or the matching `panther_*` environment variables. See [CLI reference](cli.md#setup).
 
-### Do I really need a domain?
+### Do I need a domain or a TLS certificate?
 
-Yes. The proxy serves every port over TLS and needs a certificate issued through ACME DNS for a domain you control.
+No. The sidecar gets and renews a certificate for `panther.<tailnet>.ts.net` itself; nginx serves plain HTTP behind
+it.
