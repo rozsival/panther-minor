@@ -5,6 +5,32 @@ networks:
   ai:
     driver: bridge
 
+# -- Tailscale serve config ---------------------------------------------------
+# One HTTPS listener per private service on the tailnet node, each forwarded to
+# the nginx listener of the same port. containerboot replaces ${TS_CERT_DOMAIN}
+# with the node's FQDN (panther.<tailnet>.ts.net); $$ escapes it from Compose
+# interpolation. Public services (Funnel) get their own port and nginx listener
+# plus an AllowFunnel entry; see docs/networking.md#-public-services.
+configs:
+  ts-serve:
+    content: |
+      {
+        "TCP": {
+          "8000": {"HTTPS": true},
+          "8001": {"HTTPS": true},
+          "8080": {"HTTPS": true},
+          "3000": {"HTTPS": true},
+          "9090": {"HTTPS": true}
+        },
+        "Web": {
+          "$${TS_CERT_DOMAIN}:8000": {"Handlers": {"/": {"Proxy": "http://proxy:8000"}}},
+          "$${TS_CERT_DOMAIN}:8001": {"Handlers": {"/": {"Proxy": "http://proxy:8001"}}},
+          "$${TS_CERT_DOMAIN}:8080": {"Handlers": {"/": {"Proxy": "http://proxy:8080"}}},
+          "$${TS_CERT_DOMAIN}:3000": {"Handlers": {"/": {"Proxy": "http://proxy:3000"}}},
+          "$${TS_CERT_DOMAIN}:9090": {"Handlers": {"/": {"Proxy": "http://proxy:9090"}}}
+        }
+      }
+
 # -- Persistent volumes -------------------------------------------------------
 volumes:
   llama-cpp-comgr:
@@ -13,6 +39,7 @@ volumes:
   prometheus-data:
   grafana-data:
   proxy-logs:
+  ts-proxy-state:
 
 services:
   # -- llama.cpp --------------------------------------------------------------
@@ -418,39 +445,24 @@ services:
       - prometheus
 
   # -- Nginx proxy ------------------------------------------------------------
+  # Routes each port to its service over plain HTTP. TLS ends in ts-proxy, the
+  # only entry point from the tailnet. Ports are published on loopback only
+  # (SSH tunnels, host-local curl): Docker's published-port DNAT matches the
+  # bound address, so nothing here is reachable from the LAN or the internet,
+  # whatever UFW says (moby/moby#17496).
   proxy:
     container_name: proxy
     image: nginx:1.31.8-trixie
     restart: unless-stopped
-    # The only service that publishes ports, and the whole internet-facing
-    # surface of the stack. Each port is published twice: on loopback (SSH
-    # tunnels, host-local curl) and on this node's Tailscale address.
-    #
-    # Docker's published-port DNAT rules match the bound address, so an
-    # address-scoped publish is what keeps these services off the public
-    # internet. A firewall rule cannot do it: DNAT'd packets are forwarded to
-    # the container and never traverse the INPUT chain UFW manages
-    # (moby/moby#17496).
-    #
-    # BIND_ADDR is mandatory on purpose. Unset, the stack refuses to start
-    # (loud, fixable) instead of falling back to 0.0.0.0 (silent exposure).
     ports:
       - '127.0.0.1:3000:3000'
-      - '${BIND_ADDR:?run "sudo ./bin/panther-minor setup env" after "sudo tailscale up" to set BIND_ADDR}:3000:3000'
-      - '127.0.0.1:4200:4200'
-      - '${BIND_ADDR}:4200:4200'
       - '127.0.0.1:8000:8000'
-      - '${BIND_ADDR}:8000:8000'
       - '127.0.0.1:8001:8001'
-      - '${BIND_ADDR}:8001:8001'
       - '127.0.0.1:8080:8080'
-      - '${BIND_ADDR}:8080:8080'
       - '127.0.0.1:9090:9090'
-      - '${BIND_ADDR}:9090:9090'
     volumes:
       - 'proxy-logs:/var/log/nginx'
       - './proxy/nginx.conf:/etc/nginx/nginx.conf:ro'
-      - './proxy/ssl:/etc/nginx/ssl:ro'
     networks:
       - ai
     depends_on:
@@ -459,3 +471,48 @@ services:
       - open-webui
       - grafana
       - prometheus
+
+  # -- Tailscale sidecar ------------------------------------------------------
+  # The tailnet node panther.<tailnet>.ts.net: terminates TLS with its Tailscale
+  # certificate and forwards each port to nginx (config ts-serve). Its own
+  # network namespace holds the tailnet interface, so the tailnet reaches only
+  # the ports in the serve config. The auth key is used on the first login
+  # only (TS_AUTH_ONCE); the node identity then lives in ts-proxy-state, so
+  # keep the volume to keep the node.
+  ts-proxy:
+    container_name: ts-proxy
+    image: tailscale/tailscale:v1.104.7
+    restart: unless-stopped
+    # Node name in the tailnet; must differ from the host's own node.
+    hostname: panther
+    environment:
+      TS_AUTH_ONCE: true
+      TS_AUTHKEY: '${TS_AUTHKEY}'
+      # Health endpoint for the healthcheck only: the default [::]:9002 would
+      # also answer on the tailnet.
+      TS_ENABLE_HEALTH_CHECK: true
+      TS_EXTRA_ARGS: '--advertise-tags=tag:panther'
+      TS_LOCAL_ADDR_PORT: '127.0.0.1:9002'
+      TS_SERVE_CONFIG: /config/serve.json
+      TS_STATE_DIR: /var/lib/tailscale
+      # Kernel networking (TUN) instead of userspace: faster, needs the device and NET_ADMIN.
+      TS_USERSPACE: false
+    configs:
+      - source: ts-serve
+        target: /config/serve.json
+    volumes:
+      - 'ts-proxy-state:/var/lib/tailscale'
+    devices:
+      - '/dev/net/tun:/dev/net/tun'
+    cap_add:
+      - NET_ADMIN
+    networks:
+      - ai
+    healthcheck:
+      test: ['CMD', 'wget', '-q', '--spider', 'http://127.0.0.1:9002/healthz']
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      - proxy

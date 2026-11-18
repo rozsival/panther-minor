@@ -59,11 +59,10 @@ panther_llm_request_load() {
   local response http_code body message reason waiting=0
 
   while true; do
-    if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
+    if ! response="$(curl -s -w '%{http_code}' -X POST 'http://localhost:8000/models/load' \
       -H 'Content-Type: application/json' \
-      --insecure \
       -d "{\"model\": \"$model\"}")"; then
-      printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
+      printf 'cannot reach llama-manager at http://localhost:8000 - is the cluster running?\n'
       return 1
     fi
 
