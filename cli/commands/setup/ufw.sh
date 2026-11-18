@@ -6,13 +6,13 @@ panther_setup_ufw() {
   ufw default deny incoming
   ufw default allow outgoing
 
+  # The only public entry point. Services are reached through the ts-proxy
+  # tailnet node or on loopback, never through a host port UFW would govern.
   ufw allow "${PANTHER_SSH_PORT}/tcp" comment 'SSH'
-  ufw allow 80/tcp comment 'HTTP'
-  ufw allow 443/tcp comment 'HTTPS'
 
   ufw --force enable
 
-  panther_log_success "UFW enabled. Open ports: SSH(${PANTHER_SSH_PORT}), HTTP(80), HTTPS(443). AI/monitoring services accessible via localhost/Tailscale only."
+  panther_log_success "UFW enabled. Open ports: SSH(${PANTHER_SSH_PORT}). AI/monitoring services accessible via the ts-proxy tailnet node or localhost only."
 }
 
 panther_setup_ufw
