@@ -48,10 +48,10 @@ panther_llm_bench() {
 
   panther_bench_sample() {
     local response timings
-    if ! response="$(curl -sS --insecure --max-time 900 -X POST 'https://localhost:8000/v1/chat/completions' \
+    if ! response="$(curl -sS --max-time 900 -X POST 'http://localhost:8000/v1/chat/completions' \
       -H 'Content-Type: application/json' \
       -d "$request")"; then
-      panther_log_error 'Cannot reach llama-manager at https://localhost:8000. Is the cluster running?'
+      panther_log_error 'Cannot reach llama-manager at http://localhost:8000. Is the cluster running?'
     fi
 
     # The OpenAI-compatible path is deliberate: manager.js:499 only arbitrates

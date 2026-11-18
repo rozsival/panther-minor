@@ -14,7 +14,7 @@ declare -gr PANTHER_INSTALL_COMMAND="curl -fsSL https://github.com/$PANTHER_GITH
 
 panther_is_logs_service() {
   case "${1:-}" in
-  llama-cpp | llama-manager | llama-metrics-exporter | stable-diffusion-cpp | sd-manager | sd-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
+  llama-cpp | llama-manager | llama-metrics-exporter | stable-diffusion-cpp | sd-manager | sd-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy | ts-proxy)
     return 0
     ;;
   *)

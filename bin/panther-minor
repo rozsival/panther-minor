@@ -1619,11 +1619,10 @@ panther_llm_request_load() {
   local response http_code body message reason waiting=0
 
   while true; do
-    if ! response="$(curl -s -w '%{http_code}' -X POST 'https://localhost:8000/models/load' \
+    if ! response="$(curl -s -w '%{http_code}' -X POST 'http://localhost:8000/models/load' \
       -H 'Content-Type: application/json' \
-      --insecure \
       -d "{\"model\": \"$model\"}")"; then
-      printf 'cannot reach llama-manager at https://localhost:8000 - is the cluster running?\n'
+      printf 'cannot reach llama-manager at http://localhost:8000 - is the cluster running?\n'
       return 1
     fi
 
@@ -3330,13 +3329,12 @@ panther_minor_models_llm_unload_command() {
     local model="${args[model]}"
     panther_assert_loadable_llm "$model"
 
-    # Make POST request to llama-manager to unload the model (via HTTPS as external client)
+    # Make POST request to llama-manager through the proxy's loopback listener
     local response
-    if ! response=$(curl -s -w "%{http_code}" -X POST "https://localhost:8000/models/unload" \
+    if ! response=$(curl -s -w "%{http_code}" -X POST "http://localhost:8000/models/unload" \
       -H "Content-Type: application/json" \
-      --insecure \
       -d "{\"model\": \"$model\"}"); then
-      panther_log_error "Cannot reach llama-manager at https://localhost:8000. Is the cluster running?"
+      panther_log_error "Cannot reach llama-manager at http://localhost:8000. Is the cluster running?"
     fi
 
     local http_code="${response: -3}"
@@ -3407,10 +3405,10 @@ panther_minor_models_llm_bench_command() {
 
     panther_bench_sample() {
       local response timings
-      if ! response="$(curl -sS --insecure --max-time 900 -X POST 'https://localhost:8000/v1/chat/completions' \
+      if ! response="$(curl -sS --max-time 900 -X POST 'http://localhost:8000/v1/chat/completions' \
         -H 'Content-Type: application/json' \
         -d "$request")"; then
-        panther_log_error 'Cannot reach llama-manager at https://localhost:8000. Is the cluster running?'
+        panther_log_error 'Cannot reach llama-manager at http://localhost:8000. Is the cluster running?'
       fi
 
       # The OpenAI-compatible path is deliberate: manager.js:499 only arbitrates
@@ -9991,7 +9989,7 @@ initialize() {
 
   panther_is_logs_service() {
     case "${1:-}" in
-    llama-cpp | llama-manager | llama-metrics-exporter | stable-diffusion-cpp | sd-manager | sd-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy)
+    llama-cpp | llama-manager | llama-metrics-exporter | stable-diffusion-cpp | sd-manager | sd-metrics-exporter | open-webui | prometheus | grafana | node-exporter | amd-gpu-exporter | proxy | ts-proxy)
       return 0
       ;;
     *)
