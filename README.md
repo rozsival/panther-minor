@@ -73,9 +73,9 @@ development — lives in **[docs/](docs/README.md)**.
 
 ## 👤 Ownership
 
-| Item       | Details                                                                                                 |
-| ---------- | ------------------------------------------------------------------------------------------------------- |
-| Maintainer | [@rozsival](https://github.com/rozsival) (see [`CODEOWNERS`](CODEOWNERS))                               |
-| Issues     | [GitHub Issues](https://github.com/rozsival/panther-minor/issues)                                       |
-| Companion  | [Panther Minor Controller](https://github.com/rozsival/panther-minor-controller) — remote power control |
-| License    | [MIT](LICENSE)                                                                                          |
+| Item       | Details                                                                   |
+| ---------- | ------------------------------------------------------------------------- |
+| Maintainer | [@rozsival](https://github.com/rozsival) (see [`CODEOWNERS`](CODEOWNERS)) |
+| Issues     | [GitHub Issues](https://github.com/rozsival/panther-minor/issues)         |
+| Companion  | [Janus](https://github.com/rozsival/janus) — remote power control         |
+| License    | [MIT](LICENSE)                                                            |

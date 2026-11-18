@@ -118,7 +118,7 @@ directory is kept out of version control.
 
 ## 🖲️ Remote power control
 
-[Panther Minor Controller](https://github.com/rozsival/panther-minor-controller) is a companion tool running on a
+[Janus](https://github.com/rozsival/janus) is a companion tool running on a
 Raspberry Pi that switches the workstation on, off or reboots it remotely.
 
 ---
