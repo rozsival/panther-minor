@@ -8,7 +8,7 @@ description: >
 ---
 
 You are wiring a local coding harness (OMP, Pi, and/or OpenCode) to this stack's `panther-minor` OpenAI-
-compatible provider. Work through the steps in order. Never guess a harness or a domain — ask.
+compatible provider. Work through the steps in order. Never guess a harness or a tailnet — ask or detect.
 
 ## 1. Autodetect
 
@@ -40,24 +40,34 @@ wrapper installed elsewhere, or the config may predate a reinstalled binary).
 If multiple harnesses are selected (including "all detected"), process them **sequentially**, one full
 pass of steps 2–4 per harness, and report each result separately in step 5.
 
-## 2. Resolve the domain
+## 2. Resolve the host
 
-The preset files carry `https://<domain>:8000/v1` as a placeholder (`baseUrl` in `harnesses/omp.yml` and
-`harnesses/pi.json`, `provider.panther-minor.options.baseURL` in `harnesses/opencode.json`).
+Clients reach the stack through the Tailscale sidecar node `panther`, so the base URL is
+`https://panther.<tailnet>.ts.net:8000/v1`. The preset files carry exactly that, with `<tailnet>` as the
+placeholder (`baseUrl` in `harnesses/omp.yml` and `harnesses/pi.json`,
+`provider.panther-minor.options.baseURL` in `harnesses/opencode.json`).
 
-**Fresh install (no existing config for this harness):** ask the user for the domain used to reach the
-llama server, e.g. `panther.example.com`. Accept any of these forms and normalize:
+**Fresh install (no existing config for this harness):** detect the tailnet from the local Tailscale client:
 
-| User input                                      | Resolved base URL                       |
-| ----------------------------------------------- | --------------------------------------- |
-| `panther.example.com` (bare host)               | `https://panther.example.com:8000/v1`   |
-| `panther.example.com:9443` (host:port)          | `https://panther.example.com:9443/v1`   |
-| `http://panther.example.com:8080/v1` (full URL) | used verbatim (append `/v1` if missing) |
+```bash
+tailscale status --json | jq -r '.MagicDNSSuffix'   # e.g. tail1234.ts.net
+```
 
-Only default the port to `8000` and the scheme to `https` when the user did **not** supply their own.
+On macOS the CLI may only exist inside the app bundle: `/Applications/Tailscale.app/Contents/MacOS/Tailscale`.
+If detection fails (no Tailscale on this machine, not logged in), ask the user for the tailnet DNS name or the
+full host. Accept any of these forms and normalize:
 
-**Update (config already exists):** extract the domain already installed instead of asking — grep the
-provider's URL line out of the installed file:
+| Input                                               | Resolved base URL                         |
+| --------------------------------------------------- | ----------------------------------------- |
+| `tail1234.ts.net` (detected suffix or tailnet name) | `https://panther.tail1234.ts.net:8000/v1` |
+| `panther.tail1234.ts.net` (full host)               | `https://panther.tail1234.ts.net:8000/v1` |
+| `https://other.host:9443/v1` (full URL)             | used verbatim (append `/v1` if missing)   |
+
+Only default the node to `panther`, the port to `8000` and the scheme to `https` when the user did **not**
+supply their own.
+
+**Update (config already exists):** extract the host already installed — grep the provider's URL line out of
+the installed file:
 
 ```bash
 grep -oE '"?base[Uu][Rr][Ll]"?: *"?https?://[^"'"'"':/]+(:[0-9]+)?' <installed-file>
@@ -66,13 +76,14 @@ grep -oE '"?base[Uu][Rr][Ll]"?: *"?https?://[^"'"'"':/]+(:[0-9]+)?' <installed-f
 (For OMP's YAML this is the `baseUrl:` line under `providers.panther-minor`; for Pi it's `baseUrl` under
 the same path; for OpenCode it's `baseURL` under `provider.panther-minor.options`.)
 
-- If extraction succeeds and the value is a real host (not the literal `<domain>` placeholder), reuse it
-  without asking.
-- If extraction fails, or the installed value still contains the literal `<domain>` placeholder, fall back
-  to asking the user as in the fresh-install case.
+- If the value is a real `*.ts.net` host (no `<tailnet>` placeholder), reuse it without asking.
+- If it is any other host, it predates the Tailscale sidecar (the old own-domain URL, which no longer
+  answers): tell the user, then resolve the host as in the fresh-install case. Never carry the old host over.
+- If extraction fails, or the value still contains a placeholder (`<tailnet>`, or the older `<domain>`),
+  resolve as in the fresh-install case.
 
 Before writing anything, state the resolved base URL back to the user (e.g. "Using
-`https://panther.example.com:8000/v1`").
+`https://panther.tail1234.ts.net:8000/v1`").
 
 ## 3. Install or update
 
@@ -84,10 +95,10 @@ mkdir -p ~/.pi/agent             # Pi
 mkdir -p ~/.config/opencode      # OpenCode
 ```
 
-Copy the matching preset over the target path, then replace every literal `<domain>` with the resolved
-host (not the full URL — the presets only place `<domain>` inside an existing `https://<domain>:8000/v1`
-skeleton, so substitute just the host segment unless the user's answer was a full URL, in which case
-replace the whole `https://<domain>:8000/v1` with their URL):
+Copy the matching preset over the target path, then replace the literal `<tailnet>.ts.net` with the
+resolved tailnet suffix (the presets only place it inside an existing `https://panther.<tailnet>.ts.net:8000/v1`
+skeleton, so substitute just that segment unless the user supplied their own host or URL, in which case
+replace the whole base URL with the resolved one):
 
 ```bash
 cp harnesses/omp.yml ~/.omp/agent/models.yml
@@ -95,7 +106,7 @@ cp harnesses/pi.json ~/.pi/agent/models.json
 cp harnesses/opencode.json ~/.config/opencode/opencode.json
 ```
 
-Then edit the copied file (never the preset in this repo) to substitute the domain.
+Then edit the copied file (never the preset in this repo) to substitute the host.
 
 ### Update
 
@@ -108,9 +119,9 @@ diff -u ~/.pi/agent/models.json harnesses/pi.json
 diff -u ~/.config/opencode/opencode.json harnesses/opencode.json
 ```
 
-Show the user the meaningful differences (ignore the domain-only diff line). Then replace **only** the
+Show the user the meaningful differences (ignore the host-only diff line). Then replace **only** the
 `panther-minor` provider block and the models it owns with the preset's version (re-applying the resolved
-domain), leaving every other provider, model, and setting in the installed file untouched. Read the
+host), leaving every other provider, model, and setting in the installed file untouched. Read the
 installed file structurally and use a targeted edit — do not regex-splice a whole-file replace.
 
 > [!IMPORTANT]
@@ -136,23 +147,24 @@ installed file structurally and use a targeted edit — do not regex-splice a wh
    confirm it is well-formed YAML by inspection.
 2. **No placeholder left.**
    ```bash
-   grep -rn '<domain>' ~/.omp/agent/models.yml ~/.pi/agent/models.json ~/.config/opencode/opencode.json
+   grep -rnE '<tailnet>|<domain>' ~/.omp/agent/models.yml ~/.pi/agent/models.json ~/.config/opencode/opencode.json
    ```
    This must return nothing for any file you touched.
 3. **Connectivity smoke test.**
    ```bash
-   curl -s https://<resolved-domain>:8000/v1/models
+   curl -s https://panther.<resolved-tailnet>.ts.net:8000/v1/models
    ```
    Report the model ids returned. If `curl` fails (timeout, connection refused, DNS failure, TLS error),
-   report it as a **server/DNS reachability problem, not a config error** — leave the written config in
-   place; it may simply be that the server is off or the domain isn't resolvable from this machine yet.
+   report it as a **reachability problem, not a config error** — leave the written config in place; the
+   server may be off, this machine may not be on the tailnet, or the tailnet policy may not grant it access
+   to `tag:panther`.
 
 ## 5. Report
 
 For each harness configured, report:
 
 - The exact file path written (and whether it was a fresh install or an update).
-- The resolved domain / base URL used.
+- The resolved host / base URL used.
 - How the user switches thinking and effort in that harness, sourced from `docs/harnesses.md`:
   - **OMP** — thinking level toggle (`Shift+Tab`); effort ladder is per-model (`low`/`medium`/`xhigh` for
     `Qwen3.8-27B` and `Qwen3.8-Flash-Next`, single `medium` level — plain on/off — for
