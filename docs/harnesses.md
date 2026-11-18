@@ -17,7 +17,9 @@
 | OpenCode       | [`harnesses/opencode.json`](../harnesses/opencode.json) | `mkdir -p ~/.config/opencode && cp harnesses/opencode.json ~/.config/opencode/opencode.json` | [opencode.ai](https://opencode.ai/docs/config/)                                         |
 
 > [!IMPORTANT]
-> Replace `<domain>` in the copied config with your actual domain so the agent reaches the API (`https://<domain>:8000/v1`).
+> Replace `<tailnet>` in the copied config with your tailnet DNS name so the agent reaches the API
+> (`https://panther.<tailnet>.ts.net:8000/v1`). `tailscale status --json | jq -r .MagicDNSSuffix` prints
+> `<tailnet>.ts.net`; the client must be on the tailnet.
 
 > [!TIP]
 > The `harness-config` agent skill (`.agents/skills/harness-config/SKILL.md`) installs or updates these presets for you.

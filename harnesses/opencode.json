@@ -5,7 +5,7 @@
       "name": "Panther Minor",
       "npm": "@ai-sdk/openai-compatible",
       "options": {
-        "baseURL": "https://<domain>:8000/v1",
+        "baseURL": "https://panther.<tailnet>.ts.net:8000/v1",
         "chunkTimeout": 600000,
         "setCacheKey": true,
         "timeout": 600000
