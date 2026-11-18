@@ -77,9 +77,9 @@ grep -oE '"?base[Uu][Rr][Ll]"?: *"?https?://[^"'"'"':/]+(:[0-9]+)?' <installed-f
 the same path; for OpenCode it's `baseURL` under `provider.panther-minor.options`.)
 
 - If the value is `panther-minor.<suffix>.ts.net` (a real suffix, no `<tailnet>` placeholder), reuse it without asking.
-- If it is another `*.ts.net` host, it points at a node the services no longer answer on (`panther`, the sidecar's
-  name before the rename, or the host itself, which used to be called `panther-minor` but now has its own name):
-  tell the user, then swap the node label for `panther-minor` and keep the tailnet suffix.
+- If it is another `*.ts.net` host, ask the user: the services answer only on the sidecar node `panther-minor`,
+  so a different node label is usually the host itself, but it may be a deliberate custom setup. On a yes, swap the
+  label for `panther-minor` and keep the tailnet suffix; otherwise keep the installed URL.
 - If it is a loopback host (`localhost`, `127.0.0.1`), the user deliberately points the harness at the host itself
   (a harness on the server, or an SSH tunnel): keep the installed URL as it is, scheme and port included.
 - If it is any other host, it predates the Tailscale sidecar (the old own-domain URL, which no longer
