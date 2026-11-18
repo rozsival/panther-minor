@@ -1,8 +1,9 @@
 # 🏗️ Architecture
 
-> Panther Minor is one Docker Compose project on one host. An nginx `proxy` terminates TLS and is the only service
-> that publishes ports; behind it, activity-aware managers front `llama.cpp` and `stable-diffusion.cpp`, Open WebUI
-> provides the chat UI, and Prometheus + Grafana watch the host and both GPUs.
+> Panther Minor is one Docker Compose project on one host. A Tailscale sidecar, `ts-proxy`, is the only way in from
+> the network: it terminates TLS and hands each port to an nginx `proxy`, which routes it to its service and is
+> published on loopback only. Behind it, activity-aware managers front `llama.cpp` and `stable-diffusion.cpp`, Open
+> WebUI provides the chat UI, and Prometheus + Grafana watch the host and both GPUs.
 
 **Related:** [Networking & security](networking.md) · [Operations](operations.md) ·
 [GPU power & VRAM](gpu-management.md) · [Monitoring](monitoring.md)
@@ -13,7 +14,8 @@
 
 ```mermaid
 flowchart LR
-    U[Users / API clients] -->|TLS| X[proxy<br/>nginx]
+    U[Tailnet clients] -->|HTTPS| T[ts-proxy<br/>Tailscale]
+    T -->|HTTP| X[proxy<br/>nginx]
 
     X -->|:8080| W[open-webui]
     X -->|:8000| M[llama-manager]
@@ -44,11 +46,13 @@ flowchart LR
 
 ## 🧩 Services
 
-All services share the `ai` bridge network. Only `proxy` publishes ports; every other service uses `expose:`.
+All services share the `ai` bridge network. Only `proxy` publishes ports, on `127.0.0.1`; `ts-proxy` joins the tailnet
+instead; every other service uses `expose:`.
 
 | Service                  | Internal port | Role                                                                                        |
 | ------------------------ | ------------: | ------------------------------------------------------------------------------------------- |
-| `proxy`                  |             — | nginx TLS termination; publishes `3000`, `4200`, `8000`, `8001`, `8080`, `9090`             |
+| `ts-proxy`               |             — | Tailscale node `panther`: TLS termination, forwards each tailnet port to `proxy`            |
+| `proxy`                  |             — | nginx, plain HTTP; publishes `3000`, `8000`, `8001`, `8080`, `9090` on `127.0.0.1`          |
 | `llama-cpp`              |        `8000` | OpenAI-compatible LLM inference (router mode) with RDNA 4 and ROCm 10 support               |
 | `llama-manager`          |        `8000` | Activity-aware reverse proxy with idle unload and large-model switch handling               |
 | `stable-diffusion-cpp`   |        `8000` | OpenAI-compatible image generation (`sd-server`) with RDNA 4 and ROCm 10 support            |
@@ -67,12 +71,12 @@ mounted read-only into `node:24-trixie-slim` containers.
 
 ## 🔀 Request flow
 
-| Request                       | Path                                                                                                    |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Chat / completion / embedding | client → `proxy :8000` → `llama-manager` → `llama-cpp`                                                  |
-| Image generation              | client → `proxy :8001` → `sd-manager` → `stable-diffusion-cpp`                                          |
-| Open WebUI chat               | browser → `proxy :8080` → `open-webui` → `llama-manager` (chat, RAG embeddings) / `sd-manager` (images) |
-| Metrics scrape                | `prometheus` → exporters → managers (`/status`) and upstream servers                                    |
+| Request                       | Path                                                                                                                       |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Chat / completion / embedding | client → `ts-proxy :8000` → `proxy :8000` → `llama-manager` → `llama-cpp`                                                  |
+| Image generation              | client → `ts-proxy :8001` → `proxy :8001` → `sd-manager` → `stable-diffusion-cpp`                                          |
+| Open WebUI chat               | browser → `ts-proxy :8080` → `proxy :8080` → `open-webui` → `llama-manager` (chat, RAG embeddings) / `sd-manager` (images) |
+| Metrics scrape                | `prometheus` → exporters → managers (`/status`) and upstream servers                                                       |
 
 Both managers record every proxied request as activity and expose `GET /health` and `GET /status`. `llama-manager`
 additionally unloads idle models and serializes large-model switches — see [GPU power & VRAM](gpu-management.md).
@@ -88,7 +92,7 @@ additionally unloads idle models and serializes large-model switches — see [GP
 | `stable-diffusion-cpp/` | `Dockerfile`, `entrypoint.sh`, `manager.js`, `metrics-exporter.js`, `models.js`                                       |
 | `models/`               | Model catalogs (`*.config.json`), schemas, `bench.log`, and the `.huggingface` weight cache                           |
 | `monitoring/`           | `prometheus.yml`, Grafana provisioning and dashboards                                                                 |
-| `proxy/`                | `nginx.conf`, TLS material in `proxy/ssl/`                                                                            |
+| `proxy/`                | `nginx.conf` (plain-HTTP listener per port); the sidecar's serve config lives in `docker-compose.yml`                 |
 | `harnesses/`            | Coding-agent provider presets ([Coding harnesses](harnesses.md))                                                      |
 | `terminfo/`             | `xterm-ghostty` source that `setup shell` compiles into `/etc/terminfo`                                               |
 | `docs/`                 | This documentation                                                                                                    |
@@ -116,7 +120,8 @@ No. The stack is built around custom ROCm builds of `llama.cpp` (LLMs) and `stab
 ### Is there any authentication?
 
 Not at the application layer. Open WebUI has auth disabled and Grafana is anonymous admin, by design for a
-single trusted user. Exposure is limited by binding published ports to loopback and the Tailscale address only.
+single trusted user. Exposure is limited to the tailnet devices the policy admits to `ts-proxy` and to the host's
+loopback — see [Networking & security](networking.md).
 
 ### Where do I add my own services?
 

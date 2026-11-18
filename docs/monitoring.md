@@ -11,12 +11,12 @@
 
 ## 🧭 Access
 
-| UI         | URL                     | Auth                                   |
-| ---------- | ----------------------- | -------------------------------------- |
-| Grafana    | `https://<domain>:3000` | Anonymous `Admin`, login form disabled |
-| Prometheus | `https://<domain>:9090` | None (lifecycle API enabled)           |
+| UI         | URL                                     | Auth                                   |
+| ---------- | --------------------------------------- | -------------------------------------- |
+| Grafana    | `https://panther.<tailnet>.ts.net:3000` | Anonymous `Admin`, login form disabled |
+| Prometheus | `https://panther.<tailnet>.ts.net:9090` | None (lifecycle API enabled)           |
 
-Both are reachable only via Tailscale or loopback — see [Networking & security](networking.md).
+Both are reachable only via the tailnet or loopback — see [Networking & security](networking.md).
 
 ## 🎯 Scrape targets
 

@@ -28,7 +28,7 @@ and **smart GPU usage management**.
 | **Local image generation**  | OpenAI-compatible image API powered by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) |
 | **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                  |
 | **GPU power & VRAM saving** | Idle model unloading and serialized large-model switching                                                     |
-| **Secure remote access**    | Tailscale-scoped ports, key-only SSH on port `2222`, firewall, and fail2ban                                   |
+| **Secure remote access**    | One Tailscale node with automatic TLS, key-only SSH on port `2222`, firewall, and fail2ban                    |
 | **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                                                    |
 
 > [!IMPORTANT]
@@ -37,8 +37,9 @@ and **smart GPU usage management**.
 
 ## 🚀 Quick start
 
-**Requires** Ubuntu Server 26.04 LTS+, 2x AMD RDNA 4 GPUs, a Tailscale account and a domain — see
-[Installation](docs/installation.md#-prerequisites) for hardware and BIOS settings.
+**Requires** Ubuntu Server 26.04 LTS+, 2x AMD RDNA 4 GPUs and a Tailscale tailnet with MagicDNS and HTTPS
+certificates enabled — see [Installation](docs/installation.md#-prerequisites) for hardware, BIOS and
+[tailnet](docs/installation.md#-prepare-the-tailnet) settings.
 
 ```bash
 # 1. Install the latest release into ~/panther-minor and prepare the host (reboot afterwards)
@@ -47,23 +48,20 @@ cd ~/panther-minor
 sudo ./bin/panther-minor setup
 sudo reboot
 
-# 2. Reconnect on port 2222, join Tailscale, scope ports to it
+# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther)
 ssh -p 2222 <user>@<server-ip>
-sudo tailscale up
-sudo ./bin/panther-minor setup env
+cd ~/panther-minor
+nano .env    # TS_AUTHKEY=tskey-auth-…
 
-# 3. Issue TLS certificates and enable renewal
-./bin/panther-minor proxy certbot --domain <domain> --challenge-record _acme-challenge
-./bin/panther-minor proxy setup-cron
-
-# 4. Download the default models and start the cluster
+# 3. Download the default models and start the cluster
 ./bin/panther-minor models llm download Qwen3.8-27B
 ./bin/panther-minor models llm download Qwen3.5-2B
 ./bin/panther-minor models llm download Qwen3-Embedding-0.6B
 ./bin/panther-minor cluster start
 ```
 
-Then open `https://<domain>:8080` (Open WebUI) or point an OpenAI client at `https://<domain>:8000/v1`.
+Then open `https://panther.<tailnet>.ts.net:8080` (Open WebUI) or point an OpenAI client at
+`https://panther.<tailnet>.ts.net:8000/v1`.
 
 > [!WARNING]
 > After `setup`, SSH accepts **keys only on port 2222**. Keep your current session open until a second one connects.

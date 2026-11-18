@@ -1,8 +1,9 @@
 # 🔌 Networking & Security
 
-> AI and monitoring services are reachable through Tailscale and loopback, never from the public internet. The
-> guarantee comes from binding published ports to `127.0.0.1` and the node's Tailscale address (`BIND_ADDR`), not
-> from firewall rules.
+> AI and monitoring services are reachable only through one Tailscale node, `panther`, and on the host's loopback —
+> never from the LAN or the public internet. The `ts-proxy` sidecar is that node: it terminates TLS with its Tailscale
+> certificate and forwards each port to nginx, which listens on plain HTTP and is published on `127.0.0.1` only. No
+> domain, certificate or firewall rule is involved.
 
 **Related:** [Installation](installation.md) · [Architecture](architecture.md) · [Operations](operations.md)
 
@@ -10,118 +11,319 @@
 
 ## 🔐 Security model
 
-| Layer     | Behavior                                                                                                |
-| --------- | ------------------------------------------------------------------------------------------------------- |
-| Docker    | Publishes the proxy's ports on `127.0.0.1` and `BIND_ADDR` (this node's Tailscale IP) — never `0.0.0.0` |
-| UFW       | Allows only `2222`, `80` and `443` on the `INPUT` path                                                  |
-| fail2ban  | Bans brute-force attempts on the SSH port                                                               |
-| SSH       | Port `2222`, key-only authentication, `AllowUsers` restricted                                           |
-| Tailscale | Provides the private network trusted clients connect through                                            |
-| Result    | Services stay reachable for trusted clients, but are not internet-exposed                               |
+```mermaid
+flowchart LR
+    C[Tailnet client] -->|HTTPS :port<br/>panther.&lt;tailnet&gt;.ts.net| T[ts-proxy<br/>Tailscale sidecar]
+    T -->|HTTP :port| X[proxy<br/>nginx]
+    H[Host loopback<br/>SSH tunnel, curl] -->|HTTP 127.0.0.1:port| X
+    X --> S[services on the ai network]
+```
 
-### Why the bind address, not a firewall rule
+| Layer      | Behavior                                                                                                       |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| `ts-proxy` | The only tailnet entry point: node `panther`, `tag:panther`; HTTPS on the ports in its serve config, no others |
+| `proxy`    | nginx on plain HTTP, one listener per port; published on `127.0.0.1` only                                      |
+| Docker     | Every other service uses `expose:` and is reachable only inside the `ai` network                               |
+| Tailnet    | Who reaches `tag:panther` on which ports is the tailnet policy's decision                                      |
+| UFW        | Allows only SSH (`2222`) on the host                                                                           |
+| SSH        | Port `2222`, key-only authentication, `AllowUsers` restricted; fail2ban bans brute-force attempts              |
+
+The sidecar runs `tailscaled` with kernel networking (`TS_USERSPACE=false`, `/dev/net/tun`, `NET_ADMIN`) inside its own
+network namespace, so the tailnet interface exists only in that container. A tailnet packet can reach nothing but the
+HTTPS listeners in the serve config; the host and the other containers have no tailnet address.
+
+### Why loopback, not a firewall rule
 
 Docker publishes ports with `nat/PREROUTING` DNAT, so packets reaching a container are _forwarded_, not delivered
 locally — they never traverse the `INPUT` chain UFW manages, and `ufw deny 8000` cannot block a published port
-([moby/moby#17496](https://github.com/moby/moby/issues/17496)). A published port scoped to an address is enforced by
-the DNAT rule itself, so the exposure does not exist in the first place.
-
-`proxy` is the only service that publishes ports; everything else uses `expose:` and is reachable only inside the
-`ai` Docker network.
-
-> [!IMPORTANT]
-> `BIND_ADDR` is **mandatory**. Unset, the stack refuses to start rather than silently falling back to `0.0.0.0`.
-> `setup env` fills it from `tailscale ip -4` — re-run `sudo ./bin/panther-minor setup env` after `sudo tailscale up`.
->
-> Consequence: `cluster start` requires Tailscale to be up, because the proxy cannot bind an address that does not
-> exist yet. That is the intended failure direction — a broken tunnel stops the stack instead of exposing it.
+([moby/moby#17496](https://github.com/moby/moby/issues/17496)). Publishing on `127.0.0.1` is enforced by the DNAT rule
+itself, so the exposure does not exist in the first place. The sidecar needs no published port at all: it dials out
+to the tailnet.
 
 ## 🌐 Port reference
 
 ### Public internet
 
-Only the entrypoints required for host access and certificate issuance are open in UFW.
-
 | Port   | Service | Purpose                      |
 | ------ | ------- | ---------------------------- |
 | `2222` | SSH     | Hardened remote shell access |
-| `80`   | HTTP    | ACME / web entrypoint        |
-| `443`  | HTTPS   | Secure service access        |
 
-### Tailscale and loopback only
+### Tailnet (through `ts-proxy`)
 
-Published by `proxy` on `127.0.0.1` and `BIND_ADDR`, all over TLS.
+HTTPS with the node's Tailscale certificate, each forwarded to the nginx listener of the same port.
 
-| Port   | Upstream        | Role                                                    |
-| ------ | --------------- | ------------------------------------------------------- |
-| `8000` | `llama-manager` | OpenAI-compatible LLM API with activity-aware routing   |
-| `8001` | `sd-manager`    | OpenAI-compatible image generation API                  |
-| `8080` | `open-webui`    | Browser UI for chat and image generation                |
-| `3000` | `grafana`       | Dashboards and visualization                            |
-| `9090` | `prometheus`    | Metrics scraping and storage                            |
-| `4200` | —               | Published by `proxy`; no listener in `proxy/nginx.conf` |
+| Port   | URL                                     | Upstream        | Role                                                  |
+| ------ | --------------------------------------- | --------------- | ----------------------------------------------------- |
+| `8000` | `https://panther.<tailnet>.ts.net:8000` | `llama-manager` | OpenAI-compatible LLM API with activity-aware routing |
+| `8001` | `https://panther.<tailnet>.ts.net:8001` | `sd-manager`    | OpenAI-compatible image generation API                |
+| `8080` | `https://panther.<tailnet>.ts.net:8080` | `open-webui`    | Browser UI for chat and image generation              |
+| `3000` | `https://panther.<tailnet>.ts.net:3000` | `grafana`       | Dashboards and visualization                          |
+| `9090` | `https://panther.<tailnet>.ts.net:9090` | `prometheus`    | Metrics scraping and storage                          |
+
+`<tailnet>` is your tailnet DNS name; `tailscale status --json | jq -r .MagicDNSSuffix` on any tailnet device prints
+`<tailnet>.ts.net`.
+
+### Loopback (on the host)
+
+`proxy` publishes the same five ports on `127.0.0.1` over plain HTTP: `http://localhost:8000` and so on. The CLI talks
+to `llama-manager` this way.
 
 ### Internal only
 
 Reachable solely inside the `ai` network: `llama-cpp` and `stable-diffusion-cpp` (`8000`), `amd-gpu-exporter`
-(`5000`), `node-exporter` (`9100`), `llama-metrics-exporter` and `sd-metrics-exporter` (`9090`).
+(`5000`), `node-exporter` (`9100`), `llama-metrics-exporter` and `sd-metrics-exporter` (`9090`). The sidecar's health
+endpoint listens on its own loopback (`127.0.0.1:9002`) for the Compose healthcheck.
 
 ## 🚪 Access patterns
 
-### Via Tailscale (recommended)
+### Via the tailnet (recommended)
 
 ```bash
-curl https://<domain>:8000/v1/models
-open https://<domain>:8080
-ssh -p 2222 <user>@<server-name>
+curl https://panther.<tailnet>.ts.net:8000/v1/models
+open https://panther.<tailnet>.ts.net:8080
 ```
+
+The certificate is valid for `panther.<tailnet>.ts.net`, so clients need no `--insecure` or trust-store changes. Use
+the full name: the short `panther` resolves through MagicDNS but does not match the certificate.
 
 ### Via SSH tunnel
 
-For a single service when Tailscale is not available on the client:
+For a single service when the client is not on the tailnet:
 
 ```bash
 ssh -p 2222 -L 8080:localhost:8080 <user>@<server-ip>
-open https://localhost:8080
+open http://localhost:8080
 ```
 
 ### Directly on the host
 
-For local diagnostics on the server itself:
-
 ```bash
-curl -k https://localhost:8000/v1/models
+curl http://localhost:8000/v1/models
 ```
+
+## 🧾 Tailnet policy
+
+The sidecar joins with a tagged auth key, so the policy must let you own `tag:panther`, and — unless the policy still
+allows all traffic — grant your devices its ports:
+
+```jsonc
+{
+  "tagOwners": {
+    "tag:panther": ["autogroup:admin"]
+  },
+  "grants": [
+    {
+      "src": ["autogroup:member"],
+      "dst": ["tag:panther"],
+      "ip": ["tcp:8000", "tcp:8001", "tcp:8080", "tcp:3000", "tcp:9090"]
+    }
+  ]
+}
+```
+
+Narrow `src` to your own user or devices if the tailnet has other members. Tagged nodes have key expiry disabled, so
+the node never needs re-authentication. Setup steps (MagicDNS, HTTPS certificates, auth key) are in
+[Installation](installation.md#-prepare-the-tailnet).
+
+## 🌍 Public services
+
+None ship today. The sidecar is prepared for public services through [Funnel](https://tailscale.com/kb/1223/funnel),
+under these rules:
+
+| Rule                 | Detail                                                                                                                 |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Funnel ports         | Funnel accepts only `443`, `8443` and `10000`, so at most three public services                                        |
+| One port per service | Each public service owns one Funnel port, so it gets its own host root (OAuth discovery needs `/.well-known/…` at `/`) |
+| Own nginx listener   | Each public service gets its own nginx `server` on its Funnel port; private and public services never share a listener |
+| `AllowFunnel`        | The serve config lists exactly the public ports under `AllowFunnel`; every other port stays tailnet-only               |
+| Policy               | Funnel needs the `funnel` node attribute for `tag:panther` in the tailnet policy                                       |
+| Authentication       | Funnel traffic comes from the internet: the service authenticates every request itself                                 |
+
+Adding one, e.g. a service `brain` on `8443`:
+
+1. Grant Funnel to the node in the tailnet policy:
+
+   ```jsonc
+   {
+     "nodeAttrs": [{ "target": ["tag:panther"], "attr": ["funnel"] }]
+   }
+   ```
+
+2. Add an nginx listener for it in `proxy/nginx.conf` (no published port needed: only the sidecar connects):
+
+   ```nginx
+   # brain (public, Funnel 8443)
+   server {
+     listen 8443;
+     server_name _;
+
+     location / {
+       proxy_http_version 1.1;
+       proxy_set_header Host $host;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $forwarded_proto;
+       proxy_pass http://brain:8000;
+     }
+   }
+   ```
+
+3. Merge the port, its handler and the `AllowFunnel` entry into the `ts-serve` config in `docker-compose.yml`
+   (`$$` escapes `$` from Compose interpolation):
+
+   ```json
+   {
+     "TCP": { "8443": { "HTTPS": true } },
+     "Web": { "$${TS_CERT_DOMAIN}:8443": { "Handlers": { "/": { "Proxy": "http://proxy:8443" } } } },
+     "AllowFunnel": { "$${TS_CERT_DOMAIN}:8443": true }
+   }
+   ```
+
+4. Put the service on the `ai` network. One from another Compose project joins it as an external network named
+   `panther-minor_ai`.
+5. `cluster restart proxy ts-proxy`, then check `https://panther.<tailnet>.ts.net:8443` from outside the tailnet.
+
+## 🔁 Migrating from the domain setup
+
+Installs from before the sidecar served every port with a Let's Encrypt certificate for an own domain (acme-dns,
+`proxy certbot`, a renewal cron) and published nginx on the host's Tailscale address (`BIND_ADDR`). The steps below
+move to the sidecar without downtime: the sidecar runs next to the old path until every client has switched.
+
+1. **Prepare the tailnet** — MagicDNS, HTTPS certificates, `tag:panther`, an auth key; see
+   [Installation](installation.md#-prepare-the-tailnet). Add the key to `.env` as `TS_AUTHKEY=…`.
+2. **Start the sidecar on the current version.** nginx still serves TLS there, so the sidecar talks to it over
+   `https+insecure`. Create `docker-compose.override.yml` (or add to it):
+
+   ```yaml
+   configs:
+     ts-serve:
+       content: |
+         {
+           "TCP": { "8000": {"HTTPS": true}, "8001": {"HTTPS": true}, "8080": {"HTTPS": true},
+                    "3000": {"HTTPS": true}, "9090": {"HTTPS": true} },
+           "Web": {
+             "$${TS_CERT_DOMAIN}:8000": {"Handlers": {"/": {"Proxy": "https+insecure://proxy:8000"}}},
+             "$${TS_CERT_DOMAIN}:8001": {"Handlers": {"/": {"Proxy": "https+insecure://proxy:8001"}}},
+             "$${TS_CERT_DOMAIN}:8080": {"Handlers": {"/": {"Proxy": "https+insecure://proxy:8080"}}},
+             "$${TS_CERT_DOMAIN}:3000": {"Handlers": {"/": {"Proxy": "https+insecure://proxy:3000"}}},
+             "$${TS_CERT_DOMAIN}:9090": {"Handlers": {"/": {"Proxy": "https+insecure://proxy:9090"}}}
+           }
+         }
+
+   volumes:
+     ts-proxy-state:
+
+   services:
+     ts-proxy:
+       container_name: ts-proxy
+       image: tailscale/tailscale:stable
+       restart: unless-stopped
+       hostname: panther
+       environment:
+         TS_AUTH_ONCE: 'true'
+         TS_AUTHKEY: '${TS_AUTHKEY}'
+         TS_EXTRA_ARGS: '--advertise-tags=tag:panther'
+         TS_SERVE_CONFIG: /config/serve.json
+         TS_STATE_DIR: /var/lib/tailscale
+         TS_USERSPACE: 'false'
+       configs:
+         - source: ts-serve
+           target: /config/serve.json
+       volumes:
+         - 'ts-proxy-state:/var/lib/tailscale'
+       devices:
+         - '/dev/net/tun:/dev/net/tun'
+       cap_add:
+         - NET_ADMIN
+       networks:
+         - ai
+       depends_on:
+         - proxy
+   ```
+
+   Keep the service, volume and host names exactly as above: the new version defines the same ones, so the node
+   identity carries over. Start it and check it from a tailnet device:
+
+   ```bash
+   ./bin/panther-minor cluster start ts-proxy
+   curl https://panther.<tailnet>.ts.net:8000/v1/models
+   ```
+
+3. **Switch the clients** to `https://panther.<tailnet>.ts.net:<port>`: harness configs (the `harness-config` skill
+   detects the old host and replaces it), Open WebUI and Grafana bookmarks, scripts.
+4. **Update, then drop the old path.** Install the new version first:
+
+   ```bash
+   ./bin/panther-minor update
+   ```
+
+   Before the next Compose command, remove the `ts-proxy` service, the `ts-serve` config and the `ts-proxy-state`
+   volume from `docker-compose.override.yml` (delete the file if nothing else is in it) — left in place, its
+   `https+insecure` serve config overrides the new one and fails against plain-HTTP nginx. Remove the `BIND_ADDR=`
+   line from `.env` too. Then rebuild and restart as after every update:
+
+   ```bash
+   ./bin/panther-minor cluster build
+   ./bin/panther-minor cluster restart
+   ```
+
+   The restart is the usual post-update one; the tailnet URLs stay the same and the volume keeps the node, so clients
+   need no further change.
+
+5. **Clean up** what the new version no longer uses:
+
+   ```bash
+   crontab -l | grep -v 'proxy renew-ssl' | crontab -   # the renewal cron entry
+   rm -rf proxy/ssl proxy/acme proxy/renew-ssl.log        # certificate material and its log
+   sudo ufw delete allow 80/tcp
+   sudo ufw delete allow 443/tcp
+   ```
+
+   At your DNS provider, delete the domain's `A` record and the `_acme-challenge` `CNAME`. The host's own Tailscale
+   node is no longer needed for the services; keep it if you SSH over the tailnet.
 
 ## 🛠️ Where network behavior is defined
 
-| File                 | Responsibility                                                    |
-| -------------------- | ----------------------------------------------------------------- |
-| `docker-compose.yml` | Service definitions and address-scoped published ports            |
-| `proxy/nginx.conf`   | TLS listeners and upstream routing per port                       |
-| `.env`               | `BIND_ADDR` — the address published ports are scoped to           |
-| `cli/bashly.yml`     | CLI surface and setup command contract                            |
-| `cli/**/*.sh`        | Setup logic, `BIND_ADDR` resolution, firewall rules, SSH defaults |
+| File                 | Responsibility                                                                    |
+| -------------------- | --------------------------------------------------------------------------------- |
+| `docker-compose.yml` | `ts-proxy` and its serve config (`ts-serve`), loopback-only ports of `proxy`      |
+| `proxy/nginx.conf`   | Plain-HTTP listeners and upstream routing per port                                |
+| `.env`               | `TS_AUTHKEY` — the sidecar's first-login auth key                                 |
+| Tailnet policy       | `tag:panther` ownership, which devices reach which ports, `funnel` node attribute |
+| `cli/**/*.sh`        | Firewall rules, SSH defaults, the `TS_AUTHKEY` reminder in `setup env`            |
 
 ---
 
 ## ❓ FAQ
 
+### Can other devices on my LAN reach the services?
+
+No. nginx is published only on loopback and the sidecar listens only on the tailnet; LAN clients must join the tailnet
+or use an SSH tunnel.
+
 ### Why can't I just `ufw deny` a port?
 
 Because Docker's DNAT forwards published-port traffic around the `INPUT` chain, so UFW never sees it. Address-scoped
-publishing is the only reliable control.
+publishing (here: loopback only) is the reliable control.
 
-### The cluster won't start after a reboot. Is Tailscale down?
+### Who renews the certificate?
 
-Likely. If the Tailscale address does not exist, the proxy cannot bind `BIND_ADDR` and the stack stays down by
-design. Bring Tailscale up, then `./bin/panther-minor cluster start`.
+`tailscaled` in the sidecar, automatically. There is no cron and nothing in `proxy/`. Like every publicly trusted
+certificate, it is recorded in Certificate Transparency logs, which makes the name `panther.<tailnet>.ts.net` public —
+not reachable, since only tailnet devices can connect.
 
-### My Tailscale IP changed. What now?
+### The services are unreachable from the tailnet but the stack runs. What now?
 
-Re-run `sudo ./bin/panther-minor setup env` to refresh `BIND_ADDR`, then restart the cluster.
+Check the sidecar: `./bin/panther-minor logs ts-proxy --tail 100` and `cluster status` (its healthcheck turns
+unhealthy without a tailnet address). Loopback and SSH tunnels keep working meanwhile. A first start without
+`TS_AUTHKEY` logs a login URL instead of joining.
 
-### Can other devices on my LAN reach the services?
+### The node came back as `panther-1`. Why?
 
-No. Ports are published only on loopback and the Tailscale address; LAN clients must join the tailnet or use an SSH
-tunnel.
+The `ts-proxy-state` volume was deleted (`cluster cleanup` removes all named volumes), so the sidecar logged in as a
+new node while the old `panther` still existed. Delete both in the [admin console](https://login.tailscale.com/admin/machines),
+make sure `TS_AUTHKEY` holds a valid key, then `./bin/panther-minor cluster restart ts-proxy`.
+
+### Do I still need Tailscale on the host itself?
+
+Not for the services. `setup tailscale` still installs it for SSH over the tailnet; that node must not be named
+`panther`, or the sidecar becomes `panther-1`.
