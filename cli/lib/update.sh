@@ -2,7 +2,7 @@
 # version's. Releases ship them as the panther-minor.tar.gz asset; a branch has no
 # asset, so its source tarball is packaged by the branch's own release/package.sh.
 # .manifest lists the shipped files, so files a version drops are deleted and
-# everything else in the install (.env, proxy/ssl, models/.huggingface, extra/,
+# everything else in the install (.env, models/.huggingface, extra/,
 # docker-compose.override.yml) is never touched.
 
 # Calls the GitHub REST API and stores the response body in PANTHER_UPDATE_API_BODY.
