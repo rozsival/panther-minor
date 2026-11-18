@@ -198,19 +198,19 @@ panther-minor cluster status
 
 ## Reading failures
 
-| Output                                                    | Meaning → action                                                                                                             |
-| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `cannot reach llama-manager at http://localhost:8000`     | Stack down or proxy not bound → `cluster status`, then `cluster start` / `logs proxy --tail 100`.                            |
-| Services fine on the host, unreachable from the tailnet   | Sidecar problem → `logs ts-proxy --tail 100`. A login URL there means no usable `TS_AUTHKEY`: hand key creation to the user. |
-| `validation error in MODEL: must be one of: …`            | Wrong preset/model name for that command → pick from the printed list.                                                       |
-| `Text-to-image model '…' is not downloaded`               | `models t2i download <model>` first.                                                                                         |
-| `HTTP 4xx/5xx: …` from `load`                             | Manager or llama-server refused → `logs llama-cpp --tail 200` and `logs llama-manager --tail 200`.                           |
-| `[CONFIRM] …` then exit 1                                 | Prompt declined for lack of a TTY; nothing deleted → confirm with the user, re-run with `PANTHER_CONFIRMED=1`.               |
-| `This command must be run as root (use sudo).`            | A `setup` step → hand it to the user.                                                                                        |
-| `Run install as the user who uses the CLI, not with sudo` | Re-run `install` without `sudo`.                                                                                             |
-| `No release or branch named '…'`                          | Typo or unpushed branch → `update` with an existing release tag, `latest`, or a pushed branch.                               |
-| `… predates archive installs and cannot be installed …`   | Target release/branch has no runtime archive or `release/package.sh` → pick a newer release or rebase the branch.            |
-| `Run update as the user who owns …, not with sudo.`       | Re-run `update` without `sudo`.                                                                                              |
+| Output                                                    | Meaning → action                                                                                                                                                                                           |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cannot reach llama-manager at http://localhost:8000`     | Stack down or proxy not bound → `cluster status`, then `cluster start` / `logs proxy --tail 100`.                                                                                                          |
+| Services fine on the host, unreachable from the tailnet   | Sidecar problem → `logs ts-proxy --tail 100`. A login URL there means no usable `TS_AUTHKEY`; a **Locked out** badge in the admin console means Tailnet Lock wants the node signed: hand both to the user. |
+| `validation error in MODEL: must be one of: …`            | Wrong preset/model name for that command → pick from the printed list.                                                                                                                                     |
+| `Text-to-image model '…' is not downloaded`               | `models t2i download <model>` first.                                                                                                                                                                       |
+| `HTTP 4xx/5xx: …` from `load`                             | Manager or llama-server refused → `logs llama-cpp --tail 200` and `logs llama-manager --tail 200`.                                                                                                         |
+| `[CONFIRM] …` then exit 1                                 | Prompt declined for lack of a TTY; nothing deleted → confirm with the user, re-run with `PANTHER_CONFIRMED=1`.                                                                                             |
+| `This command must be run as root (use sudo).`            | A `setup` step → hand it to the user.                                                                                                                                                                      |
+| `Run install as the user who uses the CLI, not with sudo` | Re-run `install` without `sudo`.                                                                                                                                                                           |
+| `No release or branch named '…'`                          | Typo or unpushed branch → `update` with an existing release tag, `latest`, or a pushed branch.                                                                                                             |
+| `… predates archive installs and cannot be installed …`   | Target release/branch has no runtime archive or `release/package.sh` → pick a newer release or rebase the branch.                                                                                          |
+| `Run update as the user who owns …, not with sudo.`       | Re-run `update` without `sudo`.                                                                                                                                                                            |
 
 When reporting back, give the command you ran, its exit code, and the lines that matter (the `[OK]`/`[ERROR]`
 line, the status row, the bench summary) — not the whole scroll.

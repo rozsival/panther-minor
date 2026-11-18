@@ -24,13 +24,26 @@ flowchart LR
 | `ts-proxy` | The only tailnet entry point: node `panther-minor`, `tag:panther-minor`; HTTPS on the ports in its serve config, no others |
 | `proxy`    | nginx on plain HTTP, one listener per port; published on `127.0.0.1` only                                                  |
 | Docker     | Every other service uses `expose:` and is reachable only inside the `ai` network                                           |
-| Tailnet    | Who reaches `tag:panther-minor` on which ports is the tailnet policy's decision                                            |
+| Tailnet    | Who reaches `tag:panther-minor` on which ports is the tailnet policy's decision; Tailnet Lock decides which nodes exist    |
 | UFW        | Allows only SSH (`2222`) on the host                                                                                       |
 | SSH        | Port `2222`, key-only authentication, `AllowUsers` restricted; fail2ban bans brute-force attempts                          |
 
 The sidecar runs `tailscaled` with kernel networking (`TS_USERSPACE=false`, `/dev/net/tun`, `NET_ADMIN`) inside its own
 network namespace, so the tailnet interface exists only in that container. A tailnet packet can reach nothing but the
 HTTPS listeners in the serve config; the host and the other containers have no tailnet address.
+
+### Tailnet Lock (highly recommended)
+
+Everything above trusts the tailnet: any node in it that the policy allows can reach the services, and without
+[Tailnet Lock](https://tailscale.com/kb/1226/tailnet-lock) Tailscale's coordination server alone decides which nodes
+are in it. With it, a node joins only once one of your trusted signing nodes signs its key, so neither a leaked auth
+key nor a compromised coordination server can slip a node in. Enable it in the
+[device management settings](https://login.tailscale.com/admin/settings/device-management) (Personal and Enterprise
+plans, at least two signing nodes) and keep the disablement secrets in a password manager.
+
+For the sidecar it changes one thing: its auth key has to be signed too, or the node joins locked out and nothing can
+reach it. Sign the key on a signing node before putting it in `.env` — see
+[Installation](installation.md#-prepare-the-tailnet).
 
 ### Why loopback, not a firewall rule
 
@@ -127,60 +140,29 @@ the node never needs re-authentication. Setup steps (MagicDNS, HTTPS certificate
 
 ## 🌍 Public services
 
-None ship today. The sidecar is prepared for public services through [Funnel](https://tailscale.com/kb/1223/funnel),
-under these rules:
+Nothing in this stack is public, and the `panther-minor` sidecar serves no [Funnel](https://tailscale.com/kb/1223/funnel)
+port. A service exposed to the internet — an MCP server with OAuth, say — runs its own Tailscale sidecar in its own
+Compose project: its own node, tag, `funnel` node attribute and serve config, and its own host root for OAuth discovery
+(`/.well-known/…` at `/`). The internet-facing node, its policy and anything that goes wrong on it stay apart from the
+LLM stack, and nothing a service needs lives in files `update` overwrites.
 
-| Rule                 | Detail                                                                                                                 |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Funnel ports         | Funnel accepts only `443`, `8443` and `10000`, so at most three public services                                        |
-| One port per service | Each public service owns one Funnel port, so it gets its own host root (OAuth discovery needs `/.well-known/…` at `/`) |
-| Own nginx listener   | Each public service gets its own nginx `server` on its Funnel port; private and public services never share a listener |
-| `AllowFunnel`        | The serve config lists exactly the public ports under `AllowFunnel`; every other port stays tailnet-only               |
-| Policy               | Funnel needs the `funnel` node attribute for `tag:panther-minor` in the tailnet policy                                 |
-| Authentication       | Funnel traffic comes from the internet: the service authenticates every request itself                                 |
+Such a service reaches the LLMs on the `ai` network, external name `panther-minor_ai`, at
+`http://llama-manager:8000/v1` — plain HTTP, and counted as activity for idle unloading. To keep the service itself off
+that network, put a relay on it and point the service at `http://llm-relay:8000/v1`:
 
-Adding one, e.g. a service `brain` on `8443`:
+```yaml
+services:
+  llm-relay:
+    image: alpine/socat:1.8.1.3
+    command: ['TCP-LISTEN:8000,fork,reuseaddr', 'TCP:llama-manager:8000']
+    restart: unless-stopped
+    networks: [default, panther-minor]
 
-1. Grant Funnel to the node in the tailnet policy:
-
-   ```jsonc
-   {
-     "nodeAttrs": [{ "target": ["tag:panther-minor"], "attr": ["funnel"] }]
-   }
-   ```
-
-2. Add an nginx listener for it in `proxy/nginx.conf` (no published port needed: only the sidecar connects):
-
-   ```nginx
-   # brain (public, Funnel 8443)
-   server {
-     listen 8443;
-     server_name _;
-
-     location / {
-       proxy_http_version 1.1;
-       proxy_set_header Host $host;
-       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-       proxy_set_header X-Forwarded-Proto $forwarded_proto;
-       proxy_pass http://brain:8000;
-     }
-   }
-   ```
-
-3. Merge the port, its handler and the `AllowFunnel` entry into the `ts-serve` config in `docker-compose.yml`
-   (`$$` escapes `$` from Compose interpolation):
-
-   ```json
-   {
-     "TCP": { "8443": { "HTTPS": true } },
-     "Web": { "$${TS_CERT_DOMAIN}:8443": { "Handlers": { "/": { "Proxy": "http://proxy:8443" } } } },
-     "AllowFunnel": { "$${TS_CERT_DOMAIN}:8443": true }
-   }
-   ```
-
-4. Put the service on the `ai` network. One from another Compose project joins it as an external network named
-   `panther-minor_ai`.
-5. `cluster restart proxy ts-proxy`, then check `https://panther-minor.<tailnet>.ts.net:8443` from outside the tailnet.
+networks:
+  panther-minor:
+    name: panther-minor_ai
+    external: true
+```
 
 ## 🔁 Migrating from the domain setup
 
@@ -188,8 +170,9 @@ Installs from before the sidecar served every port with a Let's Encrypt certific
 `proxy certbot`, a renewal cron) and published nginx on the host's Tailscale address (`BIND_ADDR`). The steps below
 move to the sidecar without downtime: the sidecar runs next to the old path until every client has switched.
 
-1. **Prepare the tailnet** — MagicDNS, HTTPS certificates, `tag:panther-minor`, an auth key, and a host not named
-   `panther-minor`; see [Installation](installation.md#-prepare-the-tailnet). Add the key to `.env` as `TS_AUTHKEY=…`.
+1. **Prepare the tailnet** — MagicDNS, HTTPS certificates, `tag:panther-minor`, an auth key (signed, with Tailnet Lock),
+   and a host not named `panther-minor`; see [Installation](installation.md#-prepare-the-tailnet). Add the key to `.env`
+   as `TS_AUTHKEY=…`.
    The host-name rule matters here: installs from before the sidecar often run on a host called `panther-minor`.
    Rename it first, and update SSH configs and anything else that reached it by that name.
 2. **Start the sidecar on the current version.** nginx still serves TLS there, so the sidecar talks to it over
@@ -287,13 +270,13 @@ move to the sidecar without downtime: the sidecar runs next to the old path unti
 
 ## 🛠️ Where network behavior is defined
 
-| File                 | Responsibility                                                                          |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `docker-compose.yml` | `ts-proxy` and its serve config (`ts-serve`), loopback-only ports of `proxy`            |
-| `proxy/nginx.conf`   | Plain-HTTP listeners and upstream routing per port                                      |
-| `.env`               | `TS_AUTHKEY` — the sidecar's first-login auth key                                       |
-| Tailnet policy       | `tag:panther-minor` ownership, which devices reach which ports, `funnel` node attribute |
-| `cli/**/*.sh`        | Firewall rules, SSH defaults, the `TS_AUTHKEY` reminder in `setup env`                  |
+| File                 | Responsibility                                                               |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `docker-compose.yml` | `ts-proxy` and its serve config (`ts-serve`), loopback-only ports of `proxy` |
+| `proxy/nginx.conf`   | Plain-HTTP listeners and upstream routing per port                           |
+| `.env`               | `TS_AUTHKEY` — the sidecar's first-login auth key                            |
+| Tailnet policy       | `tag:panther-minor` ownership, which devices reach which ports               |
+| `cli/**/*.sh`        | Firewall rules, SSH defaults, the `TS_AUTHKEY` reminder in `setup env`       |
 
 ---
 
@@ -347,6 +330,13 @@ as a new node while the old `panther-minor` still existed, or another node — u
 Delete the stale nodes in the [admin console](https://login.tailscale.com/admin/machines) or rename the host (see
 [Installation](installation.md#-prepare-the-tailnet)), make sure `TS_AUTHKEY` holds a valid key, then
 `./bin/panther-minor cluster restart ts-proxy`.
+
+### The sidecar runs but nothing on the tailnet reaches it. Why?
+
+With [Tailnet Lock](#tailnet-lock-highly-recommended) on, a node whose key nobody signed joins _locked out_: every peer
+refuses it. The [machines list](https://login.tailscale.com/admin/machines) shows a **Locked
+out** badge. Select the node, then **Sign node**, and run the `tailscale lock sign nodekey:…` command it shows on a
+signing node. Sign the auth key next time instead (see [Installation](installation.md#-prepare-the-tailnet)).
 
 ### Do I still need Tailscale on the host itself?
 
