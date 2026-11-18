@@ -77,6 +77,8 @@ grep -oE '"?base[Uu][Rr][Ll]"?: *"?https?://[^"'"'"':/]+(:[0-9]+)?' <installed-f
 the same path; for OpenCode it's `baseURL` under `provider.panther-minor.options`.)
 
 - If the value is a real `*.ts.net` host (no `<tailnet>` placeholder), reuse it without asking.
+- If it is a loopback host (`localhost`, `127.0.0.1`), the user deliberately points the harness at the host itself
+  (a harness on the server, or an SSH tunnel): keep the installed URL as it is, scheme and port included.
 - If it is any other host, it predates the Tailscale sidecar (the old own-domain URL, which no longer
   answers): tell the user, then resolve the host as in the fresh-install case. Never carry the old host over.
 - If extraction fails, or the value still contains a placeholder (`<tailnet>`, or the older `<domain>`),
