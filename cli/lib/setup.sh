@@ -109,29 +109,25 @@ panther_sync_env_gpu_gids() {
   panther_upsert_env_key "$env_file" VIDEO_GID "$video_gid"
   panther_upsert_env_key "$env_file" RENDER_GID "$render_gid"
 }
-panther_sync_env_bind_addr() {
+panther_check_env_ts_authkey() {
   local env_file="$1"
   [[ -f "$env_file" ]] || panther_log_error "Missing env file: $env_file"
 
-  # Resolved from Tailscale, not from a flag: this address is what scopes every
-  # published port away from the public internet, and the node already owns
-  # exactly one correct value for it.
-  local bind_addr=''
-  if command -v tailscale >/dev/null 2>&1; then
-    bind_addr="$(tailscale ip -4 2>/dev/null | head -1 || true)"
-  fi
-
-  if [[ -z "$bind_addr" ]]; then
-    # 'setup all' installs Tailscale but cannot authenticate it (that needs a
-    # browser), so an unresolvable address here is the expected first-run
-    # state, not an error. The cluster refuses to start until it is set, so
-    # this cannot silently degrade into publishing on 0.0.0.0.
-    panther_log_warn 'No Tailscale IPv4 address yet; BIND_ADDR left unset.'
-    panther_register_action "Set BIND_ADDR: run 'sudo tailscale up', then 'sudo ./bin/panther-minor setup env'."
+  # The key only matters for the sidecar's first login: once the node exists,
+  # its identity lives in the state volume and an empty or expired key is fine.
+  # A secret cannot be derived from the host, so a missing one is a reminder,
+  # not an error.
+  if docker volume inspect panther-minor_ts-proxy-state >/dev/null 2>&1; then
     return 0
   fi
 
-  panther_upsert_env_key "$env_file" BIND_ADDR "$bind_addr"
+  local key
+  key="$(sed -n 's/^TS_AUTHKEY=//p' "$env_file" | tail -1)"
+  key="${key//[\"\']/}"
+  if [[ -z "$key" ]]; then
+    panther_log_warn "TS_AUTHKEY is empty in $env_file; the ts-proxy sidecar cannot join the tailnet."
+    panther_register_action "Set TS_AUTHKEY in .env (reusable, pre-approved, tagged tag:panther) before the first 'panther-minor cluster start'."
+  fi
 }
 panther_prepare_setup_step() {
   local message="$1"
