@@ -360,7 +360,7 @@ services:
   # -- Host metrics (CPU, RAM, disk, network) ---------------------------------
   node-exporter:
     container_name: node-exporter
-    image: prom/node-exporter:v1.12.1
+    image: prom/node-exporter:v1.13.1
     restart: unless-stopped
     # Root (uid 0) is required to read RAPL energy_uj (CPU package power, mode 0400 root) under
     # /sys/class/powercap. Owner read needs no capabilities, so all are dropped: root-owned host files stay
