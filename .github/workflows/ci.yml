@@ -22,6 +22,19 @@ jobs:
       - name: Set up project
         uses: ./.github/actions/setup
 
+      # The npm wrapper resolved "latest" through the unauthenticated GitHub API and hit its rate limit; a release
+      # asset download is a plain CDN fetch.
+      - name: Install ShellCheck
+        env:
+          # renovate: datasource=github-releases depName=koalaman/shellcheck
+          SHELLCHECK_VERSION: v0.11.0
+        # language=bash
+        run: |
+          curl -fsSL --retry 5 --retry-all-errors \
+            "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" |
+            sudo tar -xJ -C /usr/local/bin --strip-components=1 "shellcheck-${SHELLCHECK_VERSION}/shellcheck"
+          shellcheck --version
+
       - name: Quality Assurance
         # language=bash
         run: |
