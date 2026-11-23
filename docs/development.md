@@ -10,17 +10,17 @@
 
 ## 🧰 Toolchain
 
-| Tool              | Version / config                                                | Role                                                                                                     |
-| ----------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Node.js           | `24.x` (`engines`)                                              | Managers, exporters, tests                                                                               |
-| pnpm              | `packageManager` in `package.json`                              | Package manager and script runner                                                                        |
-| Biome (Ultracite) | `biome.jsonc`                                                   | JS/JSON lint and format                                                                                  |
-| Prettier          | `prettier.config.js` (`printWidth: 120`)                        | Markdown, YAML, TOML, `package.json` and shell (`*.sh`, via `prettier-plugin-sh` as `shfmt -i 2`) format |
-| ShellCheck        | `shellcheck` package (pins the binary, downloaded on first run) | Lints `bin/panther-minor` (which holds every `cli/` source) and the container entrypoints                |
-| Bashly            | `bashly-settings.yml`                                           | Generates `bin/panther-minor` from `cli/`                                                                |
-| Lefthook          | `lefthook.yml`                                                  | Git hooks                                                                                                |
-| commitlint        | `commitlint.config.js`                                          | Conventional Commits enforcement                                                                         |
-| Renovate          | `renovate.json`                                                 | Dependency updates                                                                                       |
+| Tool              | Version / config                                                                              | Role                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Node.js           | `24.x` (`engines`)                                                                            | Managers, exporters, tests                                                                               |
+| pnpm              | `packageManager` in `package.json`                                                            | Package manager and script runner                                                                        |
+| Biome (Ultracite) | `biome.jsonc`                                                                                 | JS/JSON lint and format                                                                                  |
+| Prettier          | `prettier.config.js` (`printWidth: 120`)                                                      | Markdown, YAML, TOML, `package.json` and shell (`*.sh`, via `prettier-plugin-sh` as `shfmt -i 2`) format |
+| ShellCheck        | System binary on `PATH` (`brew install shellcheck`); CI pins `SHELLCHECK_VERSION` in `ci.yml` | Lints `bin/panther-minor` (which holds every `cli/` source) and the container entrypoints                |
+| Bashly            | `bashly-settings.yml`                                                                         | Generates `bin/panther-minor` from `cli/`                                                                |
+| Lefthook          | `lefthook.yml`                                                                                | Git hooks                                                                                                |
+| commitlint        | `commitlint.config.js`                                                                        | Conventional Commits enforcement                                                                         |
+| Renovate          | `renovate.json`                                                                               | Dependency updates                                                                                       |
 
 ```bash
 pnpm install   # also installs the Git hooks outside CI
