@@ -3,5 +3,13 @@
   "extends": ["config:recommended", "customManagers:githubActionsVersions"],
   "automerge": true,
   "automergeType": "pr",
-  "minimumReleaseAge": "1 day"
+  "minimumReleaseAge": "1 day",
+  "packageRules": [
+    {
+      "description": "Every minor and patch update in one pull request, to keep the pull request noise down; majors stay apart",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major dependencies",
+      "groupSlug": "non-major"
+    }
+  ]
 }
