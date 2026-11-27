@@ -52,7 +52,7 @@ main() {
   ref="$(sed -n 's/^ref=//p' "$dir/.release")"
   printf '\033[0;32m[OK]\033[0m    Installed Panther Minor %s into %s.\n' "$ref" "$dir"
   info "Next: cd $dir && sudo ./bin/panther-minor setup"
-  info "On a fresh server, set up the host baseline (Docker, SSH hardening, firewall) with pantheon first: https://github.com/rozsival/pantheon"
+  info "On a fresh server, set up the host baseline (Docker, SSH hardening, firewall) with Pantheon first: https://github.com/rozsival/pantheon"
 }
 
 main "$@"

@@ -16,7 +16,7 @@ panther_check_follow_up() {
 
 # Changes nothing and needs no root, so it can run before anything else - also
 # on a host someone else prepared. The host baseline (Docker, a hardened SSH,
-# a firewall) is not this project's job: pantheon sets it up, and so does any
+# a firewall) is not this project's job: Pantheon sets it up, and so does any
 # Ubuntu host with Docker Engine. Every check runs before the step fails, so one
 # run lists every fix.
 panther_setup_check() {
@@ -39,12 +39,15 @@ panther_setup_check() {
     # shellcheck source=/dev/null
     os_version="$(. /etc/os-release && echo "${VERSION_ID:-}")"
   fi
-  # 'sort -V' orders 26.04 before 26.10 and 27.04, so the minimum sorts first
-  # exactly when the host is at least that release.
-  if [[ "$os_id" == ubuntu && "$(printf '%s\n' 26.04 "$os_version" | sort -V | head -1)" == 26.04 ]]; then
+  # Exactly this release, not 'at least': setup amdgpu registers the driver and
+  # ROCm repositories for one Ubuntu release (its ubuntu_codename and
+  # rocm_distro), so a newer host would pass here and fail there. Bump it
+  # together with those.
+  local ubuntu_release='26.04'
+  if [[ "$os_id" == ubuntu && "$os_version" == "$ubuntu_release" ]]; then
     panther_log_success "Ubuntu ${os_version}."
   else
-    panther_log_warn "Ubuntu 26.04 or newer is required (found ${os_id:-unknown} ${os_version:-unknown}): the AMD driver and ROCm repositories are pinned to it."
+    panther_log_warn "Ubuntu ${ubuntu_release} is required (found ${os_id:-unknown} ${os_version:-unknown}): the AMD driver and ROCm repositories are pinned to it."
     failures=$((failures + 1))
   fi
 
@@ -56,7 +59,7 @@ panther_setup_check() {
     docker_client=1
     panther_log_success "$(docker --version)."
   else
-    panther_log_warn "Docker Engine is missing. Install it with pantheon ('setup docker', ${baseline}) or from https://docs.docker.com/engine/install/ubuntu/."
+    panther_log_warn "Docker Engine is missing. Install it with Pantheon ('setup docker', ${baseline}) or from https://docs.docker.com/engine/install/ubuntu/."
     failures=$((failures + 1))
   fi
 
@@ -101,7 +104,7 @@ panther_setup_check() {
     panther_log_success "${user} is in the docker group."
   fi
 
-  ((failures == 0)) || panther_log_error "${failures} prerequisite(s) missing: fix them, then re-run setup. A fresh server gets all of them from pantheon: ${baseline}"
+  ((failures == 0)) || panther_log_error "${failures} prerequisite(s) missing: fix them, then re-run setup. On a fresh server, Pantheon sets up Docker: ${baseline}"
   panther_log_success 'Host prerequisites met.'
 }
 

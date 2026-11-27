@@ -19,7 +19,7 @@ commands:
             help: Default user for setup commands
 
       - name: check
-        help: Check the host prerequisites (Ubuntu 26.04+, Docker Engine and Compose); needs no root and changes nothing
+        help: Check the host prerequisites (Ubuntu 26.04, Docker Engine and Compose); needs no root and changes nothing
         flags:
           - long: --allowed-user
             short: -u

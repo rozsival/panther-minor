@@ -4,7 +4,7 @@
 
 ### Self-hosted AI workstation stack for [AMD](https://www.amd.com/en.html)
 
-![Platform](https://img.shields.io/badge/Platform-Ubuntu%2026.04%20LTS%2B-0A84FF)
+![Platform](https://img.shields.io/badge/Platform-Ubuntu%2026.04%20LTS-0A84FF)
 ![GPU](https://img.shields.io/badge/GPU-AMD%20RDNA%204-E01F27)
 ![Inference](https://img.shields.io/badge/Inference-llama.cpp%20%2B%20stable--diffusion.cpp-4CAF50)
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
@@ -12,7 +12,7 @@
 A reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems: **llama.cpp**,
 **stable-diffusion.cpp**, **Open WebUI**, **Prometheus** and **Grafana**, with **Tailscale access** and **smart GPU
 usage management**. The host underneath is yours: [Pantheon](https://github.com/rozsival/pantheon) is the recommended
-baseline, and any Ubuntu 26.04+ server with Docker works.
+baseline, and any Ubuntu 26.04 server with Docker works.
 
 **[📚 Documentation](docs/README.md)** · [Installation](docs/installation.md) · [Operations](docs/operations.md) ·
 [CLI](docs/cli.md)
@@ -38,7 +38,7 @@ baseline, and any Ubuntu 26.04+ server with Docker works.
 
 ## 🚀 Quick start
 
-**Requires** Ubuntu Server 26.04 LTS+ with Docker Engine and Compose, 2x AMD RDNA 4 GPUs and a Tailscale tailnet with
+**Requires** Ubuntu Server 26.04 LTS with Docker Engine and Compose, 2x AMD RDNA 4 GPUs and a Tailscale tailnet with
 MagicDNS and HTTPS certificates enabled — see [Installation](docs/installation.md#-prerequisites) for hardware, BIOS
 and [tailnet](docs/installation.md#-prepare-the-tailnet) settings. On a fresh server, set up the host with
 [Pantheon](https://github.com/rozsival/pantheon) first: Docker, key-only SSH, a firewall and fail2ban.
