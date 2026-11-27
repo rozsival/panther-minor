@@ -34,8 +34,12 @@ model resident (for embeddings or quick tasks):
 1. A static list of large model IDs (`largeModelIds`) lives in `llama-cpp/models.js`.
 2. Before proxying an inference request for one of those models, the manager reads the request body, checks
    `/models`, and unloads any other loaded large model first.
-3. Large-model switches are serialized, and a loaded large model is never unloaded while one of its proxied inference
-   requests is still in flight.
+3. Large-model switches are serialized, and a loaded large model is not unloaded while one of its proxied inference
+   requests is still in flight, for up to `DRAIN_TIMEOUT_SECONDS` (300 s). Past that the manager logs
+   `model_drain_timeout`, drops those requests from its count and switches anyway, so a request it lost track of can
+   never block switching for good.
+4. A client that hangs up stops counting at once, and the manager closes its request to `llama-cpp`, which stops
+   generating an answer nobody will read.
 
 This keeps the small helper model untouched while making large-model handovers deterministic.
 
@@ -46,7 +50,7 @@ sequenceDiagram
     participant L as llama-cpp
     C->>M: POST /v1/chat/completions (large model B)
     M->>M: acquire switch lock
-    M->>M: wait for conflicting in-flight requests to drain
+    M->>M: wait for conflicting in-flight requests to drain (≤ DRAIN_TIMEOUT_SECONDS)
     M->>L: GET /models
     L-->>M: large model A loaded
     M->>L: POST /models/unload (A)
@@ -79,6 +83,7 @@ and [GPU assignment](image-generation.md#gpu-assignment). `sd-manager` records i
 | `LLAMA_CPP_SLEEP_IDLE_SECONDS` | `.env`                |   `900` | Idle time before LLM unload; `0` disables                                                                          |
 | `SD_CPP_SLEEP_IDLE_SECONDS`    | `.env`                |   `900` | Idle time before `sd-manager` reports image generation idle                                                        |
 | `IDLE_UNLOAD_RETRY_SECONDS`    | `docker-compose.yml`  |    `15` | Retry delay after a failed idle unload                                                                             |
+| `DRAIN_TIMEOUT_SECONDS`        | `docker-compose.yml`  |   `300` | Longest a large-model switch waits for the outgoing model's in-flight requests before switching anyway             |
 | `PROXY_TIMEOUT_SECONDS`        | `docker-compose.yml`  |   `900` | Inactivity ceiling for proxied streams (cold loads stream nothing for minutes); matches nginx `proxy_read_timeout` |
 | `UPSTREAM_TIMEOUT_SECONDS`     | `docker-compose.yml`  |     `4` | Bound for the manager's own `/models` and `/models/unload` calls                                                   |
 | `largeModelIds`                | `llama-cpp/models.js` |       — | Models subject to large-model arbitration                                                                          |
@@ -90,8 +95,9 @@ and [GPU assignment](image-generation.md#gpu-assignment). `sd-manager` records i
 | `GET /health` | `llama-manager`, `sd-manager` | `ok` — used by Compose health checks                  |
 | `GET /status` | `llama-manager`, `sd-manager` | JSON activity state consumed by the metrics exporters |
 
-Both are internal to the `ai` network; check them with `docker exec`, or watch the idle gauges in
-[Monitoring](monitoring.md).
+nginx forwards every path, so on the host `curl -s localhost:8000/status` reaches `llama-manager` and
+`curl -s localhost:8001/status` reaches `sd-manager`; the idle gauges are in [Monitoring](monitoring.md).
+`llama-manager`'s `/status` also lists `modelsInFlight`, the requests per model that a switch would wait for.
 
 ---
 
@@ -104,8 +110,16 @@ set it to `0` to keep models resident.
 
 ### Can a model be unloaded in the middle of my request?
 
-No. A large model is never unloaded while one of its proxied inference requests is in flight, and idle unloading only
-starts after the idle window with no requests.
+Only by a switch that has already waited `DRAIN_TIMEOUT_SECONDS` (300 s) for it. Otherwise a large model is not
+unloaded while one of its proxied inference requests is in flight, and idle unloading only starts after the idle window
+with no requests.
+
+### A model switch hangs. What do I check?
+
+`curl -s localhost:8000/status` on the host: `modelsInFlight` lists the requests the switch is waiting for. It waits at
+most `DRAIN_TIMEOUT_SECONDS`, then logs `model_drain_timeout` and switches. Read
+`./bin/panther-minor logs llama-manager` **before** restarting anything: `cluster restart llama-manager` recreates
+the container, and its log goes with it.
 
 ### How do I mark a new model as "large"?
 

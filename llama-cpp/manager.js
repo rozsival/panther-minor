@@ -54,6 +54,16 @@ let switchLock = Promise.resolve();
 const modelInFlightCounts = new Map();
 const modelDrainWaiters = new Map();
 
+// Ceiling on how long a large-model switch waits for the outgoing model's
+// in-flight requests. Without it, one reservation that is never released (a
+// request the manager lost track of) blocks every later switch, and the switch
+// lock with it, until the manager restarts. Past the ceiling the stale
+// reservations are dropped and the switch goes ahead; a request that really was
+// still running loses its model, which beats a cluster that can never switch.
+function getDrainTimeoutSeconds() {
+  return Number.parseFloat(process.env.DRAIN_TIMEOUT_SECONDS ?? '300');
+}
+
 function getIdleTimeoutSeconds() {
   return Number.parseFloat(process.env.LLAMA_CPP_SLEEP_IDLE_SECONDS ?? '0');
 }
@@ -153,6 +163,10 @@ export function releaseModelReservation(modelId) {
     return;
   }
 
+  forgetModelReservations(modelId);
+}
+
+function forgetModelReservations(modelId) {
   modelInFlightCounts.delete(modelId);
 
   const waiters = modelDrainWaiters.get(modelId) ?? [];
@@ -160,6 +174,10 @@ export function releaseModelReservation(modelId) {
   for (const waiter of waiters) {
     waiter();
   }
+}
+
+export function getModelsInFlight() {
+  return Object.fromEntries(modelInFlightCounts);
 }
 
 export function getModelInFlight(modelId) {
@@ -171,11 +189,23 @@ async function waitForModelToDrain(modelId) {
     return;
   }
 
-  await new Promise((resolve) => {
+  let timer;
+  const drained = await new Promise((resolve) => {
     const waiters = modelDrainWaiters.get(modelId) ?? [];
-    waiters.push(resolve);
+    waiters.push(() => resolve(true));
     modelDrainWaiters.set(modelId, waiters);
+    timer = setTimeout(() => resolve(false), getDrainTimeoutSeconds() * 1000);
   });
+  clearTimeout(timer);
+
+  if (!drained && getModelInFlight(modelId) > 0) {
+    log('warn', 'model_drain_timeout', {
+      inFlight: getModelInFlight(modelId),
+      model: modelId,
+      timeoutSeconds: getDrainTimeoutSeconds(),
+    });
+    forgetModelReservations(modelId);
+  }
 }
 
 function scheduleIdleCheck() {
@@ -381,6 +411,7 @@ const upstreamBase = new URL(LLAMA_SERVER_URL);
 
 function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } = {}) {
   let trackedRequestFinished = false;
+  let upstreamFailed = false;
 
   const finishTrackedRequest = () => {
     if (trackedRequestFinished) {
@@ -395,6 +426,14 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
 
   if (trackRequest) {
     beginTrackedRequest();
+  }
+
+  // The client may have hung up while the request waited for a model switch:
+  // its 'close' has already fired, so nothing below would ever release it.
+  if (res.destroyed || req.socket?.destroyed) {
+    log('info', 'client_gone_before_proxy', { path: req.url });
+    finishTrackedRequest();
+    return;
   }
 
   const proxyReq = httpRequest(
@@ -414,15 +453,38 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
       res.writeHead(proxyRes.statusCode, stripHopByHopHeaders(proxyRes.headers));
       proxyRes.pipe(res);
       res.on('finish', finishTrackedRequest);
-      res.on('close', () => {
-        proxyRes.destroy();
-        proxyReq.destroy();
-        finishTrackedRequest();
-      });
       proxyRes.on('end', finishTrackedRequest);
       proxyRes.on('error', finishTrackedRequest);
+      // llama-server went away mid-response (crash, restart): end the client's
+      // response too, or it waits for bytes that will never come.
+      proxyRes.on('close', () => {
+        // A client hang-up cancels the upstream request too and lands here;
+        // only a client that is still reading has lost something.
+        if (!(proxyRes.complete || res.destroyed)) {
+          log('warn', 'proxy_upstream_closed_mid_response', { path: req.url });
+          upstreamFailed = true;
+          res.destroy();
+        }
+        finishTrackedRequest();
+      });
     }
   );
+
+  // 'close' fires once per response, after it finished or when the client hung
+  // up. Registered here, not when upstream headers arrive: a client that leaves
+  // during a cold load or a long prefill would otherwise keep its reservation
+  // until llama-server finished an answer nobody reads, and block every switch
+  // away from its model meanwhile. 'aborted' on req does not cover this - it no
+  // longer fires once the body has been read, which it always has by now.
+  res.on('close', () => {
+    if (!(res.writableFinished || upstreamFailed)) {
+      log('info', 'client_closed_before_response', { path: req.url });
+      // Closing the upstream connection is what tells llama-server to stop
+      // generating.
+      proxyReq.destroy();
+    }
+    finishTrackedRequest();
+  });
 
   // 'timeout' fires after the socket goes quiet for PROXY_TIMEOUT_SECONDS in
   // either direction. The option alone only emits the event; destroying the
@@ -436,6 +498,7 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
     // Headers already streamed: the response is dead mid-body, so end the
     // client connection too rather than leave it hanging. When nothing
     // started, leave 502 to the error handler below.
+    upstreamFailed = true;
     if (res.headersSent) {
       res.destroy();
     }
@@ -450,14 +513,18 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
 
   proxyReq.on('error', (error) => {
     finishTrackedRequest();
+    // Destroying the upstream request after the client hung up lands here too;
+    // that is the cancellation working, not an upstream failure.
+    if (res.destroyed) {
+      log('debug', 'proxy_upstream_cancelled', { error: error.message, path: req.url });
+      return;
+    }
     log('warn', 'proxy_upstream_error', { error: error.message, path: req.url });
     if (!res.headersSent) {
       res.writeHead(502);
       res.end('Bad Gateway\n');
     }
   });
-
-  req.on('aborted', finishTrackedRequest);
 }
 
 async function readRequestBody(req) {
@@ -575,6 +642,7 @@ export function startServer() {
           activeProxyRequests,
           idleTimeoutSeconds: getIdleTimeoutSeconds(),
           lastActivityAt,
+          modelsInFlight: getModelsInFlight(),
           unloadInProgress,
         })
       );

@@ -13,6 +13,7 @@ import {
   fetchModelsList,
   getActiveProxyRequests,
   getModelInFlight,
+  getModelsInFlight,
   isActive,
   prepareModelForInference,
   recordActivity,
@@ -182,6 +183,40 @@ test('prepareModelForInference waits for conflicting large requests to drain', a
     { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
   ]);
   releaseModelReservation('Qwen3.8-27B');
+});
+
+test('prepareModelForInference stops waiting after DRAIN_TIMEOUT_SECONDS and drops the stale reservation', async () => {
+  await withEnv('DRAIN_TIMEOUT_SECONDS', '0.1', async () => {
+    resetActivityTracking();
+    const calls = [];
+
+    // A reservation nobody will ever release, like a request the manager lost track of.
+    await prepareModelForInference(
+      'Qwen3.6-35B-A3B',
+      () => new Response(JSON.stringify({ data: [] }), { status: 200 })
+    );
+    assert.deepEqual(getModelsInFlight(), { 'Qwen3.6-35B-A3B': 1 });
+
+    const startedAt = Date.now();
+    const second = await prepareModelForInference('Qwen3.8-27B', (url, options = {}) => {
+      calls.push({ method: options.method ?? 'GET', url: url.toString() });
+      if (url.pathname === '/models') {
+        return new Response(JSON.stringify({ data: [{ id: 'Qwen3.6-35B-A3B', status: { value: 'loaded' } }] }), {
+          status: 200,
+        });
+      }
+      return new Response(null, { status: 200 });
+    });
+
+    assert.equal(second, 'Qwen3.8-27B');
+    assert.ok(Date.now() - startedAt < 2000, 'the switch must go ahead once the drain timeout passes');
+    assert.deepEqual(calls, [
+      { method: 'GET', url: 'http://llama-cpp:8000/models' },
+      { method: 'POST', url: 'http://llama-cpp:8000/models/unload' },
+    ]);
+    assert.deepEqual(getModelsInFlight(), { 'Qwen3.8-27B': 1 });
+    releaseModelReservation('Qwen3.8-27B');
+  });
 });
 
 test('unloadIdleModels unloads every loaded model via /models/unload', async () => {
@@ -509,6 +544,192 @@ test('a wedged upstream is cut off by PROXY_TIMEOUT_SECONDS with 502, not held o
     assert.equal(status, 502);
     assert.ok(elapsedMs < 10_000, `expected cutoff near the 1s proxy timeout, took ${elapsedMs}ms`);
     assert.match(log(), /proxy_upstream_timeout/u);
+  } finally {
+    child.kill('SIGKILL');
+    await upstream.close();
+  }
+});
+
+// -- Client hang-ups and upstream deaths, end to end -------------------------
+// A reservation that outlives its request blocks every switch away from its
+// model, so each way a request can end must release it.
+
+// Fake llama-server driven per request by `onInference(req, res, model)`;
+// /models reports `loadedModel` as loaded. Records every inference request.
+function startScriptedUpstream({ loadedModel = 'Qwen3.8-Flash-Next', onInference }) {
+  const sockets = new Set();
+  const inferences = [];
+  const server = createHttpServer((req, res) => {
+    if (req.url === '/models') {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ data: [{ id: loadedModel, status: { value: 'loaded' } }] }));
+      return;
+    }
+    if (req.url === '/models/unload') {
+      req.resume();
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end('{}');
+      return;
+    }
+
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      const entry = { closedEarly: false, model: JSON.parse(body || '{}').model };
+      inferences.push(entry);
+      res.on('close', () => {
+        entry.closedEarly = !res.writableFinished;
+      });
+      onInference(req, res, entry.model);
+    });
+  });
+
+  server.on('connection', (socket) => {
+    sockets.add(socket);
+    socket.on('close', () => sockets.delete(socket));
+  });
+
+  return new Promise((resolve) => {
+    server.listen(0, '127.0.0.1', () => {
+      resolve({
+        close: () => {
+          for (const socket of sockets) {
+            socket.destroy();
+          }
+          return new Promise((done) => server.close(done));
+        },
+        inferences,
+        url: `http://127.0.0.1:${server.address().port}`,
+      });
+    });
+  });
+}
+
+async function startManagerAgainst(upstream, env = {}) {
+  const port = await reserveFreePort();
+  const manager = startManagerProcess({
+    LLAMA_CPP_SLEEP_IDLE_SECONDS: '0',
+    LLAMA_SERVER_URL: upstream.url,
+    PORT: String(port),
+    PROXY_TIMEOUT_SECONDS: '30',
+    UPSTREAM_TIMEOUT_SECONDS: '5',
+    ...env,
+  });
+  await manager.ready;
+  return { ...manager, port };
+}
+
+async function managerStatus(port) {
+  return (await fetch(`http://127.0.0.1:${port}/status`)).json();
+}
+
+function waitFor(predicate, timeoutMs = 3000) {
+  const deadline = Date.now() + timeoutMs;
+  const poll = async () => {
+    if (await predicate()) {
+      return true;
+    }
+    if (Date.now() >= deadline) {
+      return false;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    return poll();
+  };
+  return poll();
+}
+
+function postModel(port, path, model, { signal } = {}) {
+  return fetch(`http://127.0.0.1:${port}${path}`, {
+    body: JSON.stringify({ messages: [], model }),
+    headers: { 'content-type': 'application/json' },
+    method: 'POST',
+    signal,
+  });
+}
+
+for (const path of ['/v1/chat/completions', '/models/load']) {
+  test(`a client hanging up on ${path} releases its reservation and cancels the upstream request`, async () => {
+    // llama-server never answers: a cold load or a long prefill.
+    const upstream = await startScriptedUpstream({
+      onInference: () => {
+        // Never answers.
+      },
+    });
+    const { child, port } = await startManagerAgainst(upstream);
+
+    try {
+      const request = postModel(port, path, 'Qwen3.8-Flash-Next', { signal: AbortSignal.timeout(300) });
+      await assert.rejects(request);
+
+      assert.ok(
+        await waitFor(async () => Object.keys((await managerStatus(port)).modelsInFlight).length === 0),
+        'the reservation must be released as soon as the client hangs up'
+      );
+      assert.ok(
+        await waitFor(() => upstream.inferences[0]?.closedEarly),
+        'the upstream request must be closed so llama-server stops working on it'
+      );
+    } finally {
+      child.kill('SIGKILL');
+      await upstream.close();
+    }
+  });
+}
+
+test('a client that hangs up while queued behind a switch is never proxied', async () => {
+  // Flash-Next's request holds the GPUs for 800ms; a 27B request queues behind it in the switch.
+  const upstream = await startScriptedUpstream({
+    onInference: (_req, res) => {
+      setTimeout(() => {
+        res.writeHead(200, { 'content-type': 'application/json' });
+        res.end('{"ok":true}');
+      }, 800);
+    },
+  });
+  const { child, port, log } = await startManagerAgainst(upstream);
+
+  try {
+    const first = postModel(port, '/v1/chat/completions', 'Qwen3.8-Flash-Next');
+    await waitFor(() => upstream.inferences.length === 1);
+    const queued = postModel(port, '/v1/chat/completions', 'Qwen3.8-27B', { signal: AbortSignal.timeout(200) });
+    await assert.rejects(queued);
+    assert.equal((await first).status, 200);
+
+    assert.ok(await waitFor(() => log().includes('client_gone_before_proxy')));
+    assert.deepEqual((await managerStatus(port)).modelsInFlight, {});
+    assert.deepEqual(
+      upstream.inferences.map((entry) => entry.model),
+      ['Qwen3.8-Flash-Next'],
+      'nothing may reach llama-server for a client that is already gone'
+    );
+  } finally {
+    child.kill('SIGKILL');
+    await upstream.close();
+  }
+});
+
+test('llama-server dying mid-stream ends the client response and releases the reservation', async () => {
+  const upstream = await startScriptedUpstream({
+    onInference: (_req, res) => {
+      res.writeHead(200, { 'content-type': 'text/event-stream' });
+      res.write('data: {"n":0}\n\n');
+      setTimeout(() => res.socket.destroy(), 100);
+    },
+  });
+  const { child, port, log } = await startManagerAgainst(upstream);
+
+  try {
+    const response = await postModel(port, '/v1/chat/completions', 'Qwen3.8-Flash-Next', {
+      signal: AbortSignal.timeout(5000),
+    });
+    const startedAt = Date.now();
+    await assert.rejects(response.text(), (error) => error.name !== 'TimeoutError');
+    assert.ok(Date.now() - startedAt < 2000, 'the client must see the stream break, not wait for its own timeout');
+
+    assert.match(log(), /proxy_upstream_closed_mid_response/u);
+    assert.deepEqual((await managerStatus(port)).modelsInFlight, {});
   } finally {
     child.kill('SIGKILL');
     await upstream.close();
