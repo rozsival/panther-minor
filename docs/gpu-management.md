@@ -38,8 +38,8 @@ model resident (for embeddings or quick tasks):
    requests is still in flight, for up to `DRAIN_TIMEOUT_SECONDS` (300 s). Past that the manager logs
    `model_drain_timeout`, drops those requests from its count and switches anyway, so a request it lost track of can
    never block switching for good.
-4. A client that hangs up stops counting at once, and the manager closes its request to `llama-cpp`, which stops
-   generating an answer nobody will read.
+4. A client that hangs up stops counting at once, and the manager closes its request to `llama-cpp` instead of
+   leaving it to finish an answer nobody will read.
 
 This keeps the small helper model untouched while making large-model handovers deterministic.
 

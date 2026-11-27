@@ -479,8 +479,8 @@ function proxyToUpstream(req, res, { bodyBuffer, trackRequest, trackedModelId } 
   res.on('close', () => {
     if (!(res.writableFinished || upstreamFailed)) {
       log('info', 'client_closed_before_response', { path: req.url });
-      // Closing the upstream connection is what tells llama-server to stop
-      // generating.
+      // Nobody will read the answer; close the upstream request rather than
+      // let llama-server spend the GPUs on it.
       proxyReq.destroy();
     }
     finishTrackedRequest();

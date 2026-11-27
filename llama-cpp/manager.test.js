@@ -678,6 +678,37 @@ for (const path of ['/v1/chat/completions', '/models/load']) {
   });
 }
 
+test('a client that hangs up before a late, two-part upstream answer is still released', async () => {
+  // The leak seen on the host: the client leaves first, then llama-server sends
+  // its headers and, in a later write, the body. Before the fix no release
+  // event fired at all, even after the upstream response had completed.
+  const upstream = await startScriptedUpstream({
+    onInference: (_req, res) => {
+      setTimeout(() => {
+        if (res.destroyed) {
+          return;
+        }
+        res.writeHead(200, { 'content-length': '2', 'content-type': 'application/json' });
+        res.flushHeaders();
+        setTimeout(() => res.end('{}'), 100);
+      }, 400);
+    },
+  });
+  const { child, port } = await startManagerAgainst(upstream);
+
+  try {
+    await assert.rejects(
+      postModel(port, '/v1/chat/completions', 'Qwen3.8-Flash-Next', { signal: AbortSignal.timeout(200) })
+    );
+    // Past the point where the upstream would have answered.
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    assert.deepEqual((await managerStatus(port)).modelsInFlight, {});
+  } finally {
+    child.kill('SIGKILL');
+    await upstream.close();
+  }
+});
+
 test('a client that hangs up while queued behind a switch is never proxied', async () => {
   // Flash-Next's request holds the GPUs for 800ms; a 27B request queues behind it in the switch.
   const upstream = await startScriptedUpstream({
