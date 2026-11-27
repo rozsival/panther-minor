@@ -1,12 +1,10 @@
 panther_resolve_setup_context() {
   declare -g PANTHER_ALLOWED_USER
-  declare -g PANTHER_ACTIONS_FILE
 
   # Every setup step calls panther_require_root, so $USER is always 'root' here
   # and never the human being configured. sudo records the real account in
   # SUDO_USER; a direct root login has no record of it and must pass the flag.
   PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-}")"
-  PANTHER_ACTIONS_FILE='/tmp/panther-minor_actions'
 
   if [[ -z "$PANTHER_ALLOWED_USER" ]]; then
     panther_log_error "Could not detect which user to configure. Run the CLI with 'sudo' from your own account, or pass --allowed-user <name>."
@@ -22,9 +20,32 @@ panther_resolve_setup_context() {
     panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host."
   fi
 }
+# The follow-ups the steps register live for one run only, in a private mktemp
+# file: a fixed name in world-writable /tmp let another account pre-create it,
+# and root then wrote through whatever it found there. A step run on its own
+# prints its list when it succeeds; 'setup all' sets PANTHER_SETUP_ALL and
+# prints one list in its summary instead.
 panther_ensure_actions_file() {
-  mkdir -p "$(dirname "$PANTHER_ACTIONS_FILE")"
-  [[ -f "$PANTHER_ACTIONS_FILE" ]] || touch "$PANTHER_ACTIONS_FILE"
+  [[ -z "${PANTHER_ACTIONS_FILE:-}" ]] || return 0
+  declare -g PANTHER_ACTIONS_FILE
+  PANTHER_ACTIONS_FILE="$(mktemp -t panther-minor-actions.XXXXXX)"
+  trap panther_finish_actions EXIT
+}
+panther_finish_actions() {
+  local status=$?
+  if ((status == 0)) && [[ -z "${PANTHER_SETUP_ALL:-}" ]]; then
+    panther_print_actions
+  fi
+  rm -f "$PANTHER_ACTIONS_FILE"
+}
+panther_print_actions() {
+  [[ -s "${PANTHER_ACTIONS_FILE:-}" ]] || return 0
+  echo ''
+  panther_log_warn '⚠  ACTIONS REQUIRED TO FINISH SETUP:'
+  local line
+  while IFS= read -r line; do
+    echo -e "   \033[1;33m•\033[0m $line"
+  done <"$PANTHER_ACTIONS_FILE"
 }
 panther_register_action() {
   panther_ensure_actions_file
@@ -109,9 +130,15 @@ panther_check_env_ts_authkey() {
     panther_register_action "Set TS_AUTHKEY in .env (reusable, pre-approved, tagged tag:panther-minor) before the first 'panther-minor cluster start'."
   fi
 }
+# For the steps that configure the allowed user (and so take --allowed-user).
 panther_prepare_setup_step() {
-  local message="$1"
   panther_resolve_setup_context
+  panther_prepare_root_step "$1"
+}
+# For the steps that only touch the host: they need no user, so a root shell
+# without SUDO_USER can run them too.
+panther_prepare_root_step() {
+  local message="$1"
   panther_require_root
   panther_confirm "$message"
   panther_ensure_actions_file
@@ -122,7 +149,10 @@ panther_prepare_setup_step() {
   # run on a terminal nobody is watching.
   export DEBIAN_FRONTEND=noninteractive
 }
+# $1: what the final 'install' as the allowed user did (installed or needs
+# attention); the steps before it stop the run when they fail.
 panther_print_setup_summary() {
+  local cli_status="${1:-installed}"
   echo ''
   echo -e "\033[0;32m╔══════════════════════════════════════════════╗\033[0m"
   echo -e "\033[0;32m║  🐆 Panther Minor setup complete!            ║\033[0m"
@@ -133,14 +163,8 @@ panther_print_setup_summary() {
   printf "\033[0;32m║  4. GRUB     : %-30s║\033[0m\n" "configured"
   printf "\033[0;32m║  5. Memory   : %-30s║\033[0m\n" "protected"
   printf "\033[0;32m║  6. Env      : %-30s║\033[0m\n" "synced"
-  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "$cli_status"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
-  if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then
-    echo ''
-    panther_log_warn '⚠  ACTIONS REQUIRED TO FINISH SETUP:'
-    while IFS= read -r line; do
-      echo -e "   \033[1;33m•\033[0m $line"
-    done <"$PANTHER_ACTIONS_FILE"
-  fi
+  panther_print_actions
 }

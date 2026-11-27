@@ -1,11 +1,13 @@
-# Where a fresh login shell of the allowed user finds hf, or nothing. The inner
-# shell is interactive because ~/.bashrc returns early otherwise, and that is
-# where a Homebrew PATH line lives (hosts set up by panther-minor 15 and older
-# have hf from Homebrew). The path is read from a marker line, because the rc
-# files may print banners of their own.
+# Where the allowed user's CLI finds hf, or nothing. The probe is a
+# non-interactive login shell, the kind 'bash -lc "panther-minor models ..."'
+# over SSH gives: it reads ~/.profile (which puts ~/.local/bin on the PATH) but
+# not the rest of ~/.bashrc, which returns early. An interactive probe also saw
+# the Homebrew PATH line that panther-minor 15 and older appended to ~/.bashrc,
+# and so called hf installed where the models commands could not run it. The
+# path is read from a marker line, because the rc files may print banners.
 panther_deps_user_hf() {
   # shellcheck disable=SC2016 # expands in the user's shell
-  sudo -u "$PANTHER_ALLOWED_USER" -i bash -ic 'printf "hf=%s\n" "$(command -v hf)"' </dev/null 2>/dev/null |
+  sudo -u "$PANTHER_ALLOWED_USER" -i bash -lc 'printf "hf=%s\n" "$(command -v hf)"' </dev/null 2>/dev/null |
     sed -n 's/^hf=//p' | tail -1 || true
 }
 

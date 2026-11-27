@@ -6,11 +6,11 @@
 # writes .env. These are the same functions './bin/panther-minor setup <step>'
 # dispatches to, so each step has one implementation.
 panther_setup_all() {
-  local step
+  local step cli_status='installed'
 
-  # A fresh list per run: the file lives in /tmp across runs, and the summary
-  # must not repeat what an earlier run asked for.
-  : >"$PANTHER_ACTIONS_FILE"
+  # One ACTIONS REQUIRED list for the whole run, printed by the summary below,
+  # instead of one per step.
+  declare -g PANTHER_SETUP_ALL=1
 
   # check exits on a missing prerequisite, before anything is installed.
   for step in check deps amdgpu grub memory env; do
@@ -21,14 +21,14 @@ panther_setup_all() {
   # they will get. A failed check is a follow-up, not a reason to abort.
   panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
   if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+    cli_status='needs attention'
     panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
   fi
 
   # Prints the ACTIONS REQUIRED list the steps registered along the way: the
   # reboot for the new amdgpu driver and kernel parameters, TS_AUTHKEY, the
-  # docker group. Nothing else calls it, so without this a full run ends
-  # without ever showing them.
-  panther_print_setup_summary
+  # docker group. PANTHER_SETUP_ALL keeps the steps from printing their own.
+  panther_print_setup_summary "$cli_status"
 }
 
 # Prompts for the allowed user, pre-filled from the flag, the env var or sudo.

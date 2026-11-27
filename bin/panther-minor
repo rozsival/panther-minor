@@ -54,7 +54,7 @@ panther_minor_setup_usage() {
 
   printf "%s\n" "Commands:"
   printf "  %s   Run every setup step (check, deps, amdgpu, grub, memory, env) and install the CLI (default)\n" "all   "
-  printf "  %s   Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing\n" "check "
+  printf "  %s   Check the host prerequisites (Ubuntu 26.04+, Docker Engine and Compose); needs no root and changes nothing\n" "check "
   printf "  %s   Install the packages the stack needs and the Hugging Face CLI (hf) for the selected user\n" "deps  "
   printf "  %s   Install AMD GPU drivers and ROCm\n" "amdgpu"
   printf "  %s   Update GRUB kernel parameters\n" "grub  "
@@ -103,7 +103,7 @@ panther_minor_setup_all_usage() {
 }
 
 panther_minor_setup_check_usage() {
-  printf "panther-minor setup check - Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing\n\n"
+  printf "panther-minor setup check - Check the host prerequisites (Ubuntu 26.04+, Docker Engine and Compose); needs no root and changes nothing\n\n"
 
   printf "%s\n" "Usage:"
   printf "  panther-minor setup check [OPTIONS]\n"
@@ -164,7 +164,7 @@ panther_minor_setup_amdgpu_usage() {
   printf "panther-minor setup amdgpu - Install AMD GPU drivers and ROCm\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  panther-minor setup amdgpu\n"
+  printf "  panther-minor setup amdgpu [OPTIONS]\n"
   printf "  panther-minor setup amdgpu --help | -h\n"
   echo
 
@@ -172,8 +172,18 @@ panther_minor_setup_amdgpu_usage() {
 
     printf "%s\n" "Options:"
 
+    printf "  %s\n" "--allowed-user, -u USER"
+    printf "    User to add to the render and video groups\n"
+    echo
+
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
+    echo
+
+    printf "%s\n" "Environment Variables:"
+
+    printf "  %s\n" "PANTHER_ALLOWED_USER"
+    printf "    Default user for setup commands\n"
     echo
 
   fi
@@ -1447,13 +1457,11 @@ panther_prune_orphans() {
 
 panther_resolve_setup_context() {
   declare -g PANTHER_ALLOWED_USER
-  declare -g PANTHER_ACTIONS_FILE
 
   # Every setup step calls panther_require_root, so $USER is always 'root' here
   # and never the human being configured. sudo records the real account in
   # SUDO_USER; a direct root login has no record of it and must pass the flag.
   PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-}")"
-  PANTHER_ACTIONS_FILE='/tmp/panther-minor_actions'
 
   if [[ -z "$PANTHER_ALLOWED_USER" ]]; then
     panther_log_error "Could not detect which user to configure. Run the CLI with 'sudo' from your own account, or pass --allowed-user <name>."
@@ -1469,9 +1477,32 @@ panther_resolve_setup_context() {
     panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host."
   fi
 }
+# The follow-ups the steps register live for one run only, in a private mktemp
+# file: a fixed name in world-writable /tmp let another account pre-create it,
+# and root then wrote through whatever it found there. A step run on its own
+# prints its list when it succeeds; 'setup all' sets PANTHER_SETUP_ALL and
+# prints one list in its summary instead.
 panther_ensure_actions_file() {
-  mkdir -p "$(dirname "$PANTHER_ACTIONS_FILE")"
-  [[ -f "$PANTHER_ACTIONS_FILE" ]] || touch "$PANTHER_ACTIONS_FILE"
+  [[ -z "${PANTHER_ACTIONS_FILE:-}" ]] || return 0
+  declare -g PANTHER_ACTIONS_FILE
+  PANTHER_ACTIONS_FILE="$(mktemp -t panther-minor-actions.XXXXXX)"
+  trap panther_finish_actions EXIT
+}
+panther_finish_actions() {
+  local status=$?
+  if ((status == 0)) && [[ -z "${PANTHER_SETUP_ALL:-}" ]]; then
+    panther_print_actions
+  fi
+  rm -f "$PANTHER_ACTIONS_FILE"
+}
+panther_print_actions() {
+  [[ -s "${PANTHER_ACTIONS_FILE:-}" ]] || return 0
+  echo ''
+  panther_log_warn '⚠  ACTIONS REQUIRED TO FINISH SETUP:'
+  local line
+  while IFS= read -r line; do
+    echo -e "   \033[1;33m•\033[0m $line"
+  done <"$PANTHER_ACTIONS_FILE"
 }
 panther_register_action() {
   panther_ensure_actions_file
@@ -1556,9 +1587,15 @@ panther_check_env_ts_authkey() {
     panther_register_action "Set TS_AUTHKEY in .env (reusable, pre-approved, tagged tag:panther-minor) before the first 'panther-minor cluster start'."
   fi
 }
+# For the steps that configure the allowed user (and so take --allowed-user).
 panther_prepare_setup_step() {
-  local message="$1"
   panther_resolve_setup_context
+  panther_prepare_root_step "$1"
+}
+# For the steps that only touch the host: they need no user, so a root shell
+# without SUDO_USER can run them too.
+panther_prepare_root_step() {
+  local message="$1"
   panther_require_root
   panther_confirm "$message"
   panther_ensure_actions_file
@@ -1569,7 +1606,10 @@ panther_prepare_setup_step() {
   # run on a terminal nobody is watching.
   export DEBIAN_FRONTEND=noninteractive
 }
+# $1: what the final 'install' as the allowed user did (installed or needs
+# attention); the steps before it stop the run when they fail.
 panther_print_setup_summary() {
+  local cli_status="${1:-installed}"
   echo ''
   echo -e "\033[0;32m╔══════════════════════════════════════════════╗\033[0m"
   echo -e "\033[0;32m║  🐆 Panther Minor setup complete!            ║\033[0m"
@@ -1580,16 +1620,10 @@ panther_print_setup_summary() {
   printf "\033[0;32m║  4. GRUB     : %-30s║\033[0m\n" "configured"
   printf "\033[0;32m║  5. Memory   : %-30s║\033[0m\n" "protected"
   printf "\033[0;32m║  6. Env      : %-30s║\033[0m\n" "synced"
-  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "$cli_status"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
-  if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then
-    echo ''
-    panther_log_warn '⚠  ACTIONS REQUIRED TO FINISH SETUP:'
-    while IFS= read -r line; do
-      echo -e "   \033[1;33m•\033[0m $line"
-    done <"$PANTHER_ACTIONS_FILE"
-  fi
+  panther_print_actions
 }
 
 panther_t2i_config_file() {
@@ -1932,11 +1966,11 @@ panther_minor_setup_all_command() {
   # writes .env. These are the same functions './bin/panther-minor setup <step>'
   # dispatches to, so each step has one implementation.
   panther_setup_all() {
-    local step
+    local step cli_status='installed'
 
-    # A fresh list per run: the file lives in /tmp across runs, and the summary
-    # must not repeat what an earlier run asked for.
-    : >"$PANTHER_ACTIONS_FILE"
+    # One ACTIONS REQUIRED list for the whole run, printed by the summary below,
+    # instead of one per step.
+    declare -g PANTHER_SETUP_ALL=1
 
     # check exits on a missing prerequisite, before anything is installed.
     for step in check deps amdgpu grub memory env; do
@@ -1947,14 +1981,14 @@ panther_minor_setup_all_command() {
     # they will get. A failed check is a follow-up, not a reason to abort.
     panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
     if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+      cli_status='needs attention'
       panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
     fi
 
     # Prints the ACTIONS REQUIRED list the steps registered along the way: the
     # reboot for the new amdgpu driver and kernel parameters, TS_AUTHKEY, the
-    # docker group. Nothing else calls it, so without this a full run ends
-    # without ever showing them.
-    panther_print_setup_summary
+    # docker group. PANTHER_SETUP_ALL keeps the steps from printing their own.
+    panther_print_setup_summary "$cli_status"
   }
 
   # Prompts for the allowed user, pre-filled from the flag, the env var or sudo.
@@ -2000,6 +2034,22 @@ panther_minor_setup_all_command() {
 
 panther_minor_setup_check_command() {
 
+  # With a user: that account's groups in the group database. Without one: the
+  # groups of this process, which is what reaching the Docker socket depends on.
+  panther_check_in_docker_group() {
+    id -nG "$@" 2>/dev/null | tr ' ' '\n' | grep -qx docker
+  }
+
+  # 'setup all' collects the follow-ups for its summary. On its own, a failed
+  # check exits before any list would be printed, so the fix is printed inline.
+  panther_check_follow_up() {
+    if [[ -n "${PANTHER_SETUP_ALL:-}" ]]; then
+      panther_register_action "$1"
+    else
+      panther_log_info "Fix: $1"
+    fi
+  }
+
   # Changes nothing and needs no root, so it can run before anything else - also
   # on a host someone else prepared. The host baseline (Docker, a hardened SSH,
   # a firewall) is not this project's job: pantheon sets it up, and so does any
@@ -2037,7 +2087,9 @@ panther_minor_setup_check_command() {
     # --version and 'compose version' only need the binaries, not the daemon
     # socket: a user not yet in the docker group must get the group warning below,
     # not a failure here.
+    local docker_client=0
     if command -v docker >/dev/null 2>&1 && docker --version >/dev/null 2>&1; then
+      docker_client=1
       panther_log_success "$(docker --version)."
     else
       panther_log_warn "Docker Engine is missing. Install it with pantheon ('setup docker', ${baseline}) or from https://docs.docker.com/engine/install/ubuntu/."
@@ -2051,24 +2103,38 @@ panther_minor_setup_check_command() {
       failures=$((failures + 1))
     fi
 
-    if id -nG "$user" | tr ' ' '\n' | grep -qx docker; then
-      panther_log_success "${user} is in the docker group."
-    else
-      # A warning, not a failure: the group applies only after a new login, so
-      # setup can go on and the user fixes it afterwards.
-      panther_log_warn "${user} is not in the docker group, so the CLI cannot reach Docker without sudo."
-      if [[ -n "${PANTHER_ACTIONS_FILE:-}" ]]; then
-        panther_register_action "Add ${user} to the docker group (sudo usermod -aG docker ${user}), then log out and back in."
+    # The binaries prove nothing about the daemon: a stopped or disabled one
+    # passed here and failed only at 'cluster start'. Its socket answers only root
+    # and the docker group, so the probe runs when this process is one of them.
+    if ((docker_client)); then
+      if [[ $EUID -eq 0 ]] || panther_check_in_docker_group; then
+        if docker info >/dev/null 2>&1; then
+          panther_log_success 'The Docker daemon answers.'
+        else
+          panther_log_warn 'The Docker daemon does not answer: sudo systemctl enable --now docker.service'
+          failures=$((failures + 1))
+        fi
       else
-        panther_log_info "Fix: sudo usermod -aG docker ${user}, then log out and back in."
+        panther_log_info 'The Docker daemon is not checked: its socket needs root or the docker group.'
       fi
     fi
 
-    if command -v curl >/dev/null 2>&1; then
-      panther_log_success 'curl is installed.'
+    # The group database says what the next login gets; a running session keeps
+    # the groups it started with. Right after 'usermod -aG docker', the database
+    # already has the group while this session still cannot reach the socket.
+    local in_session=''
+    [[ "$(id -un)" != "$user" ]] || in_session="$(panther_check_in_docker_group && echo 1 || echo 0)"
+
+    # Warnings, not failures: the group applies only after a new login, so setup
+    # can go on and the user fixes it afterwards.
+    if ! panther_check_in_docker_group "$user"; then
+      panther_log_warn "${user} is not in the docker group, so the CLI cannot reach Docker without sudo."
+      panther_check_follow_up "Add ${user} to the docker group (sudo usermod -aG docker ${user}), then log out and back in."
+    elif [[ "$in_session" == 0 ]]; then
+      panther_log_warn "${user} is in the docker group, but this login session started before that."
+      panther_check_follow_up "Log out and back in, so ${user}'s session gets the docker group."
     else
-      panther_log_warn 'curl is missing: sudo apt-get install -y curl.'
-      failures=$((failures + 1))
+      panther_log_success "${user} is in the docker group."
     fi
 
     ((failures == 0)) || panther_log_error "${failures} prerequisite(s) missing: fix them, then re-run setup. A fresh server gets all of them from pantheon: ${baseline}"
@@ -2081,14 +2147,16 @@ panther_minor_setup_check_command() {
 
 panther_minor_setup_deps_command() {
 
-  # Where a fresh login shell of the allowed user finds hf, or nothing. The inner
-  # shell is interactive because ~/.bashrc returns early otherwise, and that is
-  # where a Homebrew PATH line lives (hosts set up by panther-minor 15 and older
-  # have hf from Homebrew). The path is read from a marker line, because the rc
-  # files may print banners of their own.
+  # Where the allowed user's CLI finds hf, or nothing. The probe is a
+  # non-interactive login shell, the kind 'bash -lc "panther-minor models ..."'
+  # over SSH gives: it reads ~/.profile (which puts ~/.local/bin on the PATH) but
+  # not the rest of ~/.bashrc, which returns early. An interactive probe also saw
+  # the Homebrew PATH line that panther-minor 15 and older appended to ~/.bashrc,
+  # and so called hf installed where the models commands could not run it. The
+  # path is read from a marker line, because the rc files may print banners.
   panther_deps_user_hf() {
     # shellcheck disable=SC2016 # expands in the user's shell
-    sudo -u "$PANTHER_ALLOWED_USER" -i bash -ic 'printf "hf=%s\n" "$(command -v hf)"' </dev/null 2>/dev/null |
+    sudo -u "$PANTHER_ALLOWED_USER" -i bash -lc 'printf "hf=%s\n" "$(command -v hf)"' </dev/null 2>/dev/null |
       sed -n 's/^hf=//p' | tail -1 || true
   }
 
@@ -2342,7 +2410,7 @@ EOF
 panther_minor_setup_grub_command() {
 
   panther_setup_grub() {
-    panther_prepare_setup_step 'Update GRUB kernel parameters.'
+    panther_prepare_root_step 'Update GRUB kernel parameters.'
 
     # Single source of truth for both the config edit and the running-kernel check.
     local -a params=(amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off)
@@ -2427,7 +2495,7 @@ AUGEOF
 panther_minor_setup_memory_command() {
 
   panther_setup_memory() {
-    panther_prepare_setup_step 'Protect the llama.cpp memory with the llm.slice systemd unit.'
+    panther_prepare_root_step 'Protect the llama.cpp memory with the llm.slice systemd unit.'
 
     # llama-cpp runs in this slice (cgroup_parent in docker-compose.yml). 96G covers Qwen3.8-Flash-Next's host-resident
     # weights (~65 GiB: 40 expert blocks + the n-gram table) plus LLAMA_CPP_CACHE_RAM, with headroom; see docs/llm.md#host-memory-protection.
@@ -3819,6 +3887,18 @@ panther_minor_setup_amdgpu_parse_requirements() {
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
+
+      --allowed-user | -u)
+
+        if [[ -n ${2+x} ]]; then
+          args['--allowed-user']="$2"
+          shift
+          shift
+        else
+          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
+          exit 1
+        fi
+        ;;
 
       --)
         shift
@@ -6560,6 +6640,16 @@ panther_minor_setup_amdgpu_completion() {
         completion_blocked_flags["--help"]=1
         shift
         ;;
+      --allowed-user | -u)
+        shift
+        if [[ $# -eq 0 ]]; then
+
+          return
+        fi
+        shift
+        completion_blocked_flags["--allowed-user"]=1
+
+        ;;
       *)
         return
         ;;
@@ -6568,6 +6658,7 @@ panther_minor_setup_amdgpu_completion() {
 
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
+    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
   fi
 
 }

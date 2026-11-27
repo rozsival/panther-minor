@@ -19,7 +19,7 @@ commands:
             help: Default user for setup commands
 
       - name: check
-        help: Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing
+        help: Check the host prerequisites (Ubuntu 26.04+, Docker Engine and Compose); needs no root and changes nothing
         flags:
           - long: --allowed-user
             short: -u
@@ -42,6 +42,14 @@ commands:
 
       - name: amdgpu
         help: Install AMD GPU drivers and ROCm
+        flags:
+          - long: --allowed-user
+            short: -u
+            arg: user
+            help: User to add to the render and video groups
+        environment_variables:
+          - name: panther_allowed_user
+            help: Default user for setup commands
 
       - name: grub
         help: Update GRUB kernel parameters

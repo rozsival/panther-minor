@@ -1,5 +1,5 @@
 panther_setup_grub() {
-  panther_prepare_setup_step 'Update GRUB kernel parameters.'
+  panther_prepare_root_step 'Update GRUB kernel parameters.'
 
   # Single source of truth for both the config edit and the running-kernel check.
   local -a params=(amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off)
