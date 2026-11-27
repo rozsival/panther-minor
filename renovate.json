@@ -10,6 +10,17 @@
       "matchUpdateTypes": ["minor", "patch"],
       "groupName": "non-major dependencies",
       "groupSlug": "non-major"
+    },
+    {
+      "description": "ROCm moves as one and on its own: both rocm/dev-ubuntu base images (llama-cpp, stable-diffusion-cpp) in one pull request, every update type, outside the non-major group. The host installer (cli/commands/setup/amdgpu.sh) pins the same release and Renovate does not track it, so this is never automerged",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["rocm/dev-ubuntu-*"],
+      "groupName": "ROCm",
+      "groupSlug": "rocm",
+      "automerge": false,
+      "prBodyNotes": [
+        "> [!IMPORTANT]\n> Move the host to the same ROCm release before merging: follow `.agents/skills/rocm-upgrade/` (`rocm_release` in `cli/commands/setup/amdgpu.sh`, the docs and the rebuilt `bin/panther-minor`) in this pull request."
+      ]
     }
   ]
 }
