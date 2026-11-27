@@ -1,3 +1,19 @@
+# With a user: that account's groups in the group database. Without one: the
+# groups of this process, which is what reaching the Docker socket depends on.
+panther_check_in_docker_group() {
+  id -nG "$@" 2>/dev/null | tr ' ' '\n' | grep -qx docker
+}
+
+# 'setup all' collects the follow-ups for its summary. On its own, a failed
+# check exits before any list would be printed, so the fix is printed inline.
+panther_check_follow_up() {
+  if [[ -n "${PANTHER_SETUP_ALL:-}" ]]; then
+    panther_register_action "$1"
+  else
+    panther_log_info "Fix: $1"
+  fi
+}
+
 # Changes nothing and needs no root, so it can run before anything else - also
 # on a host someone else prepared. The host baseline (Docker, a hardened SSH,
 # a firewall) is not this project's job: pantheon sets it up, and so does any
@@ -35,7 +51,9 @@ panther_setup_check() {
   # --version and 'compose version' only need the binaries, not the daemon
   # socket: a user not yet in the docker group must get the group warning below,
   # not a failure here.
+  local docker_client=0
   if command -v docker >/dev/null 2>&1 && docker --version >/dev/null 2>&1; then
+    docker_client=1
     panther_log_success "$(docker --version)."
   else
     panther_log_warn "Docker Engine is missing. Install it with pantheon ('setup docker', ${baseline}) or from https://docs.docker.com/engine/install/ubuntu/."
@@ -49,24 +67,38 @@ panther_setup_check() {
     failures=$((failures + 1))
   fi
 
-  if id -nG "$user" | tr ' ' '\n' | grep -qx docker; then
-    panther_log_success "${user} is in the docker group."
-  else
-    # A warning, not a failure: the group applies only after a new login, so
-    # setup can go on and the user fixes it afterwards.
-    panther_log_warn "${user} is not in the docker group, so the CLI cannot reach Docker without sudo."
-    if [[ -n "${PANTHER_ACTIONS_FILE:-}" ]]; then
-      panther_register_action "Add ${user} to the docker group (sudo usermod -aG docker ${user}), then log out and back in."
+  # The binaries prove nothing about the daemon: a stopped or disabled one
+  # passed here and failed only at 'cluster start'. Its socket answers only root
+  # and the docker group, so the probe runs when this process is one of them.
+  if ((docker_client)); then
+    if [[ $EUID -eq 0 ]] || panther_check_in_docker_group; then
+      if docker info >/dev/null 2>&1; then
+        panther_log_success 'The Docker daemon answers.'
+      else
+        panther_log_warn 'The Docker daemon does not answer: sudo systemctl enable --now docker.service'
+        failures=$((failures + 1))
+      fi
     else
-      panther_log_info "Fix: sudo usermod -aG docker ${user}, then log out and back in."
+      panther_log_info 'The Docker daemon is not checked: its socket needs root or the docker group.'
     fi
   fi
 
-  if command -v curl >/dev/null 2>&1; then
-    panther_log_success 'curl is installed.'
+  # The group database says what the next login gets; a running session keeps
+  # the groups it started with. Right after 'usermod -aG docker', the database
+  # already has the group while this session still cannot reach the socket.
+  local in_session=''
+  [[ "$(id -un)" != "$user" ]] || in_session="$(panther_check_in_docker_group && echo 1 || echo 0)"
+
+  # Warnings, not failures: the group applies only after a new login, so setup
+  # can go on and the user fixes it afterwards.
+  if ! panther_check_in_docker_group "$user"; then
+    panther_log_warn "${user} is not in the docker group, so the CLI cannot reach Docker without sudo."
+    panther_check_follow_up "Add ${user} to the docker group (sudo usermod -aG docker ${user}), then log out and back in."
+  elif [[ "$in_session" == 0 ]]; then
+    panther_log_warn "${user} is in the docker group, but this login session started before that."
+    panther_check_follow_up "Log out and back in, so ${user}'s session gets the docker group."
   else
-    panther_log_warn 'curl is missing: sudo apt-get install -y curl.'
-    failures=$((failures + 1))
+    panther_log_success "${user} is in the docker group."
   fi
 
   ((failures == 0)) || panther_log_error "${failures} prerequisite(s) missing: fix them, then re-run setup. A fresh server gets all of them from pantheon: ${baseline}"

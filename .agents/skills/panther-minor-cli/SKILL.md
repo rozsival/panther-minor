@@ -77,7 +77,7 @@ You have no TTY, so four behaviours matter:
   stdin; at end-of-file they fail immediately, but a runner that leaves stdin open as an idle pipe makes them
   block forever instead. With the redirect the behaviour below is deterministic.
 - **Confirmation prompts fail closed.** `models llm|t2i remove`, `models prune`, the orphan sweep at the end
-  of `models llm|t2i download`, and every `setup <step>` print what they are about to touch, then
+  of `models llm|t2i download`, and every `setup <step>` but `setup check` print what they are about to touch, then
   `[CONFIRM] …`, then **exit 1 with no further message** on empty stdin. Nothing was deleted — which makes
   the plain invocation a safe preview (`panther-minor models llm remove <model> </dev/null`). Show the user
   that list, get an explicit yes for it, then re-run with `PANTHER_CONFIRMED=1` prefixed (for `sudo`:
@@ -100,10 +100,10 @@ even if a broader request implied it.
 
 | Tier           | Commands                                                                                                                                                                                                                                                                                                                                                          |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Read-only      | `--help`, `--version`, `cluster status`, `logs <svc> --tail n`, `models llm list`, `models t2i list`, `__complete …`, `completions`                                                                                                                                                                                                                               |
+| Read-only      | `--help`, `--version`, `cluster status`, `logs <svc> --tail n`, `models llm list`, `models t2i list`, `__complete …`, `completions`, `setup check` (no `sudo`, no prompt)                                                                                                                                                                                         |
 | State-changing | `cluster start/stop/restart/build` (without `-v`), `models llm load/unload`, `models llm bench`, `models t2i load/unload`, `models llm/t2i download`, `install`, `update`                                                                                                                                                                                         |
 | Destructive    | `cluster stop -v`, `cluster restart -v` (delete named volumes: Open WebUI chats/users, Prometheus history, Grafana state, the `ts-proxy` tailnet identity), `cluster cleanup` (`down -v --rmi all`: all of that plus every image, so the next start rebuilds llama.cpp), `models llm/t2i remove`, `models prune`, `download --force` (deletes before re-fetching) |
-| Hand to user   | `setup …` (root; `setup all` interactive)                                                                                                                                                                                                                                                                                                                         |
+| Hand to user   | `setup …` but `check` (root; `setup all` interactive)                                                                                                                                                                                                                                                                                                             |
 
 Side effects worth stating before you run:
 

@@ -95,7 +95,7 @@ order. It changes nothing on a host that fails `check`.
 
 | #   | Step      | What it does                                                                                                      |
 | --- | --------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | `check`   | Stops unless Ubuntu 26.04+, Docker Engine + Compose and `curl` are there; warns if the user is not in `docker`    |
+| 1   | `check`   | Stops unless Ubuntu 26.04+ and a running Docker Engine + Compose are there; warns if the user is not in `docker`  |
 | 2   | `deps`    | `jq`, `augeas-tools`, `nvtop`, `python3-venv`; the Hugging Face CLI (`hf`) for the allowed user in `~/.local/bin` |
 | 3   | `amdgpu`  | Latest AMD kernel driver (DKMS) and ROCm                                                                          |
 | 4   | `grub`    | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                            |
@@ -104,7 +104,8 @@ order. It changes nothing on a host that fails `check`.
 | 7   | `install` | `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install))                  |
 
 Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot, set
-`TS_AUTHKEY`, and log in again if the user was just added to the `docker` group.
+`TS_AUTHKEY`, and log in again if the user was just added to the `docker` group. A step run on its own ends with its
+own list.
 
 `setup` does not touch SSH, the firewall, the timezone or anything else outside the GPU stack: that is the host
 baseline's job. `./bin/panther-minor setup check` changes nothing and needs no `sudo`, so it is a quick way to see
