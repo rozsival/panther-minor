@@ -21,7 +21,7 @@ panther_minor_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Configure the Panther Minor host\n" "setup      "
+  printf "  %s   Prepare the host for the Panther Minor AI stack\n" "setup      "
   printf "  %s   Manage Panther Minor model files\n" "models     "
   printf "  %s   Manage the Panther Minor Docker Compose cluster\n" "cluster    "
   printf "  %s   Stream logs by default or show a one-time tail for cluster services\n" "logs       "
@@ -45,7 +45,7 @@ panther_minor_usage() {
 }
 
 panther_minor_setup_usage() {
-  printf "panther-minor setup - Configure the Panther Minor host\n\n"
+  printf "panther-minor setup - Prepare the host for the Panther Minor AI stack\n\n"
 
   printf "%s\n" "Usage:"
   printf "  panther-minor setup [COMMAND]\n"
@@ -53,19 +53,13 @@ panther_minor_setup_usage() {
   echo
 
   printf "%s\n" "Commands:"
-  printf "  %s   Run the full workstation setup (default)\n" "all      "
-  printf "  %s   Extend storage and set timezone\n" "init     "
-  printf "  %s   Install essential packages\n" "packages "
-  printf "  %s   Install Homebrew, llmfit, and Hugging Face CLI\n" "brew     "
-  printf "  %s   Install Docker, add the selected user to the docker group, and protect the llm.slice memory\n" "docker   "
-  printf "  %s   Install Tailscale\n" "tailscale"
-  printf "  %s   Harden SSH configuration\n" "ssh      "
-  printf "  %s   Configure the firewall\n" "ufw      "
-  printf "  %s   Install and configure fail2ban\n" "fail2ban "
-  printf "  %s   Install AMD GPU drivers and ROCm\n" "amdgpu   "
-  printf "  %s   Update GRUB kernel parameters\n" "grub     "
-  printf "  %s   Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user\n" "shell    "
-  printf "  %s   Create .env and sync GPU group IDs\n" "env      "
+  printf "  %s   Run every setup step (check, deps, amdgpu, grub, memory, env) and install the CLI (default)\n" "all   "
+  printf "  %s   Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing\n" "check "
+  printf "  %s   Install the packages the stack needs and the Hugging Face CLI (hf) for the selected user\n" "deps  "
+  printf "  %s   Install AMD GPU drivers and ROCm\n" "amdgpu"
+  printf "  %s   Update GRUB kernel parameters\n" "grub  "
+  printf "  %s   Protect the llama.cpp memory with the llm.slice systemd unit\n" "memory"
+  printf "  %s   Create .env and sync GPU group IDs\n" "env   "
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -80,7 +74,7 @@ panther_minor_setup_usage() {
 }
 
 panther_minor_setup_all_usage() {
-  printf "panther-minor setup all - Run the full workstation setup\n\n"
+  printf "panther-minor setup all - Run every setup step (check, deps, amdgpu, grub, memory, env) and install the CLI\n\n"
 
   printf "%s\n" "Usage:"
   printf "  panther-minor setup [all] [OPTIONS]\n"
@@ -91,125 +85,8 @@ panther_minor_setup_all_usage() {
 
     printf "%s\n" "Options:"
 
-    printf "  %s\n" "--server-name, -n NAME"
-    printf "    Server name for the setup summary (defaults to host name)\n"
-    echo
-
     printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to configure for host access and tooling (defaults to current user)\n"
-    echo
-
-    printf "  %s\n" "--ssh-port, -p PORT"
-    printf "    SSH port to configure (defaults to 2222)\n"
-    echo
-
-    printf "  %s\n" "--timezone, -t TIMEZONE"
-    printf "    System timezone to configure (defaults to Europe/Prague)\n"
-    echo
-
-    printf "  %s\n" "--lvm-device, -d PATH"
-    printf "    Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_SERVER_NAME"
-    printf "    Default server name for setup commands\n"
-    echo
-
-    printf "  %s\n" "PANTHER_ALLOWED_USER"
-    printf "    Default user for setup commands\n"
-    echo
-
-    printf "  %s\n" "PANTHER_SSH_PORT"
-    printf "    Default SSH port for setup commands\n"
-    echo
-
-    printf "  %s\n" "PANTHER_TIMEZONE"
-    printf "    Default timezone for setup init\n"
-    echo
-
-    printf "  %s\n" "PANTHER_LVM_DEVICE"
-    printf "    Default logical volume device for setup init\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_init_usage() {
-  printf "panther-minor setup init - Extend storage and set timezone\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup init [OPTIONS]\n"
-  printf "  panther-minor setup init --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--timezone, -t TIMEZONE"
-    printf "    System timezone to configure (defaults to Europe/Prague)\n"
-    echo
-
-    printf "  %s\n" "--lvm-device, -d PATH"
-    printf "    Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_TIMEZONE"
-    printf "    Default timezone for setup init\n"
-    echo
-
-    printf "  %s\n" "PANTHER_LVM_DEVICE"
-    printf "    Default logical volume device for setup init\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_packages_usage() {
-  printf "panther-minor setup packages - Install essential packages\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup packages\n"
-  printf "  panther-minor setup packages --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_brew_usage() {
-  printf "panther-minor setup brew - Install Homebrew, llmfit, and Hugging Face CLI\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup brew [OPTIONS]\n"
-  printf "  panther-minor setup brew --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to configure for Homebrew and shell integration\n"
+    printf "    User that owns .env, gets hf and runs the CLI (defaults to the sudo caller)\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -225,12 +102,12 @@ panther_minor_setup_brew_usage() {
   fi
 }
 
-panther_minor_setup_docker_usage() {
-  printf "panther-minor setup docker - Install Docker, add the selected user to the docker group, and protect the llm.slice memory\n\n"
+panther_minor_setup_check_usage() {
+  printf "panther-minor setup check - Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  panther-minor setup docker [OPTIONS]\n"
-  printf "  panther-minor setup docker --help | -h\n"
+  printf "  panther-minor setup check [OPTIONS]\n"
+  printf "  panther-minor setup check --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -238,7 +115,7 @@ panther_minor_setup_docker_usage() {
     printf "%s\n" "Options:"
 
     printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to add to the docker group\n"
+    printf "    User to check docker group membership for (defaults to the sudo caller, then\n    the current user)\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -254,31 +131,12 @@ panther_minor_setup_docker_usage() {
   fi
 }
 
-panther_minor_setup_tailscale_usage() {
-  printf "panther-minor setup tailscale - Install Tailscale\n\n"
+panther_minor_setup_deps_usage() {
+  printf "panther-minor setup deps - Install the packages the stack needs and the Hugging Face CLI (hf) for the selected user\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  panther-minor setup tailscale\n"
-  printf "  panther-minor setup tailscale --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_ssh_usage() {
-  printf "panther-minor setup ssh - Harden SSH configuration\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup ssh [OPTIONS]\n"
-  printf "  panther-minor setup ssh --help | -h\n"
+  printf "  panther-minor setup deps [OPTIONS]\n"
+  printf "  panther-minor setup deps --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
@@ -286,11 +144,7 @@ panther_minor_setup_ssh_usage() {
     printf "%s\n" "Options:"
 
     printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to allow in SSH\n"
-    echo
-
-    printf "  %s\n" "--ssh-port, -p PORT"
-    printf "    SSH port to configure (defaults to 2222)\n"
+    printf "    User to install hf for\n"
     echo
 
     printf "  %s\n" "--help, -h"
@@ -301,68 +155,6 @@ panther_minor_setup_ssh_usage() {
 
     printf "  %s\n" "PANTHER_ALLOWED_USER"
     printf "    Default user for setup commands\n"
-    echo
-
-    printf "  %s\n" "PANTHER_SSH_PORT"
-    printf "    Default SSH port for setup commands\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_ufw_usage() {
-  printf "panther-minor setup ufw - Configure the firewall\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup ufw [OPTIONS]\n"
-  printf "  panther-minor setup ufw --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--ssh-port, -p PORT"
-    printf "    SSH port to allow through UFW (defaults to 2222)\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_SSH_PORT"
-    printf "    Default SSH port for setup commands\n"
-    echo
-
-  fi
-}
-
-panther_minor_setup_fail2ban_usage() {
-  printf "panther-minor setup fail2ban - Install and configure fail2ban\n\n"
-
-  printf "%s\n" "Usage:"
-  printf "  panther-minor setup fail2ban [OPTIONS]\n"
-  printf "  panther-minor setup fail2ban --help | -h\n"
-  echo
-
-  if [[ -n "$long_usage" ]]; then
-
-    printf "%s\n" "Options:"
-
-    printf "  %s\n" "--ssh-port, -p PORT"
-    printf "    SSH port to protect (defaults to 2222)\n"
-    echo
-
-    printf "  %s\n" "--help, -h"
-    printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_SSH_PORT"
-    printf "    Default SSH port for setup commands\n"
     echo
 
   fi
@@ -406,30 +198,20 @@ panther_minor_setup_grub_usage() {
   fi
 }
 
-panther_minor_setup_shell_usage() {
-  printf "panther-minor setup shell - Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user\n\n"
+panther_minor_setup_memory_usage() {
+  printf "panther-minor setup memory - Protect the llama.cpp memory with the llm.slice systemd unit\n\n"
 
   printf "%s\n" "Usage:"
-  printf "  panther-minor setup shell [OPTIONS]\n"
-  printf "  panther-minor setup shell --help | -h\n"
+  printf "  panther-minor setup memory\n"
+  printf "  panther-minor setup memory --help | -h\n"
   echo
 
   if [[ -n "$long_usage" ]]; then
 
     printf "%s\n" "Options:"
 
-    printf "  %s\n" "--allowed-user, -u USER"
-    printf "    User to configure for shell integration\n"
-    echo
-
     printf "  %s\n" "--help, -h"
     printf "    Show this help\n"
-    echo
-
-    printf "%s\n" "Environment Variables:"
-
-    printf "  %s\n" "PANTHER_ALLOWED_USER"
-    printf "    Default user for setup commands\n"
     echo
 
   fi
@@ -1147,7 +929,7 @@ panther_minor_update_usage() {
 panther_minor_install_usage() {
   if [[ -n $long_usage ]]; then
     printf "panther-minor install\n\n"
-    printf "  Put panther-minor on your PATH, with bash completion\n  \n  Symlinks ~/.local/bin/panther-minor onto this install's bin/panther-minor and\n  writes ~/.local/share/bash-completion/completions/panther-minor, which\n  bash-completion lazy-loads. Idempotent; then checks that a fresh login shell\n  finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the\n  allowed user.\n\n"
+    printf "  Put panther-minor on your PATH, with bash completion\n  \n  Symlinks ~/.local/bin/panther-minor onto this install's bin/panther-minor and\n  writes ~/.local/share/bash-completion/completions/panther-minor, which\n  bash-completion lazy-loads. Idempotent; then checks that a fresh login shell\n  finds both. Run it as yourself, not with sudo; 'setup all' runs it for the\n  allowed user.\n\n"
   else
     printf "panther-minor install - Put panther-minor on your PATH, with bash completion\n\n"
   fi
@@ -1366,7 +1148,7 @@ panther_install_completion_script() {
   send_completions bash
 }
 
-# Before `install` existed, `setup shell` made ~/.bashrc source the repository's
+# Before `install` existed, the old `setup shell` made ~/.bashrc source the repository's
 # .bashrc, which evaluated the completion script on every shell start. That file
 # is gone, so the entry would fail in every new shell.
 panther_install_remove_legacy_bashrc_entry() {
@@ -1382,7 +1164,7 @@ panther_install_remove_legacy_bashrc_entry() {
 }
 
 # How a fresh login shell sees `panther-minor` - what a new SSH session gets,
-# independent of the PATH this process inherited (`setup shell` runs install
+# independent of the PATH this process inherited (`setup all` runs install
 # through sudo, whose PATH has no ~/.local/bin). Prints `path=<resolved>` and,
 # for a bash login shell, `loader=yes` when bash-completion's lazy loader is
 # defined.
@@ -1664,37 +1446,27 @@ panther_prune_orphans() {
 }
 
 panther_resolve_setup_context() {
-  declare -g PANTHER_SERVER_NAME
   declare -g PANTHER_ALLOWED_USER
-  declare -g PANTHER_SSH_PORT
-  declare -g PANTHER_TIMEZONE
-  declare -g PANTHER_LVM_DEVICE
   declare -g PANTHER_ACTIONS_FILE
 
-  PANTHER_SERVER_NAME="$(panther_resolve_option '--server-name' PANTHER_SERVER_NAME "$HOSTNAME")"
   # Every setup step calls panther_require_root, so $USER is always 'root' here
-  # and never the human being configured - the old default could not once have
-  # been right. sudo records the real account in SUDO_USER; a direct root login
-  # has no record of it and must pass the flag.
+  # and never the human being configured. sudo records the real account in
+  # SUDO_USER; a direct root login has no record of it and must pass the flag.
   PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-}")"
-  PANTHER_SSH_PORT="$(panther_resolve_option '--ssh-port' PANTHER_SSH_PORT '2222')"
-  PANTHER_TIMEZONE="$(panther_resolve_option '--timezone' PANTHER_TIMEZONE 'Europe/Prague')"
-  PANTHER_LVM_DEVICE="$(panther_resolve_option '--lvm-device' PANTHER_LVM_DEVICE '/dev/ubuntu-vg/ubuntu-lv')"
-  PANTHER_ACTIONS_FILE="/tmp/${PANTHER_SERVER_NAME}_actions"
+  PANTHER_ACTIONS_FILE='/tmp/panther-minor_actions'
 
   if [[ -z "$PANTHER_ALLOWED_USER" ]]; then
     panther_log_error "Could not detect which user to configure. Run the CLI with 'sudo' from your own account, or pass --allowed-user <name>."
   fi
 
-  # 'setup ssh' writes PermitRootLogin no together with AllowUsers, and 'setup
-  # ufw' then closes everything but that port. A wrong name here locks every
-  # account out of the host on the next reboot, so both cases fail up front.
+  # The allowed user owns .env, gets hf and runs the stack through Docker; root
+  # would put all of that in root's home and run the CLI as root.
   if [[ "$PANTHER_ALLOWED_USER" == 'root' ]]; then
-    panther_log_error "'root' cannot be the allowed user: 'setup ssh' sets PermitRootLogin no and AllowUsers root, which would lock you out. Pass --allowed-user <name>."
+    panther_log_error "'root' cannot be the allowed user: the stack runs as your own account. Pass --allowed-user <name>."
   fi
 
   if ! id -u "$PANTHER_ALLOWED_USER" >/dev/null 2>&1; then
-    panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host: 'setup ssh' would restrict AllowUsers to it and lock you out."
+    panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host."
   fi
 }
 panther_ensure_actions_file() {
@@ -1704,18 +1476,6 @@ panther_ensure_actions_file() {
 panther_register_action() {
   panther_ensure_actions_file
   printf '%s\n' "$*" >>"$PANTHER_ACTIONS_FILE"
-}
-panther_register_bashrc_entry() {
-  local label="$1"
-  local command="$2"
-  local user_name="${3:-$PANTHER_ALLOWED_USER}"
-  local bashrc="/home/$user_name/.bashrc"
-
-  if ! grep -qF "$command" "$bashrc"; then
-    panther_log_info "Adding $label to $bashrc..."
-    printf '\n# %s\n%s\n' "$label" "$command" >>"$bashrc"
-    chown "$user_name:$user_name" "$bashrc"
-  fi
 }
 panther_detect_group_gid() {
   local group_name="$1"
@@ -1812,20 +1572,15 @@ panther_prepare_setup_step() {
 panther_print_setup_summary() {
   echo ''
   echo -e "\033[0;32m╔══════════════════════════════════════════════╗\033[0m"
-  echo -e "\033[0;32m║  🐆 ${PANTHER_SERVER_NAME} setup complete!            ║\033[0m"
+  echo -e "\033[0;32m║  🐆 Panther Minor setup complete!            ║\033[0m"
   echo -e "\033[0;32m╠══════════════════════════════════════════════╣\033[0m"
-  printf "\033[0;32m║  0. Init     : %-30s║\033[0m\n" "complete"
-  printf "\033[0;32m║  1. Packages : %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  2. Brew     : %-30s║\033[0m\n" "ready"
-  printf "\033[0;32m║  3. Docker   : %-30s║\033[0m\n" "ready"
-  printf "\033[0;32m║  4. Tailscale: %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  5. SSH      : %-30s║\033[0m\n" "secured"
-  printf "\033[0;32m║  6. UFW      : %-30s║\033[0m\n" "active"
-  printf "\033[0;32m║  7. fail2ban : %-30s║\033[0m\n" "active"
-  printf "\033[0;32m║  8. AMD GPU  : %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  9. GRUB     : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 10. Shell    : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 11. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║  1. Check    : %-30s║\033[0m\n" "passed"
+  printf "\033[0;32m║  2. Deps     : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  3. AMD GPU  : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  4. GRUB     : %-30s║\033[0m\n" "configured"
+  printf "\033[0;32m║  5. Memory   : %-30s║\033[0m\n" "protected"
+  printf "\033[0;32m║  6. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "installed"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
   if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then
@@ -1835,9 +1590,6 @@ panther_print_setup_summary() {
       echo -e "   \033[1;33m•\033[0m $line"
     done <"$PANTHER_ACTIONS_FILE"
   fi
-
-  echo ''
-  panther_log_info "Reconnection: ssh -p ${PANTHER_SSH_PORT} ${PANTHER_ALLOWED_USER}@<server-ip>"
 }
 
 panther_t2i_config_file() {
@@ -2138,17 +1890,6 @@ validate_not_empty() {
   fi
 }
 
-validate_port() {
-  if [[ ! "$1" =~ ^[0-9]+$ ]]; then
-    echo 'must be an integer'
-    return
-  fi
-
-  if (($1 < 1 || $1 > 65535)); then
-    echo 'must be between 1 and 65535'
-  fi
-}
-
 validate_supported_llm() {
   local config_file="$PANTHER_MODELS_DIR/llm.config.json"
   if [[ ! -f "$config_file" ]]; then
@@ -2185,557 +1926,221 @@ panther_minor_setup_all_command() {
 
   #!/usr/bin/env bash
 
-  # Every step in dependency order: init prepares the disk and clock, packages and
-  # brew install tooling, docker/tailscale/ssh/ufw/fail2ban bring the platform up,
-  # amdgpu and grub the GPU, then per-user config. These are the same functions
-  # './bin/panther-minor setup <step>' dispatches to, so each step has one implementation.
+  # Steps in dependency order: check refuses a host without the baseline (Ubuntu
+  # 26.04+, Docker), deps installs what the later steps and the CLI call, amdgpu
+  # and grub bring up the GPUs, memory protects llama.cpp's page cache, env
+  # writes .env. These are the same functions './bin/panther-minor setup <step>'
+  # dispatches to, so each step has one implementation.
   panther_setup_all() {
     local step
 
-    for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env; do
+    # A fresh list per run: the file lives in /tmp across runs, and the summary
+    # must not repeat what an earlier run asked for.
+    : >"$PANTHER_ACTIONS_FILE"
+
+    # check exits on a missing prerequisite, before anything is installed.
+    for step in check deps amdgpu grub memory env; do
       "panther_minor_setup_${step}_command"
     done
 
-    # Prints the checklist and, more importantly, the ACTIONS REQUIRED list the
-    # steps registered along the way: reboot for the kernel params and the new
-    # amdgpu driver, Tailscale authentication, SSH port confirmation. Nothing else
-    # calls it, so without this a full run ends without ever showing them.
+    # As the user, after the steps above, so its login-shell checks see the shell
+    # they will get. A failed check is a follow-up, not a reason to abort.
+    panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
+    if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+      panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
+    fi
+
+    # Prints the ACTIONS REQUIRED list the steps registered along the way: the
+    # reboot for the new amdgpu driver and kernel parameters, TS_AUTHKEY, the
+    # docker group. Nothing else calls it, so without this a full run ends
+    # without ever showing them.
     panther_print_setup_summary
   }
 
-  # Interactive setup that prompts for ALL configuration values with smart defaults
+  # Prompts for the allowed user, pre-filled from the flag, the env var or sudo.
   panther_interactive_setup() {
-    # First resolve context using existing logic (flags and env vars)
+    panther_require_root
     panther_resolve_setup_context
 
-    echo ""
-    echo "🔍 Panther Minor Setup - Interactive Mode"
-    echo "========================================="
+    echo ''
+    echo '🔍 Panther Minor Setup - Interactive Mode'
+    echo '========================================='
 
-    # Always prompt for each value, prefilling with current values (which may be from flags/env)
-    read -r -p "Enter server name (default: ${PANTHER_SERVER_NAME:-$HOSTNAME}): " server_name
-    if [[ -n "$server_name" ]]; then
-      PANTHER_SERVER_NAME="$server_name"
-    fi
+    local reply
+    read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER}): " reply
+    PANTHER_ALLOWED_USER="${reply:-$PANTHER_ALLOWED_USER}"
 
-    read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER}): " allowed_user
-    if [[ -n "$allowed_user" ]]; then
-      PANTHER_ALLOWED_USER="$allowed_user"
-    fi
+    # Every step resolves the user again, and a flag wins over a global there, so
+    # the answer goes into the flag: otherwise a name typed over a pre-filled
+    # flag would be silently replaced by the flag. Resolving once more also runs
+    # the user guards on the answer.
+    args['--allowed-user']="$PANTHER_ALLOWED_USER"
+    panther_resolve_setup_context
 
-    read -r -p "Enter SSH port (default: ${PANTHER_SSH_PORT:-2222}): " ssh_port
-    if [[ -n "$ssh_port" ]]; then
-      PANTHER_SSH_PORT="$ssh_port"
-    fi
-
-    read -r -p "Enter timezone (default: ${PANTHER_TIMEZONE:-Europe/Prague}): " timezone
-    if [[ -n "$timezone" ]]; then
-      PANTHER_TIMEZONE="$timezone"
-    fi
-
-    read -r -p "Enter LVM device (default: ${PANTHER_LVM_DEVICE:-/dev/ubuntu-vg/ubuntu-lv}): " lvm_device
-    if [[ -n "$lvm_device" ]]; then
-      PANTHER_LVM_DEVICE="$lvm_device"
-    fi
-
-    # Display summary and confirm
-    echo ""
-    echo "📋 Setup Summary:"
-    echo "   Server Name: $PANTHER_SERVER_NAME"
+    echo ''
+    echo '📋 Setup Summary:'
     echo "   Allowed User: $PANTHER_ALLOWED_USER"
-    echo "   SSH Port: $PANTHER_SSH_PORT"
-    echo "   Timezone: $PANTHER_TIMEZONE"
-    echo "   LVM Device: $PANTHER_LVM_DEVICE"
-    echo ""
+    echo "   Steps: check deps amdgpu grub memory env, then install"
+    echo ''
 
-    read -r -p "Proceed with setup? (y/N): " confirm
+    local confirm
+    read -r -p 'Proceed with setup? (y/N): ' confirm
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-      echo "Setup cancelled."
+      echo 'Setup cancelled.'
       exit 0
     fi
 
-    # Set the confirmed flag and run the original setup function
+    panther_ensure_actions_file
     PANTHER_CONFIRMED=1 panther_setup_all
   }
 
-  # Run interactive setup instead of default setup
   panther_interactive_setup
 
 }
 
-panther_minor_setup_init_command() {
+panther_minor_setup_check_command() {
 
-  panther_setup_init() {
-    panther_prepare_setup_step 'Extend LVM logical volume to full disk capacity.'
+  # Changes nothing and needs no root, so it can run before anything else - also
+  # on a host someone else prepared. The host baseline (Docker, a hardened SSH,
+  # a firewall) is not this project's job: pantheon sets it up, and so does any
+  # Ubuntu host with Docker Engine. Every check runs before the step fails, so one
+  # run lists every fix.
+  panther_setup_check() {
+    # Not panther_resolve_setup_context: it requires sudo's SUDO_USER, and this
+    # step also runs as the user. Root itself is refused because the docker group
+    # check needs the account that will run the stack.
+    local user
+    user="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-$(id -un)}")"
+    [[ -n "$user" ]] || panther_log_error "Could not tell which user runs the stack. Run 'setup check' as that user, or pass --allowed-user <name>."
+    [[ "$user" != 'root' ]] || panther_log_error "'root' cannot run the stack. Run 'setup check' as your own account (or with sudo from it), or pass --allowed-user <name>."
+    id -u "$user" >/dev/null 2>&1 || panther_log_error "User '${user}' does not exist on this host."
 
-    # The installer leaves the rest of the disk unallocated, so this claims it.
-    # 'lvextend' exits non-zero when there is nothing left to claim, which under
-    # 'set -e' would abort the whole run on a re-run or a fully-allocated install,
-    # so the free extents are checked first. 'resize2fs' needs no such guard: it
-    # exits 0 when the filesystem already spans the volume.
-    local volume_group free_extents
-    volume_group=$(lvs --noheadings -o vg_name "$PANTHER_LVM_DEVICE" 2>/dev/null | tr -d '[:space:]')
-    free_extents=$(vgs --noheadings -o vg_free_count "$volume_group" 2>/dev/null | tr -d '[:space:]')
+    local failures=0
+    local baseline='https://github.com/rozsival/pantheon'
 
-    if [[ "$free_extents" =~ ^[0-9]+$ ]] && ((free_extents > 0)); then
-      panther_log_info 'Extending LVM logical volume to full disk capacity...'
-      lvextend -An -l +100%FREE "$PANTHER_LVM_DEVICE"
+    local os_id='' os_version=''
+    if [[ -r /etc/os-release ]]; then
+      # shellcheck source=/dev/null # the host's file, read at runtime
+      os_id="$(. /etc/os-release && echo "${ID:-}")"
+      # shellcheck source=/dev/null
+      os_version="$(. /etc/os-release && echo "${VERSION_ID:-}")"
+    fi
+    # 'sort -V' orders 26.04 before 26.10 and 27.04, so the minimum sorts first
+    # exactly when the host is at least that release.
+    if [[ "$os_id" == ubuntu && "$(printf '%s\n' 26.04 "$os_version" | sort -V | head -1)" == 26.04 ]]; then
+      panther_log_success "Ubuntu ${os_version}."
     else
-      panther_log_info "No unallocated extents left in ${volume_group:-the volume group}."
+      panther_log_warn "Ubuntu 26.04 or newer is required (found ${os_id:-unknown} ${os_version:-unknown}): the AMD driver and ROCm repositories are pinned to it."
+      failures=$((failures + 1))
     fi
 
-    resize2fs "$PANTHER_LVM_DEVICE"
-    panther_log_success 'Disk fully allocated.'
-
-    panther_log_info "Setting up server timezone to ${PANTHER_TIMEZONE}..."
-    timedatectl set-timezone "$PANTHER_TIMEZONE"
-    panther_log_success "Timezone set to ${PANTHER_TIMEZONE}."
-  }
-
-  panther_setup_init
-
-}
-
-panther_minor_setup_packages_command() {
-
-  panther_setup_packages() {
-    panther_prepare_setup_step 'Install essential packages.'
-
-    panther_log_info 'Updating system and installing essential packages...'
-    apt-get update
-    # '--with-new-pkgs' is what makes this equivalent to 'apt upgrade': plain
-    # 'apt-get upgrade' holds back any upgrade that needs a new package, which is
-    # exactly what a kernel ABI bump is (linux-generic pulling a new linux-image).
-    apt-get upgrade -y --with-new-pkgs
-    apt-get install -y \
-      augeas-lenses \
-      augeas-tools \
-      bind9-dnsutils \
-      build-essential \
-      fio \
-      htop \
-      jq \
-      lm-sensors \
-      nvme-cli \
-      nvtop \
-      python3 \
-      python3-pip \
-      python3-venv \
-      s-tui \
-      tree \
-      unattended-upgrades \
-      unzip
-
-    panther_log_success 'Essential packages installed.'
-  }
-
-  panther_setup_packages
-
-}
-
-panther_minor_setup_brew_command() {
-
-  panther_setup_brew() {
-    panther_prepare_setup_step 'Install Homebrew and LLMFit.'
-
-    panther_log_info "Installing Homebrew (as ${PANTHER_ALLOWED_USER})..."
-    mkdir -p /home/linuxbrew/.linuxbrew
-    chown -R "${PANTHER_ALLOWED_USER}:${PANTHER_ALLOWED_USER}" /home/linuxbrew
-
-    sudo -u "${PANTHER_ALLOWED_USER}" bash -c 'NONINTERACTIVE=1 bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"'
-
-    local brew_prefix
-    brew_prefix=$(sudo -u "${PANTHER_ALLOWED_USER}" bash -c '
-  		if [ -d ~/.linuxbrew ]; then
-  			echo "$HOME/.linuxbrew"
-  		elif [ -d /home/linuxbrew/.linuxbrew ]; then
-  			echo "/home/linuxbrew/.linuxbrew"
-  		fi
-  	')
-
-    if [[ -n "$brew_prefix" ]]; then
-      panther_register_bashrc_entry 'Homebrew' "eval \"\$(${brew_prefix}/bin/brew shellenv)\""
-      panther_log_success "Homebrew installed and configured for ${PANTHER_ALLOWED_USER}."
-
-      # No 'eval "$(brew shellenv)"' here: brew derives HOMEBREW_PREFIX from its
-      # own path, every call below is absolute and runs through 'sudo -u', and
-      # exported vars would die with this process anyway. The .bashrc entry above
-      # is what puts brew on the user's PATH.
-      # '--no-ask' because upstream made ask-mode the default for 'brew install':
-      # it prompts for confirmation before downloading, and only skips the prompt
-      # when there is no TTY. Setup runs on a console, so without this every
-      # formula below stops and waits for a keypress.
-      panther_log_info "Installing bottom via Homebrew..."
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask bottom"
-      panther_log_success "bottom installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
-
-      panther_log_info 'Installing LLMFit via Homebrew...'
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask llmfit"
-      panther_log_success "LLMFit installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
-
-      panther_log_info 'Installing Hugging Face CLI via Homebrew...'
-      # Formula renamed to 'hf' upstream; 'huggingface-cli' only still resolves
-      # through Homebrew's old-name mapping. 'hf' is also the binary the models
-      # download commands invoke.
-      sudo -u "${PANTHER_ALLOWED_USER}" bash -c "${brew_prefix}/bin/brew install --no-ask hf"
-      panther_log_success "Hugging Face CLI installed via Homebrew for user ${PANTHER_ALLOWED_USER}."
+    # --version and 'compose version' only need the binaries, not the daemon
+    # socket: a user not yet in the docker group must get the group warning below,
+    # not a failure here.
+    if command -v docker >/dev/null 2>&1 && docker --version >/dev/null 2>&1; then
+      panther_log_success "$(docker --version)."
     else
-      panther_log_error 'Homebrew installation failed.'
+      panther_log_warn "Docker Engine is missing. Install it with pantheon ('setup docker', ${baseline}) or from https://docs.docker.com/engine/install/ubuntu/."
+      failures=$((failures + 1))
     fi
-  }
 
-  panther_setup_brew
-
-}
-
-panther_minor_setup_docker_command() {
-
-  panther_setup_docker() {
-    panther_prepare_setup_step 'Install Docker and Docker Compose.'
-
-    panther_log_info 'Installing Docker and Docker Compose...'
-    apt-get update
-    apt-get install -y ca-certificates curl
-    install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-    chmod a+r /etc/apt/keyrings/docker.asc
-
-    # shellcheck source=/dev/null # the host's file, read at runtime
-    tee /etc/apt/sources.list.d/docker.sources <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-    apt-get update
-
-    apt-get install -y \
-      docker-ce \
-      docker-ce-cli \
-      containerd.io \
-      docker-buildx-plugin \
-      docker-compose-plugin
-
-    if docker --version && docker compose version; then
-      panther_log_success 'Docker installed.'
+    if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
+      panther_log_success "$(docker compose version)."
     else
-      panther_log_error 'Docker installation failed.'
+      panther_log_warn "The Docker Compose plugin is missing: apt-get install docker-compose-plugin (from Docker's repository)."
+      failures=$((failures + 1))
     fi
 
-    usermod -aG docker "${PANTHER_ALLOWED_USER}"
-    panther_log_success 'User added to docker group.'
-
-    # llama-cpp runs in this slice (cgroup_parent in docker-compose.yml). 96G covers Qwen3.8-Flash-Next's host-resident
-    # weights (~65 GiB: 40 expert blocks + the n-gram table) plus LLAMA_CPP_CACHE_RAM, with headroom; see docs/llm.md#host-memory-protection.
-    tee /etc/systemd/system/llm.slice <<EOF
-[Unit]
-Description=panther-minor llama.cpp (memory-protected)
-
-[Slice]
-MemoryLow=96G
-EOF
-    systemctl daemon-reload
-    panther_log_success 'llm.slice memory protection configured.'
-  }
-
-  panther_setup_docker
-
-}
-
-panther_minor_setup_tailscale_command() {
-
-  panther_setup_tailscale() {
-    panther_prepare_setup_step 'Install Tailscale.'
-
-    # Resolved like the Docker source: UBUNTU_CODENAME still names the Ubuntu base
-    # on derivatives, where VERSION_CODENAME names the derivative instead.
-    local codename keyring staged
-    # shellcheck source=/dev/null # the host's file, read at runtime
-    codename="$(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")"
-
-    # Upstream's own path, and the one the 'tailscale-archive-keyring' package
-    # (a dependency of 'tailscale') owns after the first install, so signing-key
-    # rotations arrive through apt instead of silently breaking the repository.
-    keyring='/usr/share/keyrings/tailscale-archive-keyring.gpg'
-
-    panther_log_info "Installing Tailscale for ${codename}..."
-
-    apt-get update
-    apt-get install -y ca-certificates curl
-
-    # Staged through a temp file rather than 'curl | tee $keyring'. A pipeline
-    # reports tee's status, not curl's, so an unpublished codename used to leave a
-    # truncated keyring and an empty source behind and only surfaced later as
-    # 'Unable to locate package tailscale'. Tailscale signs every suite with the
-    # same key, so a 404 here means the release itself is not published yet.
-    staged="$(mktemp)"
-    if ! curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${codename}.noarmor.gpg" -o "$staged"; then
-      rm -f "$staged"
-      panther_log_error "Tailscale publishes no repository for Ubuntu '${codename}' yet."
-    fi
-
-    install -m 0644 "$staged" "$keyring"
-    rm -f "$staged"
-
-    # Clean cutover from the one-line source this step used to fetch. Leaving it
-    # next to the deb822 file would configure the same suite twice.
-    rm -f /etc/apt/sources.list.d/tailscale.list
-
-    # Written locally in deb822, matching docker.sources, instead of fetching
-    # upstream's .tailscale-keyring.list: that is legacy one-line format and one
-    # more per-codename artifact that can 404 on a freshly released Ubuntu.
-    tee /etc/apt/sources.list.d/tailscale.sources <<EOF
-Types: deb
-URIs: https://pkgs.tailscale.com/stable/ubuntu
-Suites: ${codename}
-Components: main
-Signed-By: ${keyring}
-EOF
-
-    apt-get update
-    apt-get install -y tailscale
-
-    if command -v tailscale >/dev/null 2>&1; then
-      panther_log_success 'Tailscale installed.'
-      panther_register_action "Authenticate Tailscale: run 'sudo tailscale up' from your workstation via SSH (GUI with browser needed)."
+    if id -nG "$user" | tr ' ' '\n' | grep -qx docker; then
+      panther_log_success "${user} is in the docker group."
     else
-      panther_log_error 'Tailscale installation failed.'
-    fi
-  }
-
-  panther_setup_tailscale
-
-}
-
-panther_minor_setup_ssh_command() {
-
-  # Puts back everything the hardening step moved or overwrote: the drop-ins it
-  # emptied out of PANTHER_SSHD_CONFIG_DIR, then the pre-change sshd_config if a
-  # candidate had already been committed. 'previous' only exists after the commit,
-  # so an early failure restores drop-ins alone.
-  panther_ssh_restore() {
-    local stage="$1"
-
-    local saved=()
-    shopt -s nullglob
-    saved=("${stage}/dropins/"*.conf)
-    shopt -u nullglob
-
-    if ((${#saved[@]} > 0)); then
-      mkdir -p "$PANTHER_SSHD_CONFIG_DIR"
-      mv -f "${saved[@]}" "${PANTHER_SSHD_CONFIG_DIR}/"
-    fi
-
-    if [[ -f "${stage}/previous" ]]; then
-      cat "${stage}/previous" >"$PANTHER_SSHD_CONFIG"
-    fi
-  }
-
-  # Abort before anything under /etc/ssh was committed: restore and exit. The
-  # running daemon still serves the configuration it started with, so there is
-  # nothing to restart.
-  panther_ssh_abort() {
-    local stage="$1"
-    shift
-
-    panther_ssh_restore "$stage"
-    rm -rf "$stage"
-    panther_log_error "$*"
-  }
-
-  # Abort after the candidate was committed and the daemon restarted: the previous
-  # configuration has to be put back *and* served again, otherwise the step exits
-  # leaving sshd on the configuration that just failed to come up.
-  panther_ssh_abort_running() {
-    local stage="$1"
-    local unit="$2"
-    shift 2
-
-    panther_ssh_restore "$stage"
-    systemctl daemon-reload
-    systemctl restart "$unit" || panther_log_warn "Could not restart ${unit} after rollback -- run 'systemctl restart ${unit}' from the console."
-    rm -rf "$stage"
-    panther_log_error "$*"
-  }
-
-  panther_setup_ssh() {
-    # Resolved up front because bash expands ${PANTHER_SSH_PORT} at the call site
-    # below - before panther_prepare_setup_step could resolve it - so a standalone
-    # 'setup ssh' on a fresh host died on 'unbound variable'. Resolution is
-    # idempotent, so prepare doing it again is free.
-    panther_resolve_setup_context
-    panther_prepare_setup_step "Harden SSH configuration (port ${PANTHER_SSH_PORT}, key-only auth)."
-
-    panther_log_info "Configuring SSH (${PANTHER_SSHD_CONFIG})..."
-
-    if [[ ! -f "${PANTHER_SSHD_CONFIG}.orig" ]]; then
-      cp "$PANTHER_SSHD_CONFIG" "${PANTHER_SSHD_CONFIG}.orig"
-      panther_log_info "Original sshd_config backed up to ${PANTHER_SSHD_CONFIG}.orig"
-    fi
-
-    # Nothing under /etc/ssh is committed until a complete candidate has passed
-    # 'sshd -t'. The earlier version edited the live file and validated afterwards,
-    # so a keyword sshd rejected stayed on disk: the daemon then failed to start on
-    # the next boot and the host answered on no port at all - recoverable only with
-    # physical access. Augeas edits the staged copy instead, because 'augtool -r'
-    # resolves the lens path /files/etc/ssh/sshd_config inside the staging root.
-    local stage candidate
-    stage="$(mktemp -d)"
-    candidate="${stage}/etc/ssh/sshd_config"
-    mkdir -p "${stage}/dropins"
-    install -D -m 0600 "$PANTHER_SSHD_CONFIG" "$candidate"
-
-    # The Include line in sshd_config points at an absolute path, so a staged
-    # candidate is still validated against the live drop-in directory - and on
-    # Ubuntu those drop-ins win, since sshd takes the first value it sees and the
-    # Include sits at the top of the file. Empty the directory first so 'sshd -t'
-    # sees exactly what the daemon will see. Moved rather than deleted, so a failed
-    # validation puts them back.
-    local dropins=()
-    shopt -s nullglob
-    dropins=("${PANTHER_SSHD_CONFIG_DIR}"/*.conf)
-    shopt -u nullglob
-
-    if ((${#dropins[@]} > 0)); then
-      panther_log_info "Moving ${#dropins[@]} sshd_config.d drop-in(s) aside (restored if validation fails)..."
-      mv -f "${dropins[@]}" "${stage}/dropins/"
-    fi
-
-    # ChallengeResponseAuthentication is deliberately absent: OpenSSH 8.7 made it a
-    # deprecated alias of KbdInteractiveAuthentication (servconf.h SSHCONF_ALIAS),
-    # which is set two lines down, so writing both only duplicated one setting.
-    #
-    # augtool's exit status is checked because '-s' reports a failed set or save
-    # through it, and the sshd lens refuses to save new global keys into a file that
-    # already has a Match block. Unchecked, that silently produced a config missing
-    # every hardening directive.
-    panther_log_info 'Applying SSH hardening to a staged copy via Augeas...'
-    augtool -s -r "$stage" <<AUGEOF || panther_ssh_abort "$stage" 'augtool could not write the staged sshd_config -- /etc/ssh left untouched.'
-set /files/etc/ssh/sshd_config/Port "$PANTHER_SSH_PORT"
-set /files/etc/ssh/sshd_config/PasswordAuthentication no
-set /files/etc/ssh/sshd_config/KbdInteractiveAuthentication no
-set /files/etc/ssh/sshd_config/PubkeyAuthentication yes
-set /files/etc/ssh/sshd_config/AuthenticationMethods publickey
-set /files/etc/ssh/sshd_config/UsePAM no
-set /files/etc/ssh/sshd_config/PermitRootLogin no
-set /files/etc/ssh/sshd_config/MaxAuthTries 3
-set /files/etc/ssh/sshd_config/LoginGraceTime 30
-set /files/etc/ssh/sshd_config/X11Forwarding no
-set /files/etc/ssh/sshd_config/AllowTcpForwarding no
-set /files/etc/ssh/sshd_config/AllowUsers/1 "$PANTHER_ALLOWED_USER"
-AUGEOF
-
-    panther_log_info 'Validating the staged configuration...'
-    sshd -t -f "$candidate" || panther_ssh_abort "$stage" 'Staged sshd configuration is invalid -- /etc/ssh left untouched and SSH keeps serving the current config.'
-
-    # Only now does the live file change. Content is copied into the existing inode
-    # rather than moved over it, which keeps the file's mode and owner.
-    cp "$PANTHER_SSHD_CONFIG" "${stage}/previous"
-    cat "$candidate" >"$PANTHER_SSHD_CONFIG"
-
-    # Ubuntu ships socket-activated SSH: 'ssh.socket' owns the listening port and
-    # its shipped unit hardcodes 22, while 'ssh.service' is RequiredBy that socket
-    # and inherits the socket's file descriptor. Restarting the service alone
-    # therefore keeps serving port 22 whatever sshd_config says. Ubuntu's
-    # 'sshd-socket-generator' turns the sshd_config Port into an ssh.socket
-    # drop-in, but generators only re-run on a daemon-reload.
-    panther_log_info 'Reloading systemd units so the SSH socket adopts the new port...'
-    systemctl daemon-reload
-
-    local unit='ssh'
-    if systemctl is-enabled --quiet ssh.socket 2>/dev/null; then
-      unit='ssh.socket'
-    fi
-
-    panther_log_info "Restarting ${unit}..."
-    systemctl restart "$unit" || panther_ssh_abort_running "$stage" "$unit" "Restarting ${unit} failed -- rolled back to the previous SSH configuration."
-
-    # The listening socket is observed directly instead of parsing sshd -T or unit
-    # properties: whether the next login connects is decided here and nowhere else.
-    # UFW runs after this step and opens only PANTHER_SSH_PORT, so a daemon left on
-    # 22 is unreachable. The retries cover ssh.service, which binds shortly after
-    # systemctl returns; ssh.socket is already listening once restart completes.
-    for _ in 1 2 3 4 5; do
-      if ss -Htln "sport = :${PANTHER_SSH_PORT}" 2>/dev/null | grep -q .; then
-        rm -rf "$stage"
-        panther_log_success "SSH hardened on port ${PANTHER_SSH_PORT}. AllowUsers: ${PANTHER_ALLOWED_USER}"
-        panther_register_action "Open a second session on port ${PANTHER_SSH_PORT} before closing this one."
-        return 0
+      # A warning, not a failure: the group applies only after a new login, so
+      # setup can go on and the user fixes it afterwards.
+      panther_log_warn "${user} is not in the docker group, so the CLI cannot reach Docker without sudo."
+      if [[ -n "${PANTHER_ACTIONS_FILE:-}" ]]; then
+        panther_register_action "Add ${user} to the docker group (sudo usermod -aG docker ${user}), then log out and back in."
+      else
+        panther_log_info "Fix: sudo usermod -aG docker ${user}, then log out and back in."
       fi
-      sleep 1
-    done
+    fi
 
-    panther_ssh_abort_running "$stage" "$unit" "Nothing is listening on port ${PANTHER_SSH_PORT} after restarting ${unit} -- rolled back to the previous SSH configuration."
+    if command -v curl >/dev/null 2>&1; then
+      panther_log_success 'curl is installed.'
+    else
+      panther_log_warn 'curl is missing: sudo apt-get install -y curl.'
+      failures=$((failures + 1))
+    fi
+
+    ((failures == 0)) || panther_log_error "${failures} prerequisite(s) missing: fix them, then re-run setup. A fresh server gets all of them from pantheon: ${baseline}"
+    panther_log_success 'Host prerequisites met.'
   }
 
-  panther_setup_ssh
+  panther_setup_check
 
 }
 
-panther_minor_setup_ufw_command() {
+panther_minor_setup_deps_command() {
 
-  panther_setup_ufw() {
-    panther_prepare_setup_step 'Configure UFW firewall (reset and re-apply rules).'
-
-    panther_log_info 'Configuring UFW...'
-    ufw --force reset
-    ufw default deny incoming
-    ufw default allow outgoing
-
-    # The only public entry point. Services are reached through the ts-proxy
-    # tailnet node or on loopback, never through a host port UFW would govern.
-    ufw allow "${PANTHER_SSH_PORT}/tcp" comment 'SSH'
-
-    ufw --force enable
-
-    panther_log_success "UFW enabled. Open ports: SSH(${PANTHER_SSH_PORT}). AI/monitoring services accessible via the ts-proxy tailnet node or localhost only."
+  # Where a fresh login shell of the allowed user finds hf, or nothing. The inner
+  # shell is interactive because ~/.bashrc returns early otherwise, and that is
+  # where a Homebrew PATH line lives (hosts set up by panther-minor 15 and older
+  # have hf from Homebrew). The path is read from a marker line, because the rc
+  # files may print banners of their own.
+  panther_deps_user_hf() {
+    # shellcheck disable=SC2016 # expands in the user's shell
+    sudo -u "$PANTHER_ALLOWED_USER" -i bash -ic 'printf "hf=%s\n" "$(command -v hf)"' </dev/null 2>/dev/null |
+      sed -n 's/^hf=//p' | tail -1 || true
   }
 
-  panther_setup_ufw
+  panther_setup_deps() {
+    # Resolved before the message below expands it.
+    panther_resolve_setup_context
+    panther_prepare_setup_step "Install the stack's packages and the Hugging Face CLI for ${PANTHER_ALLOWED_USER}."
 
-}
+    # jq for the model catalogs and update, augeas-tools for 'setup grub', nvtop to
+    # watch the GPUs, python3-venv for the hf installer's virtual environment.
+    panther_log_info 'Installing packages...'
+    apt-get update
+    apt-get install -y jq augeas-tools nvtop curl ca-certificates python3-venv
+    panther_log_success 'Packages installed.'
 
-panther_minor_setup_fail2ban_command() {
+    local hf_path
+    hf_path="$(panther_deps_user_hf)"
+    if [[ -n "$hf_path" ]]; then
+      panther_log_success "Hugging Face CLI already installed for ${PANTHER_ALLOWED_USER}: ${hf_path}"
+      return 0
+    fi
 
-  panther_setup_fail2ban() {
-    panther_prepare_setup_step 'Install and configure fail2ban.'
+    # The standalone installer puts hf into a venv under ~/.hf-cli and links it
+    # into ~/.local/bin, which Ubuntu's ~/.profile puts on the PATH. Downloaded
+    # first, because a failed download piped into bash would still exit 0.
+    # --no-modify-path: ~/.profile already covers ~/.local/bin, so the installer
+    # need not append to ~/.bashrc. --exclude-skill: no agent skill on the host.
+    panther_log_info "Installing the Hugging Face CLI (hf) for ${PANTHER_ALLOWED_USER}..."
+    local installer
+    installer="$(mktemp)"
+    curl -LsSf https://hf.co/cli/install.sh -o "$installer" || {
+      rm -f "$installer"
+      panther_log_error 'Could not download the Hugging Face CLI installer from https://hf.co/cli/install.sh.'
+    }
+    chmod 0644 "$installer"
+    if ! sudo -u "$PANTHER_ALLOWED_USER" -H bash "$installer" --no-modify-path --exclude-skill; then
+      rm -f "$installer"
+      panther_log_error "The Hugging Face CLI installer failed for ${PANTHER_ALLOWED_USER}; see its output above."
+    fi
+    rm -f "$installer"
 
-    panther_log_info 'Installing fail2ban...'
-    apt-get install -y fail2ban
-
-    panther_log_info "Writing ${PANTHER_FAIL2BAN_JAIL}..."
-    # Ubuntu Server has no rsyslog, so /var/log/auth.log never exists and the
-    # journal is the only source of sshd auth failures. 'backend = systemd' is set
-    # explicitly rather than inherited from Ubuntu's jail.d/defaults-debian.conf,
-    # so the jail stays valid if that distro file ever changes.
-    #
-    # 'ignoreip' covers the Tailscale CGNAT v4 pool and the tailnet ULA v6 prefix,
-    # because every administrative login reaches this host over tailscale0. Without
-    # it fail2ban's default (loopback only) treats the admin path as hostile: sshd
-    # sets MaxAuthTries 3, so a client whose agent offers three keys exhausts
-    # maxretry on its first connection, and any reconnect loop re-arms the ban past
-    # bantime. Rate-limiting buys nothing against 'AuthenticationMethods publickey'
-    # anyway; the jail still guards the port UFW exposes publicly.
-    cat >"$PANTHER_FAIL2BAN_JAIL" <<EOF
-[sshd]
-enabled  = true
-port     = ${PANTHER_SSH_PORT}
-filter   = sshd
-backend  = systemd
-ignoreip = 127.0.0.1/8 ::1 100.64.0.0/10 fd7a:115c:a1e0::/48
-maxretry = 3
-bantime  = 1h
-findtime = 10m
-EOF
-
-    panther_log_info 'Restarting fail2ban...'
-    systemctl enable --now fail2ban
-    systemctl restart fail2ban
-    panther_log_success 'fail2ban configured and running.'
+    hf_path="$(panther_deps_user_hf)"
+    if [[ -n "$hf_path" ]]; then
+      panther_log_success "Hugging Face CLI installed for ${PANTHER_ALLOWED_USER}: ${hf_path}"
+    else
+      panther_log_warn "hf was installed, but a login shell of ${PANTHER_ALLOWED_USER} does not find it."
+      # shellcheck disable=SC2016 # a line for the user's shell config
+      panther_register_action 'Put ~/.local/bin on the PATH of '"${PANTHER_ALLOWED_USER}"' (export PATH="$HOME/.local/bin:$PATH" in ~/.profile), so the models commands find hf.'
+    fi
   }
 
-  panther_setup_fail2ban
+  panther_setup_deps
 
 }
 
@@ -3019,38 +2424,25 @@ AUGEOF
 
 }
 
-panther_minor_setup_shell_command() {
+panther_minor_setup_memory_command() {
 
-  panther_setup_shell() {
-    # Resolved before the message below expands it: see setup/ssh.sh.
-    panther_resolve_setup_context
-    panther_prepare_setup_step "Set up shell with Starship prompt for ${PANTHER_ALLOWED_USER}."
+  panther_setup_memory() {
+    panther_prepare_setup_step 'Protect the llama.cpp memory with the llm.slice systemd unit.'
 
-    panther_log_info "Setting up shell with Starship prompt for ${PANTHER_ALLOWED_USER}..."
-    apt-get install -y starship
+    # llama-cpp runs in this slice (cgroup_parent in docker-compose.yml). 96G covers Qwen3.8-Flash-Next's host-resident
+    # weights (~65 GiB: 40 expert blocks + the n-gram table) plus LLAMA_CPP_CACHE_RAM, with headroom; see docs/llm.md#host-memory-protection.
+    tee /etc/systemd/system/llm.slice <<UNIT
+[Unit]
+Description=panther-minor llama.cpp (memory-protected)
 
-    panther_log_info "Enabling linger for ${PANTHER_ALLOWED_USER}..."
-    loginctl enable-linger "$PANTHER_ALLOWED_USER"
-
-    # shellcheck disable=SC2016 # We want to register the literal command, not its output
-    panther_register_bashrc_entry 'Starship' 'eval "$(starship init bash)"'
-
-    # Ghostty's ssh-terminfo installs xterm-ghostty into ~/.terminfo, which ncurses
-    # ignores for root and for setcap binaries such as nvtop (cap_perfmon).
-    panther_log_info "Installing xterm-ghostty terminfo into /etc/terminfo..."
-    tic -x -o /etc/terminfo "$PANTHER_REPO_ROOT/terminfo/xterm-ghostty.terminfo"
-    panther_log_success "Shell set up with Starship prompt for ${PANTHER_ALLOWED_USER}."
-
-    # As the user, after the ~/.bashrc entries above, so its login-shell checks
-    # see the shell they will get. A failed check is a follow-up, not a reason to
-    # abort the rest of 'setup all'.
-    panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
-    if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
-      panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
-    fi
+[Slice]
+MemoryLow=96G
+UNIT
+    systemctl daemon-reload
+    panther_log_success 'llm.slice memory protection configured.'
   }
 
-  panther_setup_shell
+  panther_setup_memory
 
 }
 
@@ -3932,7 +3324,7 @@ panther_minor_install_command() {
 
   panther_install() {
     # Everything lands in the caller's home, so root would install it for root.
-    [[ $EUID -ne 0 ]] || panther_log_error "Run install as the user who uses the CLI, not with sudo: it installs into your home directory. 'setup shell' runs it for the allowed user."
+    [[ $EUID -ne 0 ]] || panther_log_error "Run install as the user who uses the CLI, not with sudo: it installs into your home directory. 'setup all' runs it for the allowed user."
 
     local link file
     link="$(panther_install_link)"
@@ -4122,59 +3514,17 @@ panther_minor_setup_parse_requirements() {
       shift $#
       ;;
 
-    init)
-      action="init"
+    check)
+      action="check"
       shift
-      panther_minor_setup_init_parse_requirements "$@"
+      panther_minor_setup_check_parse_requirements "$@"
       shift $#
       ;;
 
-    packages)
-      action="packages"
+    deps)
+      action="deps"
       shift
-      panther_minor_setup_packages_parse_requirements "$@"
-      shift $#
-      ;;
-
-    brew)
-      action="brew"
-      shift
-      panther_minor_setup_brew_parse_requirements "$@"
-      shift $#
-      ;;
-
-    docker)
-      action="docker"
-      shift
-      panther_minor_setup_docker_parse_requirements "$@"
-      shift $#
-      ;;
-
-    tailscale)
-      action="tailscale"
-      shift
-      panther_minor_setup_tailscale_parse_requirements "$@"
-      shift $#
-      ;;
-
-    ssh)
-      action="ssh"
-      shift
-      panther_minor_setup_ssh_parse_requirements "$@"
-      shift $#
-      ;;
-
-    ufw)
-      action="ufw"
-      shift
-      panther_minor_setup_ufw_parse_requirements "$@"
-      shift $#
-      ;;
-
-    fail2ban)
-      action="fail2ban"
-      shift
-      panther_minor_setup_fail2ban_parse_requirements "$@"
+      panther_minor_setup_deps_parse_requirements "$@"
       shift $#
       ;;
 
@@ -4192,10 +3542,10 @@ panther_minor_setup_parse_requirements() {
       shift $#
       ;;
 
-    shell)
-      action="shell"
+    memory)
+      action="memory"
       shift
-      panther_minor_setup_shell_parse_requirements "$@"
+      panther_minor_setup_memory_parse_requirements "$@"
       shift $#
       ;;
 
@@ -4266,32 +3616,12 @@ panther_minor_setup_all_parse_requirements() {
     esac
   done
 
-  if [[ -v PANTHER_SSH_PORT ]]; then
-    validation_output="$(validate_port "$PANTHER_SSH_PORT")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in environment variable %s:\n%s\n" "PANTHER_SSH_PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
   action="setup all"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
 
-      --server-name | -n)
-
-        if [[ -n ${2+x} ]]; then
-          args['--server-name']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--server-name requires an argument: --server-name, -n NAME" >&2
-          exit 1
-        fi
-        ;;
-
       --allowed-user | -u)
 
         if [[ -n ${2+x} ]]; then
@@ -4304,128 +3634,6 @@ panther_minor_setup_all_parse_requirements() {
         fi
         ;;
 
-      --ssh-port | -p)
-
-        if [[ -n ${2+x} ]]; then
-          args['--ssh-port']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
-          exit 1
-        fi
-        ;;
-
-      --timezone | -t)
-
-        if [[ -n ${2+x} ]]; then
-          args['--timezone']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--timezone requires an argument: --timezone, -t TIMEZONE" >&2
-          exit 1
-        fi
-        ;;
-
-      --lvm-device | -d)
-
-        if [[ -n ${2+x} ]]; then
-          args['--lvm-device']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--lvm-device requires an argument: --lvm-device, -d PATH" >&2
-          exit 1
-        fi
-        ;;
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  if [[ -v args['--ssh-port'] ]]; then
-    validation_output="$(validate_port "${args['--ssh-port']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-panther_minor_setup_init_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_init_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="setup init"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --timezone | -t)
-
-        if [[ -n ${2+x} ]]; then
-          args['--timezone']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--timezone requires an argument: --timezone, -t TIMEZONE" >&2
-          exit 1
-        fi
-        ;;
-
-      --lvm-device | -d)
-
-        if [[ -n ${2+x} ]]; then
-          args['--lvm-device']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--lvm-device requires an argument: --lvm-device, -d PATH" >&2
-          exit 1
-        fi
-        ;;
-
       --)
         shift
         while [[ $# -gt 0 ]]; do
@@ -4455,7 +3663,7 @@ panther_minor_setup_init_parse_requirements() {
 
 }
 
-panther_minor_setup_packages_parse_requirements() {
+panther_minor_setup_check_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4463,7 +3671,7 @@ panther_minor_setup_packages_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        panther_minor_setup_packages_usage
+        panther_minor_setup_check_usage
         exit
         ;;
 
@@ -4474,61 +3682,7 @@ panther_minor_setup_packages_parse_requirements() {
     esac
   done
 
-  action="setup packages"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-panther_minor_setup_brew_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_brew_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="setup brew"
+  action="setup check"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
@@ -4575,7 +3729,7 @@ panther_minor_setup_brew_parse_requirements() {
 
 }
 
-panther_minor_setup_docker_parse_requirements() {
+panther_minor_setup_deps_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -4583,7 +3737,7 @@ panther_minor_setup_docker_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        panther_minor_setup_docker_usage
+        panther_minor_setup_deps_usage
         exit
         ;;
 
@@ -4594,7 +3748,7 @@ panther_minor_setup_docker_parse_requirements() {
     esac
   done
 
-  action="setup docker"
+  action="setup deps"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
@@ -4638,318 +3792,6 @@ panther_minor_setup_docker_parse_requirements() {
 
     esac
   done
-
-}
-
-panther_minor_setup_tailscale_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_tailscale_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  action="setup tailscale"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-}
-
-panther_minor_setup_ssh_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_ssh_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  if [[ -v PANTHER_SSH_PORT ]]; then
-    validation_output="$(validate_port "$PANTHER_SSH_PORT")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in environment variable %s:\n%s\n" "PANTHER_SSH_PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-  action="setup ssh"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --allowed-user | -u)
-
-        if [[ -n ${2+x} ]]; then
-          args['--allowed-user']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
-          exit 1
-        fi
-        ;;
-
-      --ssh-port | -p)
-
-        if [[ -n ${2+x} ]]; then
-          args['--ssh-port']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
-          exit 1
-        fi
-        ;;
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  if [[ -v args['--ssh-port'] ]]; then
-    validation_output="$(validate_port "${args['--ssh-port']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-panther_minor_setup_ufw_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_ufw_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  if [[ -v PANTHER_SSH_PORT ]]; then
-    validation_output="$(validate_port "$PANTHER_SSH_PORT")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in environment variable %s:\n%s\n" "PANTHER_SSH_PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-  action="setup ufw"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --ssh-port | -p)
-
-        if [[ -n ${2+x} ]]; then
-          args['--ssh-port']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
-          exit 1
-        fi
-        ;;
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  if [[ -v args['--ssh-port'] ]]; then
-    validation_output="$(validate_port "${args['--ssh-port']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-}
-
-panther_minor_setup_fail2ban_parse_requirements() {
-  local key
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-      --help | -h)
-        long_usage=yes
-        panther_minor_setup_fail2ban_usage
-        exit
-        ;;
-
-      *)
-        break
-        ;;
-
-    esac
-  done
-
-  if [[ -v PANTHER_SSH_PORT ]]; then
-    validation_output="$(validate_port "$PANTHER_SSH_PORT")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in environment variable %s:\n%s\n" "PANTHER_SSH_PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
-
-  action="setup fail2ban"
-
-  while [[ $# -gt 0 ]]; do
-    key="$1"
-    case "$key" in
-
-      --ssh-port | -p)
-
-        if [[ -n ${2+x} ]]; then
-          args['--ssh-port']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--ssh-port requires an argument: --ssh-port, -p PORT" >&2
-          exit 1
-        fi
-        ;;
-
-      --)
-        shift
-        while [[ $# -gt 0 ]]; do
-          key="$1"
-
-          printf "invalid argument: %s\n" "$key" >&2
-          exit 1
-
-        done
-        break
-        ;;
-
-      -?*)
-        printf "invalid option: %s\n" "$key" >&2
-        exit 1
-        ;;
-
-      *)
-
-        printf "invalid argument: %s\n" "$key" >&2
-        exit 1
-
-        ;;
-
-    esac
-  done
-
-  if [[ -v args['--ssh-port'] ]]; then
-    validation_output="$(validate_port "${args['--ssh-port']:-}")"
-    if [[ -n "${validation_output}" ]]; then
-      printf "validation error in %s:\n%s\n" "--ssh-port, -p PORT" "$validation_output" >&2
-      exit 1
-    fi
-  fi
 
 }
 
@@ -5061,7 +3903,7 @@ panther_minor_setup_grub_parse_requirements() {
 
 }
 
-panther_minor_setup_shell_parse_requirements() {
+panther_minor_setup_memory_parse_requirements() {
   local key
 
   while [[ $# -gt 0 ]]; do
@@ -5069,7 +3911,7 @@ panther_minor_setup_shell_parse_requirements() {
     case "$key" in
       --help | -h)
         long_usage=yes
-        panther_minor_setup_shell_usage
+        panther_minor_setup_memory_usage
         exit
         ;;
 
@@ -5080,23 +3922,11 @@ panther_minor_setup_shell_parse_requirements() {
     esac
   done
 
-  action="setup shell"
+  action="setup memory"
 
   while [[ $# -gt 0 ]]; do
     key="$1"
     case "$key" in
-
-      --allowed-user | -u)
-
-        if [[ -n ${2+x} ]]; then
-          args['--allowed-user']="$2"
-          shift
-          shift
-        else
-          printf "%s\n" "--allowed-user requires an argument: --allowed-user, -u USER" >&2
-          exit 1
-        fi
-        ;;
 
       --)
         shift
@@ -7572,44 +6402,14 @@ panther_minor_setup_completion() {
         panther_minor_setup_all_completion "$completion_current" "$@"
         return
         ;;
-      init)
+      check)
         shift
-        panther_minor_setup_init_completion "$completion_current" "$@"
+        panther_minor_setup_check_completion "$completion_current" "$@"
         return
         ;;
-      packages)
+      deps)
         shift
-        panther_minor_setup_packages_completion "$completion_current" "$@"
-        return
-        ;;
-      brew)
-        shift
-        panther_minor_setup_brew_completion "$completion_current" "$@"
-        return
-        ;;
-      docker)
-        shift
-        panther_minor_setup_docker_completion "$completion_current" "$@"
-        return
-        ;;
-      tailscale)
-        shift
-        panther_minor_setup_tailscale_completion "$completion_current" "$@"
-        return
-        ;;
-      ssh)
-        shift
-        panther_minor_setup_ssh_completion "$completion_current" "$@"
-        return
-        ;;
-      ufw)
-        shift
-        panther_minor_setup_ufw_completion "$completion_current" "$@"
-        return
-        ;;
-      fail2ban)
-        shift
-        panther_minor_setup_fail2ban_completion "$completion_current" "$@"
+        panther_minor_setup_deps_completion "$completion_current" "$@"
         return
         ;;
       amdgpu)
@@ -7622,9 +6422,9 @@ panther_minor_setup_completion() {
         panther_minor_setup_grub_completion "$completion_current" "$@"
         return
         ;;
-      shell)
+      memory)
         shift
-        panther_minor_setup_shell_completion "$completion_current" "$@"
+        panther_minor_setup_memory_completion "$completion_current" "$@"
         return
         ;;
       env)
@@ -7642,7 +6442,7 @@ panther_minor_setup_completion() {
         ;;
     esac
   done
-  completion_candidates "$completion_current" all init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env
+  completion_candidates "$completion_current" all check deps amdgpu grub memory env
 
   panther_minor_setup_all_completion "$completion_current"
   if [[ $completion_current == -* ]]; then
@@ -7661,16 +6461,6 @@ panther_minor_setup_all_completion() {
         completion_blocked_flags["--help"]=1
         shift
         ;;
-      --server-name | -n)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--server-name"]=1
-
-        ;;
       --allowed-user | -u)
         shift
         if [[ $# -eq 0 ]]; then
@@ -7681,36 +6471,6 @@ panther_minor_setup_all_completion() {
         completion_blocked_flags["--allowed-user"]=1
 
         ;;
-      --ssh-port | -p)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--ssh-port"]=1
-
-        ;;
-      --timezone | -t)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--timezone"]=1
-
-        ;;
-      --lvm-device | -d)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--lvm-device"]=1
-
-        ;;
       *)
         return
         ;;
@@ -7719,82 +6479,12 @@ panther_minor_setup_all_completion() {
 
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --server-name "$completion_current" --server-name -n
     completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
-    completion_flag_candidates --ssh-port "$completion_current" --ssh-port -p
-    completion_flag_candidates --timezone "$completion_current" --timezone -t
-    completion_flag_candidates --lvm-device "$completion_current" --lvm-device -d
   fi
 
 }
 
-panther_minor_setup_init_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --timezone | -t)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--timezone"]=1
-
-        ;;
-      --lvm-device | -d)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--lvm-device"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --timezone "$completion_current" --timezone -t
-    completion_flag_candidates --lvm-device "$completion_current" --lvm-device -d
-  fi
-
-}
-
-panther_minor_setup_packages_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-  fi
-
-}
-
-panther_minor_setup_brew_completion() {
+panther_minor_setup_check_completion() {
   local completion_current="$1"
   shift
 
@@ -7827,7 +6517,7 @@ panther_minor_setup_brew_completion() {
 
 }
 
-panther_minor_setup_docker_completion() {
+panther_minor_setup_deps_completion() {
   local completion_current="$1"
   shift
 
@@ -7856,138 +6546,6 @@ panther_minor_setup_docker_completion() {
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
     completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
-  fi
-
-}
-
-panther_minor_setup_tailscale_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-  fi
-
-}
-
-panther_minor_setup_ssh_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --allowed-user | -u)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--allowed-user"]=1
-
-        ;;
-      --ssh-port | -p)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--ssh-port"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
-    completion_flag_candidates --ssh-port "$completion_current" --ssh-port -p
-  fi
-
-}
-
-panther_minor_setup_ufw_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --ssh-port | -p)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--ssh-port"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --ssh-port "$completion_current" --ssh-port -p
-  fi
-
-}
-
-panther_minor_setup_fail2ban_completion() {
-  local completion_current="$1"
-  shift
-
-  while [[ $# -gt 0 ]]; do
-    case "$1" in
-      --help | -h)
-        completion_blocked_flags["--help"]=1
-        shift
-        ;;
-      --ssh-port | -p)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--ssh-port"]=1
-
-        ;;
-      *)
-        return
-        ;;
-    esac
-  done
-
-  if [[ $completion_current == -* ]]; then
-    completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --ssh-port "$completion_current" --ssh-port -p
   fi
 
 }
@@ -8036,7 +6594,7 @@ panther_minor_setup_grub_completion() {
 
 }
 
-panther_minor_setup_shell_completion() {
+panther_minor_setup_memory_completion() {
   local completion_current="$1"
   shift
 
@@ -8046,16 +6604,6 @@ panther_minor_setup_shell_completion() {
         completion_blocked_flags["--help"]=1
         shift
         ;;
-      --allowed-user | -u)
-        shift
-        if [[ $# -eq 0 ]]; then
-
-          return
-        fi
-        shift
-        completion_blocked_flags["--allowed-user"]=1
-
-        ;;
       *)
         return
         ;;
@@ -8064,7 +6612,6 @@ panther_minor_setup_shell_completion() {
 
   if [[ $completion_current == -* ]]; then
     completion_flag_candidates --help "$completion_current" --help -h
-    completion_flag_candidates --allowed-user "$completion_current" --allowed-user -u
   fi
 
 }
@@ -9140,9 +7687,6 @@ initialize() {
   declare -gr PANTHER_MODELS_DIR="$PANTHER_REPO_ROOT/models"
   declare -gr PANTHER_ENV_FILE="$PANTHER_REPO_ROOT/.env"
   declare -gr PANTHER_ENV_EXAMPLE_FILE="$PANTHER_REPO_ROOT/.env.example"
-  declare -gr PANTHER_SSHD_CONFIG="/etc/ssh/sshd_config"
-  declare -gr PANTHER_SSHD_CONFIG_DIR="/etc/ssh/sshd_config.d"
-  declare -gr PANTHER_FAIL2BAN_JAIL="/etc/fail2ban/jail.local"
   declare -gr PANTHER_GITHUB_REPO="rozsival/panther-minor"
   declare -gr PANTHER_RELEASE_ASSET="panther-minor.tar.gz"
   declare -gr PANTHER_INSTALL_COMMAND="curl -fsSL https://github.com/$PANTHER_GITHUB_REPO/releases/latest/download/install.sh | bash"
@@ -9199,17 +7743,11 @@ run() {
   case "$action" in
     "setup") panther_minor_setup_command ;;
     "setup all") panther_minor_setup_all_command ;;
-    "setup init") panther_minor_setup_init_command ;;
-    "setup packages") panther_minor_setup_packages_command ;;
-    "setup brew") panther_minor_setup_brew_command ;;
-    "setup docker") panther_minor_setup_docker_command ;;
-    "setup tailscale") panther_minor_setup_tailscale_command ;;
-    "setup ssh") panther_minor_setup_ssh_command ;;
-    "setup ufw") panther_minor_setup_ufw_command ;;
-    "setup fail2ban") panther_minor_setup_fail2ban_command ;;
+    "setup check") panther_minor_setup_check_command ;;
+    "setup deps") panther_minor_setup_deps_command ;;
     "setup amdgpu") panther_minor_setup_amdgpu_command ;;
     "setup grub") panther_minor_setup_grub_command ;;
-    "setup shell") panther_minor_setup_shell_command ;;
+    "setup memory") panther_minor_setup_memory_command ;;
     "setup env") panther_minor_setup_env_command ;;
     "models") panther_minor_models_command ;;
     "models llm") panther_minor_models_llm_command ;;

@@ -18,7 +18,7 @@ panther_install_completion_script() {
   send_completions bash
 }
 
-# Before `install` existed, `setup shell` made ~/.bashrc source the repository's
+# Before `install` existed, the old `setup shell` made ~/.bashrc source the repository's
 # .bashrc, which evaluated the completion script on every shell start. That file
 # is gone, so the entry would fail in every new shell.
 panther_install_remove_legacy_bashrc_entry() {
@@ -34,7 +34,7 @@ panther_install_remove_legacy_bashrc_entry() {
 }
 
 # How a fresh login shell sees `panther-minor` - what a new SSH session gets,
-# independent of the PATH this process inherited (`setup shell` runs install
+# independent of the PATH this process inherited (`setup all` runs install
 # through sudo, whose PATH has no ~/.local/bin). Prints `path=<resolved>` and,
 # for a bash login shell, `loader=yes` when bash-completion's lazy loader is
 # defined.

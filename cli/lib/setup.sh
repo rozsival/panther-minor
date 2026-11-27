@@ -1,35 +1,25 @@
 panther_resolve_setup_context() {
-  declare -g PANTHER_SERVER_NAME
   declare -g PANTHER_ALLOWED_USER
-  declare -g PANTHER_SSH_PORT
-  declare -g PANTHER_TIMEZONE
-  declare -g PANTHER_LVM_DEVICE
   declare -g PANTHER_ACTIONS_FILE
 
-  PANTHER_SERVER_NAME="$(panther_resolve_option '--server-name' PANTHER_SERVER_NAME "$HOSTNAME")"
   # Every setup step calls panther_require_root, so $USER is always 'root' here
-  # and never the human being configured - the old default could not once have
-  # been right. sudo records the real account in SUDO_USER; a direct root login
-  # has no record of it and must pass the flag.
+  # and never the human being configured. sudo records the real account in
+  # SUDO_USER; a direct root login has no record of it and must pass the flag.
   PANTHER_ALLOWED_USER="$(panther_resolve_option '--allowed-user' PANTHER_ALLOWED_USER "${SUDO_USER:-}")"
-  PANTHER_SSH_PORT="$(panther_resolve_option '--ssh-port' PANTHER_SSH_PORT '2222')"
-  PANTHER_TIMEZONE="$(panther_resolve_option '--timezone' PANTHER_TIMEZONE 'Europe/Prague')"
-  PANTHER_LVM_DEVICE="$(panther_resolve_option '--lvm-device' PANTHER_LVM_DEVICE '/dev/ubuntu-vg/ubuntu-lv')"
-  PANTHER_ACTIONS_FILE="/tmp/${PANTHER_SERVER_NAME}_actions"
+  PANTHER_ACTIONS_FILE='/tmp/panther-minor_actions'
 
   if [[ -z "$PANTHER_ALLOWED_USER" ]]; then
     panther_log_error "Could not detect which user to configure. Run the CLI with 'sudo' from your own account, or pass --allowed-user <name>."
   fi
 
-  # 'setup ssh' writes PermitRootLogin no together with AllowUsers, and 'setup
-  # ufw' then closes everything but that port. A wrong name here locks every
-  # account out of the host on the next reboot, so both cases fail up front.
+  # The allowed user owns .env, gets hf and runs the stack through Docker; root
+  # would put all of that in root's home and run the CLI as root.
   if [[ "$PANTHER_ALLOWED_USER" == 'root' ]]; then
-    panther_log_error "'root' cannot be the allowed user: 'setup ssh' sets PermitRootLogin no and AllowUsers root, which would lock you out. Pass --allowed-user <name>."
+    panther_log_error "'root' cannot be the allowed user: the stack runs as your own account. Pass --allowed-user <name>."
   fi
 
   if ! id -u "$PANTHER_ALLOWED_USER" >/dev/null 2>&1; then
-    panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host: 'setup ssh' would restrict AllowUsers to it and lock you out."
+    panther_log_error "User '${PANTHER_ALLOWED_USER}' does not exist on this host."
   fi
 }
 panther_ensure_actions_file() {
@@ -39,18 +29,6 @@ panther_ensure_actions_file() {
 panther_register_action() {
   panther_ensure_actions_file
   printf '%s\n' "$*" >>"$PANTHER_ACTIONS_FILE"
-}
-panther_register_bashrc_entry() {
-  local label="$1"
-  local command="$2"
-  local user_name="${3:-$PANTHER_ALLOWED_USER}"
-  local bashrc="/home/$user_name/.bashrc"
-
-  if ! grep -qF "$command" "$bashrc"; then
-    panther_log_info "Adding $label to $bashrc..."
-    printf '\n# %s\n%s\n' "$label" "$command" >>"$bashrc"
-    chown "$user_name:$user_name" "$bashrc"
-  fi
 }
 panther_detect_group_gid() {
   local group_name="$1"
@@ -147,20 +125,15 @@ panther_prepare_setup_step() {
 panther_print_setup_summary() {
   echo ''
   echo -e "\033[0;32m╔══════════════════════════════════════════════╗\033[0m"
-  echo -e "\033[0;32m║  🐆 ${PANTHER_SERVER_NAME} setup complete!            ║\033[0m"
+  echo -e "\033[0;32m║  🐆 Panther Minor setup complete!            ║\033[0m"
   echo -e "\033[0;32m╠══════════════════════════════════════════════╣\033[0m"
-  printf "\033[0;32m║  0. Init     : %-30s║\033[0m\n" "complete"
-  printf "\033[0;32m║  1. Packages : %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  2. Brew     : %-30s║\033[0m\n" "ready"
-  printf "\033[0;32m║  3. Docker   : %-30s║\033[0m\n" "ready"
-  printf "\033[0;32m║  4. Tailscale: %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  5. SSH      : %-30s║\033[0m\n" "secured"
-  printf "\033[0;32m║  6. UFW      : %-30s║\033[0m\n" "active"
-  printf "\033[0;32m║  7. fail2ban : %-30s║\033[0m\n" "active"
-  printf "\033[0;32m║  8. AMD GPU  : %-30s║\033[0m\n" "installed"
-  printf "\033[0;32m║  9. GRUB     : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 10. Shell    : %-30s║\033[0m\n" "configured"
-  printf "\033[0;32m║ 11. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║  1. Check    : %-30s║\033[0m\n" "passed"
+  printf "\033[0;32m║  2. Deps     : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  3. AMD GPU  : %-30s║\033[0m\n" "installed"
+  printf "\033[0;32m║  4. GRUB     : %-30s║\033[0m\n" "configured"
+  printf "\033[0;32m║  5. Memory   : %-30s║\033[0m\n" "protected"
+  printf "\033[0;32m║  6. Env      : %-30s║\033[0m\n" "synced"
+  printf "\033[0;32m║  7. CLI      : %-30s║\033[0m\n" "installed"
   echo -e "\033[0;32m╚══════════════════════════════════════════════╝\033[0m"
 
   if [[ -s "$PANTHER_ACTIONS_FILE" ]]; then
@@ -170,7 +143,4 @@ panther_print_setup_summary() {
       echo -e "   \033[1;33m•\033[0m $line"
     done <"$PANTHER_ACTIONS_FILE"
   fi
-
-  echo ''
-  panther_log_info "Reconnection: ssh -p ${PANTHER_SSH_PORT} ${PANTHER_ALLOWED_USER}@<server-ip>"
 }

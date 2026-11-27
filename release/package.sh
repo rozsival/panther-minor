@@ -46,7 +46,6 @@ runtime_paths=(
   models/t2i.config.json
   monitoring
   proxy/nginx.conf
-  terminfo
 )
 
 mkdir -p "$dest"

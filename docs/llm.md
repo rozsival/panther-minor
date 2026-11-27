@@ -62,7 +62,7 @@ resident, since the manager only arbitrates _large_ models.
 
 The host-resident weights are file-backed page cache, so any other workload on the box (CI runners, the devbox) can
 push them out under memory pressure, and decode slows sharply until they page back in. `llama-cpp` therefore runs in
-its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose.yml`), which `setup docker` gives
+its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose.yml`), which `setup memory` gives
 `MemoryLow=96G`: the kernel reclaims everything else first.
 
 - **96G** covers `Qwen3.8-Flash-Next`'s host share — 40 expert blocks (38.5 GiB at `UD-IQ3_XXS`) plus the 26.82 GiB
@@ -74,7 +74,7 @@ its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose
 - **Pages are charged to whoever first read them.** Weights already cached before the switch (a download, an earlier
   container) stay charged elsewhere and unprotected until reclaimed once; from the next read on they belong to
   `llm.slice`. Pages of a recreated container stay in the slice.
-- Without the slice unit (a host that hasn't re-run `setup docker`), systemd creates `llm.slice` on demand with no
+- Without the slice unit (a host that never ran `setup memory`), systemd creates `llm.slice` on demand with no
   protection; everything else works as before.
 
 ## 🎛️ Management

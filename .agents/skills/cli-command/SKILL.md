@@ -37,7 +37,6 @@ fits:
 | -------------------------- | ------------------------------------------------------------ |
 | `validate_not_empty`       | Value is non-blank                                           |
 | `validate_integer`         | Value is an integer                                          |
-| `validate_port`            | Value is an integer between 1 and 65535                      |
 | `validate_file_exists`     | Value is a path to an existing file                          |
 | `validate_dir_exists`      | Value is a path to an existing directory                     |
 | `validate_supported_llm`   | Value matches a `name` in `models/llm.config.json`           |
@@ -47,7 +46,7 @@ fits:
 
 A validator function prints nothing on success and an error message to stdout (via `echo`) on failure —
 Bashly captures that string and reports it as the flag/arg error. Look at
-`cli/lib/validations/validate_port.sh` or `validate_supported_llm.sh` for the exact shape before
+`cli/lib/validations/validate_integer.sh` or `validate_supported_llm.sh` for the exact shape before
 writing a new one.
 
 ## Workflow

@@ -24,12 +24,13 @@ AMD GPUs). Help, `list` and completions work anywhere.
 1. Probe: `uname -s` first. `Darwin`, or no Docker → you are on a dev machine; run stack commands over SSH.
    On Linux, `panther-minor cluster status` (or `./bin/panther-minor cluster status` from the repo root):
    - a container table → you are on the host; run commands directly.
-2. Over SSH: SSH listens on port `2222` with key-only auth. If `~/.ssh/config` has an alias that clearly
+2. Over SSH (key-only auth; the port is the host's, `2222` on a [Pantheon](https://github.com/rozsival/pantheon)
+   host by default). If `~/.ssh/config` has an alias that clearly
    points at the workstation, use it without asking for read-only commands and for whatever the user
    asked you to do; otherwise ask the user for `user@host` once. `~/.local/bin` (where `install` puts the
    symlink) is only on the `PATH` of a login shell, so wrap the call:
    ```bash
-   ssh -n -p 2222 <user>@<host> 'bash -lc "panther-minor cluster status"'
+   ssh -n -p <port> <user>@<host> 'bash -lc "panther-minor cluster status"'
    ```
    `-n` gives the remote command an empty stdin, for the reason in
    [Running without a terminal](#running-without-a-terminal). `sudo` over SSH needs a password prompt you
@@ -84,7 +85,7 @@ You have no TTY, so four behaviours matter:
   file list; never set the variable pre-emptively — it is the only thing standing between a typo and deleted
   weights.
 - **`logs <service>` follows forever.** Always pass `--tail <n>` (`logs llama-manager --tail 200`).
-- **Some commands are interactive by design** — `setup all` (reads five values and a final y/N) and anything
+- **Some commands are interactive by design** — `setup all` (reads the allowed user and a final y/N) and anything
   needing `sudo` over SSH. Give the user the exact command to run themselves and stop.
 
 Long runners — `cluster build` (compiles llama.cpp for ROCm: many minutes), `models llm|t2i download`

@@ -1,6 +1,6 @@
 panther_install() {
   # Everything lands in the caller's home, so root would install it for root.
-  [[ $EUID -ne 0 ]] || panther_log_error "Run install as the user who uses the CLI, not with sudo: it installs into your home directory. 'setup shell' runs it for the allowed user."
+  [[ $EUID -ne 0 ]] || panther_log_error "Run install as the user who uses the CLI, not with sudo: it installs into your home directory. 'setup all' runs it for the allowed user."
 
   local link file
   link="$(panther_install_link)"

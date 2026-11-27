@@ -1,77 +1,71 @@
 #!/usr/bin/env bash
 
-# Every step in dependency order: init prepares the disk and clock, packages and
-# brew install tooling, docker/tailscale/ssh/ufw/fail2ban bring the platform up,
-# amdgpu and grub the GPU, then per-user config. These are the same functions
-# './bin/panther-minor setup <step>' dispatches to, so each step has one implementation.
+# Steps in dependency order: check refuses a host without the baseline (Ubuntu
+# 26.04+, Docker), deps installs what the later steps and the CLI call, amdgpu
+# and grub bring up the GPUs, memory protects llama.cpp's page cache, env
+# writes .env. These are the same functions './bin/panther-minor setup <step>'
+# dispatches to, so each step has one implementation.
 panther_setup_all() {
   local step
 
-  for step in init packages brew docker tailscale ssh ufw fail2ban amdgpu grub shell env; do
+  # A fresh list per run: the file lives in /tmp across runs, and the summary
+  # must not repeat what an earlier run asked for.
+  : >"$PANTHER_ACTIONS_FILE"
+
+  # check exits on a missing prerequisite, before anything is installed.
+  for step in check deps amdgpu grub memory env; do
     "panther_minor_setup_${step}_command"
   done
 
-  # Prints the checklist and, more importantly, the ACTIONS REQUIRED list the
-  # steps registered along the way: reboot for the kernel params and the new
-  # amdgpu driver, Tailscale authentication, SSH port confirmation. Nothing else
-  # calls it, so without this a full run ends without ever showing them.
+  # As the user, after the steps above, so its login-shell checks see the shell
+  # they will get. A failed check is a follow-up, not a reason to abort.
+  panther_log_info "Putting panther-minor on ${PANTHER_ALLOWED_USER}'s PATH..."
+  if ! sudo -u "$PANTHER_ALLOWED_USER" -H "$PANTHER_CLI_BIN" install; then
+    panther_register_action "Fix what 'panther-minor install' reported above, then re-run ./bin/panther-minor install as ${PANTHER_ALLOWED_USER}."
+  fi
+
+  # Prints the ACTIONS REQUIRED list the steps registered along the way: the
+  # reboot for the new amdgpu driver and kernel parameters, TS_AUTHKEY, the
+  # docker group. Nothing else calls it, so without this a full run ends
+  # without ever showing them.
   panther_print_setup_summary
 }
 
-# Interactive setup that prompts for ALL configuration values with smart defaults
+# Prompts for the allowed user, pre-filled from the flag, the env var or sudo.
 panther_interactive_setup() {
-  # First resolve context using existing logic (flags and env vars)
+  panther_require_root
   panther_resolve_setup_context
 
-  echo ""
-  echo "🔍 Panther Minor Setup - Interactive Mode"
-  echo "========================================="
+  echo ''
+  echo '🔍 Panther Minor Setup - Interactive Mode'
+  echo '========================================='
 
-  # Always prompt for each value, prefilling with current values (which may be from flags/env)
-  read -r -p "Enter server name (default: ${PANTHER_SERVER_NAME:-$HOSTNAME}): " server_name
-  if [[ -n "$server_name" ]]; then
-    PANTHER_SERVER_NAME="$server_name"
-  fi
+  local reply
+  read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER}): " reply
+  PANTHER_ALLOWED_USER="${reply:-$PANTHER_ALLOWED_USER}"
 
-  read -r -p "Enter allowed user (default: ${PANTHER_ALLOWED_USER}): " allowed_user
-  if [[ -n "$allowed_user" ]]; then
-    PANTHER_ALLOWED_USER="$allowed_user"
-  fi
+  # Every step resolves the user again, and a flag wins over a global there, so
+  # the answer goes into the flag: otherwise a name typed over a pre-filled
+  # flag would be silently replaced by the flag. Resolving once more also runs
+  # the user guards on the answer.
+  args['--allowed-user']="$PANTHER_ALLOWED_USER"
+  panther_resolve_setup_context
 
-  read -r -p "Enter SSH port (default: ${PANTHER_SSH_PORT:-2222}): " ssh_port
-  if [[ -n "$ssh_port" ]]; then
-    PANTHER_SSH_PORT="$ssh_port"
-  fi
-
-  read -r -p "Enter timezone (default: ${PANTHER_TIMEZONE:-Europe/Prague}): " timezone
-  if [[ -n "$timezone" ]]; then
-    PANTHER_TIMEZONE="$timezone"
-  fi
-
-  read -r -p "Enter LVM device (default: ${PANTHER_LVM_DEVICE:-/dev/ubuntu-vg/ubuntu-lv}): " lvm_device
-  if [[ -n "$lvm_device" ]]; then
-    PANTHER_LVM_DEVICE="$lvm_device"
-  fi
-
-  # Display summary and confirm
-  echo ""
-  echo "📋 Setup Summary:"
-  echo "   Server Name: $PANTHER_SERVER_NAME"
+  echo ''
+  echo '📋 Setup Summary:'
   echo "   Allowed User: $PANTHER_ALLOWED_USER"
-  echo "   SSH Port: $PANTHER_SSH_PORT"
-  echo "   Timezone: $PANTHER_TIMEZONE"
-  echo "   LVM Device: $PANTHER_LVM_DEVICE"
-  echo ""
+  echo "   Steps: check deps amdgpu grub memory env, then install"
+  echo ''
 
-  read -r -p "Proceed with setup? (y/N): " confirm
+  local confirm
+  read -r -p 'Proceed with setup? (y/N): ' confirm
   if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
-    echo "Setup cancelled."
+    echo 'Setup cancelled.'
     exit 0
   fi
 
-  # Set the confirmed flag and run the original setup function
+  panther_ensure_actions_file
   PANTHER_CONFIRMED=1 panther_setup_all
 }
 
-# Run interactive setup instead of default setup
 panther_interactive_setup

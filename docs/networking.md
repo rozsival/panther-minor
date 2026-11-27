@@ -15,7 +15,7 @@
 flowchart LR
     C[Tailnet client] -->|HTTPS :port<br/>panther-minor.&lt;tailnet&gt;.ts.net| T[ts-proxy<br/>Tailscale sidecar]
     T -->|HTTP :port| X[proxy<br/>nginx]
-    H[Host loopback<br/>SSH tunnel, curl] -->|HTTP 127.0.0.1:port| X
+    H[Host loopback<br/>curl, SSH tunnel] -->|HTTP 127.0.0.1:port| X
     X --> S[services on the ai network]
 ```
 
@@ -25,12 +25,13 @@ flowchart LR
 | `proxy`    | nginx on plain HTTP, one listener per port; published on `127.0.0.1` only                                                  |
 | Docker     | Every other service uses `expose:` and is reachable only inside the `ai` network                                           |
 | Tailnet    | Who reaches `tag:panther-minor` on which ports is the tailnet policy's decision; Tailnet Lock decides which nodes exist    |
-| UFW        | Allows only SSH (`2222`) on the host                                                                                       |
-| SSH        | Port `2222`, key-only authentication, `AllowUsers` restricted; fail2ban bans brute-force attempts                          |
+| Host       | SSH, the firewall and fail2ban belong to the host baseline — see [Pantheon's security model][pantheon-security]            |
 
 The sidecar runs `tailscaled` with kernel networking (`TS_USERSPACE=false`, `/dev/net/tun`, `NET_ADMIN`) inside its own
 network namespace, so the tailnet interface exists only in that container. A tailnet packet can reach nothing but the
 HTTPS listeners in the serve config; the host and the other containers have no tailnet address.
+
+[pantheon-security]: https://github.com/rozsival/pantheon/blob/main/docs/security.md
 
 ### Tailnet Lock (highly recommended)
 
@@ -59,9 +60,8 @@ to the tailnet.
 
 ### Public internet
 
-| Port   | Service | Purpose                      |
-| ------ | ------- | ---------------------------- |
-| `2222` | SSH     | Hardened remote shell access |
+None from this stack. The host's SSH port belongs to the host baseline ([Pantheon][pantheon-security]: `2222` by
+default).
 
 ### Tailnet (through `ts-proxy`)
 
@@ -103,12 +103,16 @@ Use the full name: the short `panther-minor` resolves through MagicDNS but does 
 
 ### Via SSH tunnel
 
-For a single service when the client is not on the tailnet:
+For a single service when the client is not on the tailnet, if the host's SSH server allows TCP forwarding:
 
 ```bash
-ssh -p 2222 -L 8080:localhost:8080 <user>@<server-ip>
+ssh -p <ssh-port> -L 8080:localhost:8080 <user>@<server-ip>
 open http://localhost:8080
 ```
+
+> [!NOTE]
+> [Pantheon][pantheon-security]'s SSH hardening sets `AllowTcpForwarding no`, which refuses such tunnels. Join the
+> client to the tailnet instead, or set `AllowTcpForwarding yes` in `/etc/ssh/sshd_config` if you rely on tunnels.
 
 ### Directly on the host
 
@@ -278,7 +282,7 @@ move to the sidecar without downtime: the sidecar runs next to the old path unti
 | `proxy/nginx.conf`   | Plain-HTTP listeners and upstream routing per port                           |
 | `.env`               | `TS_AUTHKEY` — the sidecar's first-login auth key                            |
 | Tailnet policy       | `tag:panther-minor` ownership, which devices reach which ports               |
-| `cli/**/*.sh`        | Firewall rules, SSH defaults, the `TS_AUTHKEY` reminder in `setup env`       |
+| `cli/lib/setup.sh`   | The `TS_AUTHKEY` reminder in `setup env`                                     |
 
 ---
 
@@ -287,7 +291,7 @@ move to the sidecar without downtime: the sidecar runs next to the old path unti
 ### Can other devices on my LAN reach the services?
 
 No. nginx is published only on loopback and the sidecar listens only on the tailnet; LAN clients must join the tailnet
-or use an SSH tunnel.
+or use an [SSH tunnel](#via-ssh-tunnel).
 
 ### Why can't I just `ufw deny` a port?
 
@@ -310,7 +314,7 @@ unhealthy without a tailnet address). Loopback and SSH tunnels keep working mean
 
 Check from a client with `tailscale ping panther-minor`: it should end with `via <ip>:<port>`, a direct path.
 `via DERP(…)` means relayed traffic, which adds latency to every streamed token. The sidecar sits behind Docker's NAT
-and UFW denies incoming traffic, so NAT traversal usually finds a direct path but is not guaranteed to. If it stays
+and the host firewall denies incoming traffic, so NAT traversal usually finds a direct path but is not guaranteed to. If it stays
 relayed, give the sidecar a fixed WireGuard port and publish it — on a port other than the host node's `41641`:
 
 ```yaml
@@ -342,5 +346,5 @@ signing node. Sign the auth key next time instead (see [Installation](installati
 
 ### Do I still need Tailscale on the host itself?
 
-Not for the services. `setup tailscale` still installs it for SSH over the tailnet; that node must not be named
-`panther-minor`, or the sidecar becomes `panther-minor-1`.
+Not for the services. It is still handy for SSH over the tailnet ([Pantheon](https://github.com/rozsival/pantheon)'s
+`setup tailscale` installs it); that node must not be named `panther-minor`, or the sidecar becomes `panther-minor-1`.

@@ -10,8 +10,9 @@
 ![Monitoring](https://img.shields.io/badge/Monitoring-Grafana%20%2B%20Prometheus-F46800)
 
 A reproducible, self-hosted AI cluster tuned for **AMD Ryzen + RDNA 4** systems: **llama.cpp**,
-**stable-diffusion.cpp**, **Open WebUI**, **Prometheus** and **Grafana**, with **Tailscale access**, **hardened SSH**
-and **smart GPU usage management**.
+**stable-diffusion.cpp**, **Open WebUI**, **Prometheus** and **Grafana**, with **Tailscale access** and **smart GPU
+usage management**. The host underneath is yours: [Pantheon](https://github.com/rozsival/pantheon) is the recommended
+baseline, and any Ubuntu 26.04+ server with Docker works.
 
 **[📚 Documentation](docs/README.md)** · [Installation](docs/installation.md) · [Operations](docs/operations.md) ·
 [CLI](docs/cli.md)
@@ -28,8 +29,8 @@ and **smart GPU usage management**.
 | **Local image generation**  | OpenAI-compatible image API powered by [stable-diffusion.cpp](https://github.com/leejet/stable-diffusion.cpp) |
 | **Built-in monitoring**     | Prometheus, Grafana, and exporters for host + GPU visibility                                                  |
 | **GPU power & VRAM saving** | Idle model unloading and serialized large-model switching                                                     |
-| **Secure remote access**    | One Tailscale node with automatic TLS, key-only SSH on port `2222`, firewall, and fail2ban                    |
-| **Reproducible setup**      | One CLI-driven installation flow for the whole workstation                                                    |
+| **Tailnet-only access**     | One Tailscale sidecar node with automatic TLS; no service port published beyond the host's loopback           |
+| **Prerequisite checks**     | `setup` verifies the host (Ubuntu, Docker) first, then installs only the GPU stack and what the CLI needs     |
 
 > [!IMPORTANT]
 > Panther Minor is a **single-tenant** system for one trusted user and workload. It is not suitable for multi-user or
@@ -37,20 +38,20 @@ and **smart GPU usage management**.
 
 ## 🚀 Quick start
 
-**Requires** Ubuntu Server 26.04 LTS+, 2x AMD RDNA 4 GPUs and a Tailscale tailnet with MagicDNS and HTTPS
-certificates enabled — see [Installation](docs/installation.md#-prerequisites) for hardware, BIOS and
-[tailnet](docs/installation.md#-prepare-the-tailnet) settings.
+**Requires** Ubuntu Server 26.04 LTS+ with Docker Engine and Compose, 2x AMD RDNA 4 GPUs and a Tailscale tailnet with
+MagicDNS and HTTPS certificates enabled — see [Installation](docs/installation.md#-prerequisites) for hardware, BIOS
+and [tailnet](docs/installation.md#-prepare-the-tailnet) settings. On a fresh server, set up the host with
+[Pantheon](https://github.com/rozsival/pantheon) first: Docker, key-only SSH, a firewall and fail2ban.
 
 ```bash
-# 1. Install the latest release into ~/panther-minor and prepare the host (reboot afterwards)
+# 1. Install the latest release into ~/panther-minor and prepare the host for the stack (reboot afterwards)
 curl -fsSL https://github.com/rozsival/panther-minor/releases/latest/download/install.sh | bash
 cd ~/panther-minor
 sudo ./bin/panther-minor setup
 sudo reboot
 
-# 2. Reconnect on port 2222 and set the tailnet auth key (reusable, pre-approved, tagged tag:panther-minor;
+# 2. After the reboot, set the tailnet auth key (reusable, pre-approved, tagged tag:panther-minor;
 #    signed with `tailscale lock sign` if you use Tailnet Lock, which is highly recommended)
-ssh -p 2222 <user>@<server-ip>
 cd ~/panther-minor
 nano .env    # TS_AUTHKEY=tskey-auth-…
 
@@ -64,9 +65,6 @@ nano .env    # TS_AUTHKEY=tskey-auth-…
 Then open `https://panther-minor.<tailnet>.ts.net:8080` (Open WebUI) or point an OpenAI client at
 `https://panther-minor.<tailnet>.ts.net:8000/v1`.
 
-> [!WARNING]
-> After `setup`, SSH accepts **keys only on port 2222**. Keep your current session open until a second one connects.
-
 ## 📚 Documentation
 
 Everything else — architecture, networking, models, GPU management, monitoring, coding harnesses, CLI and
@@ -78,5 +76,6 @@ development — lives in **[docs/](docs/README.md)**.
 | ---------- | ------------------------------------------------------------------------- |
 | Maintainer | [@rozsival](https://github.com/rozsival) (see [`CODEOWNERS`](CODEOWNERS)) |
 | Issues     | [GitHub Issues](https://github.com/rozsival/panther-minor/issues)         |
+| Host       | [Pantheon](https://github.com/rozsival/pantheon) — the server baseline    |
 | Companion  | [Janus](https://github.com/rozsival/janus) — remote power control         |
 | License    | [MIT](LICENSE)                                                            |

@@ -13,7 +13,7 @@ quick start live in the [root README](../README.md).
 | Document                                | Read when you want to…                               | Key topics                                                                          |
 | --------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | [Architecture](architecture.md)         | Understand how the services fit together             | Service map, request flow, single-tenant model, repository layout                   |
-| [Installation](installation.md)         | Prepare hardware and install the stack on a server   | Hardware, BIOS, OS, `setup` steps, tailnet and auth key                             |
+| [Installation](installation.md)         | Prepare hardware and install the stack on a server   | Hardware, BIOS, host prerequisites, `setup` steps, tailnet and auth key             |
 | [Networking & security](networking.md)  | Reach services securely, understand published ports  | `ts-proxy` sidecar, ports, tailnet policy, Tailnet Lock, public services, migration |
 | [Operations](operations.md)             | Configure, start, stop, update or extend the cluster | `.env` reference, cluster lifecycle, logs, updates, overrides, remote control       |
 | [Models](models.md)                     | See which models exist and manage their weights      | LLM and text-to-image catalogs, shared weight cache, download/remove/prune          |
@@ -29,7 +29,8 @@ quick start live in the [root README](../README.md).
 
 ### First installation
 
-1. [Installation](installation.md) — hardware, BIOS, `setup`, tailnet preparation
+1. [Installation](installation.md) — hardware, BIOS, the host baseline ([Pantheon](https://github.com/rozsival/pantheon)),
+   `setup`, tailnet preparation
 2. [Networking & security](networking.md) — how the `ts-proxy` sidecar is the only way in
 3. [Models](models.md) — download at least the default chat, task and embedding models
 4. [Operations](operations.md) — start the cluster

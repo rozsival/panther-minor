@@ -70,7 +70,8 @@ Each file is stored at its repository-relative path (`<repository>/<file>`), so:
 ```
 
 `download` and `remove` take a **model name** from the catalog. Downloads read `HF_TOKEN` from `.env` or the shell
-environment when set (`HF_TOKEN=<token> ./bin/panther-minor models llm download <model>`).
+environment when set (`HF_TOKEN=<token> ./bin/panther-minor models llm download <model>`). They run the Hugging Face CLI (`hf`), which
+[`setup deps`](installation.md#what-setup-all-configures) installs for the allowed user.
 
 > [!NOTE]
 > Downloading does not serve a model. LLMs load on demand or via `models llm load <preset>`
@@ -82,6 +83,9 @@ environment when set (`HF_TOKEN=<token> ./bin/panther-minor models llm download 
 New LLMs touch several files at once — `models/llm.config.json`, `llama-cpp/preset.ini`, `llama-cpp/models.js` (large
 models) and the [harness presets](harnesses.md). The `add-model` agent skill (`.agents/skills/add-model/SKILL.md`)
 walks through every field and applies the edits consistently. Update the catalog table above in the same change.
+
+To estimate whether a candidate fits this hardware before downloading it, `llmfit` helps; `setup` does not install it
+(`brew install llmfit` where Homebrew is available).
 
 ---
 
