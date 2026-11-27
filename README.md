@@ -65,6 +65,13 @@ nano .env    # TS_AUTHKEY=tskey-auth-…
 Then open `https://panther-minor.<tailnet>.ts.net:8080` (Open WebUI) or point an OpenAI client at
 `https://panther-minor.<tailnet>.ts.net:8000/v1`.
 
+## 🧭 The stack
+
+Panther Minor runs on Pantheon, the author's home server, set up with the [Pantheon](https://github.com/rozsival/pantheon) baseline.
+[Devbox](https://github.com/rozsival/devbox) runs next to it on the same machine, and
+[Janus](https://github.com/rozsival/janus) switches the machine on and off remotely. The whole map is in
+[Pantheon's README](https://github.com/rozsival/pantheon#-the-stack).
+
 ## 📚 Documentation
 
 Everything else — architecture, networking, models, GPU management, monitoring, coding harnesses, CLI and
@@ -76,6 +83,4 @@ development — lives in **[docs/](docs/README.md)**.
 | ---------- | ------------------------------------------------------------------------- |
 | Maintainer | [@rozsival](https://github.com/rozsival) (see [`CODEOWNERS`](CODEOWNERS)) |
 | Issues     | [GitHub Issues](https://github.com/rozsival/panther-minor/issues)         |
-| Host       | [Pantheon](https://github.com/rozsival/pantheon) — the server baseline    |
-| Companion  | [Janus](https://github.com/rozsival/janus) — remote power control         |
 | License    | [MIT](LICENSE)                                                            |

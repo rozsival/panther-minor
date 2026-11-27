@@ -60,7 +60,7 @@ resident, since the manager only arbitrates _large_ models.
 
 ### Host memory protection
 
-The host-resident weights are file-backed page cache, so any other workload on the box (CI runners, the devbox) can
+The host-resident weights are file-backed page cache, so any other workload on the box (CI runners, the Devbox) can
 push them out under memory pressure, and decode slows sharply until they page back in. `llama-cpp` therefore runs in
 its own top-level systemd slice, `llm.slice` (`cgroup_parent` in `docker-compose.yml`), which `setup memory` gives
 `MemoryLow=96G`: the kernel reclaims everything else first.
