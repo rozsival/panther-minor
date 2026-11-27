@@ -107,6 +107,9 @@ services:
     restart: unless-stopped
     command: ['node', '/app/main.js']
     environment:
+      # Longest a large-model switch waits for the outgoing model's in-flight
+      # requests before it drops them and switches anyway.
+      DRAIN_TIMEOUT_SECONDS: 300
       IDLE_UNLOAD_RETRY_SECONDS: 15
       LLAMA_CPP_SLEEP_IDLE_SECONDS: '${LLAMA_CPP_SLEEP_IDLE_SECONDS}'
       LLAMA_SERVER_URL: 'http://llama-cpp:8000'

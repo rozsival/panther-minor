@@ -52,16 +52,27 @@ panther_assert_loadable_llm() {
 # An unreachable llama-manager means the cluster is down, not warming, so it fails immediately, as
 # does any other error (unknown model, 404, 500 with a message, ...). Callers capture stdout, so the
 # one-off waiting notice goes to stderr.
+#
+# One request may legitimately take minutes: before a switch, llama-manager waits up to
+# DRAIN_TIMEOUT_SECONDS (300) for the outgoing model's requests. --max-time sits above that and below
+# nginx's 900s proxy_read_timeout, so a stuck switch is reported as one, not as nginx's bare 504.
 panther_llm_request_load() {
   local model="$1"
   local timeout="${2:-120}"
+  local max_time=600
   local deadline=$((SECONDS + timeout))
-  local response http_code body message reason waiting=0
+  local response http_code body message reason waiting=0 curl_status
 
   while true; do
-    if ! response="$(curl -s -w '%{http_code}' -X POST 'http://localhost:8000/models/load' \
+    curl_status=0
+    response="$(curl -s --max-time "$max_time" -w '%{http_code}' -X POST 'http://localhost:8000/models/load' \
       -H 'Content-Type: application/json' \
-      -d "{\"model\": \"$model\"}")"; then
+      -d "{\"model\": \"$model\"}")" || curl_status=$?
+    if ((curl_status == 28)); then
+      printf 'llama-manager did not answer within %ss - a model switch may be stuck; check ./bin/panther-minor logs llama-manager\n' "$max_time"
+      return 1
+    fi
+    if ((curl_status != 0)); then
       printf 'cannot reach llama-manager at http://localhost:8000 - is the cluster running?\n'
       return 1
     fi
