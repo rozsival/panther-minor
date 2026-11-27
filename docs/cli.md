@@ -87,8 +87,8 @@ Run with `sudo` (`check` also runs without it). `setup` alone runs `setup all`. 
 
 | Subcommand | Purpose                                                                                     | Flags (env var)                                |
 | ---------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------- |
-| `all`      | Prompt for the allowed user, run every step below, then `install` as that user              | `-u` `--allowed-user` (`panther_allowed_user`) |
-| `check`    | Check Ubuntu 26.04+, Docker + Compose, the daemon and the `docker` group; changes nothing   | `-u` `--allowed-user`                          |
+| `all`      | Prompt for the allowed user, run every step below, then `install` as that user              | `-u` `--allowed-user` (`PANTHER_ALLOWED_USER`) |
+| `check`    | Check Ubuntu 26.04, Docker + Compose, the daemon and the `docker` group; changes nothing    | `-u` `--allowed-user`                          |
 | `deps`     | Install `jq`, `augeas-tools`, `nvtop`, `python3-venv` and the Hugging Face CLI for the user | `-u` `--allowed-user`                          |
 | `amdgpu`   | Install AMD GPU drivers and ROCm, add the user to `render` and `video`                      | `-u` `--allowed-user`                          |
 | `grub`     | Update GRUB kernel parameters                                                               | —                                              |

@@ -13,7 +13,7 @@ Ubuntu host with Docker, and `setup` installs only what the stack itself needs.
 
 ## Stack
 
-- **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
+- **Host**: Ubuntu 26.04 LTS (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
 - **Network**: See `docs/networking.md`. Services on 3000/8000/8001/8080/9090 via the `ts-proxy`

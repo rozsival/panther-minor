@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Steps in dependency order: check refuses a host without the baseline (Ubuntu
-# 26.04+, Docker), deps installs what the later steps and the CLI call, amdgpu
+# 26.04, Docker), deps installs what the later steps and the CLI call, amdgpu
 # and grub bring up the GPUs, memory protects llama.cpp's page cache, env
 # writes .env. These are the same functions './bin/panther-minor setup <step>'
 # dispatches to, so each step has one implementation.

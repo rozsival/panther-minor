@@ -40,7 +40,7 @@
 
 ### Software and accounts
 
-- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS or newer** (Linux kernel 7)
+- 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS** (Linux kernel 7)
 - A non-root user with `sudo` privileges, created during the OS install
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
 - **Docker Engine + Compose**, with that user in the `docker` group. Recommended:
@@ -85,7 +85,7 @@ sudo ./bin/panther-minor setup
 ```
 
 `setup` defaults to `setup all`, which prompts for the allowed user (pre-filled from `--allowed-user`, the
-`panther_allowed_user` environment variable or the `sudo` caller), asks for confirmation, then runs every step below in
+`PANTHER_ALLOWED_USER` environment variable or the `sudo` caller), asks for confirmation, then runs every step below in
 order. It changes nothing on a host that fails `check`.
 
 > [!WARNING]
@@ -95,7 +95,7 @@ order. It changes nothing on a host that fails `check`.
 
 | #   | Step      | What it does                                                                                                      |
 | --- | --------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | `check`   | Stops unless Ubuntu 26.04+ and a running Docker Engine + Compose are there; warns if the user is not in `docker`  |
+| 1   | `check`   | Stops unless Ubuntu 26.04 and a running Docker Engine + Compose are there; warns if the user is not in `docker`   |
 | 2   | `deps`    | `jq`, `augeas-tools`, `nvtop`, `python3-venv`; the Hugging Face CLI (`hf`) for the allowed user in `~/.local/bin` |
 | 3   | `amdgpu`  | Latest AMD kernel driver (DKMS) and ROCm                                                                          |
 | 4   | `grub`    | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                            |
@@ -206,7 +206,7 @@ then `./bin/panther-minor cluster restart ts-proxy`.
 
 ### Which settings does `setup` take?
 
-Only the allowed user: the prompt, `--allowed-user` or `panther_allowed_user`. The SSH port, timezone, storage and
+Only the allowed user: the prompt, `--allowed-user` or `PANTHER_ALLOWED_USER`. The SSH port, timezone, storage and
 server name moved to [Pantheon](https://github.com/rozsival/pantheon) together with the steps that used them. See
 [CLI reference](cli.md#setup).
 
