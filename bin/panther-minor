@@ -7772,7 +7772,7 @@ after_hook() {
 }
 
 initialize() {
-  declare -g version="15.0.1"
+  declare -g version="16.0.0"
   set -euo pipefail
 
   PANTHER_REPO_ROOT="$(panther_repo_root)"
