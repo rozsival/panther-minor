@@ -74,7 +74,7 @@ and verifies the tag.
 ### Runtime archive
 
 Hosts never get a Git checkout. `release/package.sh` defines what a host runs — `bin/panther-minor`,
-`docker-compose.yml`, `.env.example`, the service directories minus tests, the model catalogs, `terminfo/` and
+`docker-compose.yml`, `.env.example`, the service directories minus tests, the model catalogs and
 `LICENSE` — and writes it with a `.manifest` (the shipped files) and `.release` (channel, ref, commit). The release
 workflow tars that tree as `panther-minor.tar.gz`; `release/install.sh`, uploaded next to it, is the curl installer
 from the README. `panther-minor update <branch>` runs the branch's own `package.sh` on its source tarball, so a branch

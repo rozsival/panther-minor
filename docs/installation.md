@@ -1,7 +1,8 @@
 # 🛠️ Installation
 
-> From bare metal to a running stack: hardware and BIOS requirements, a clean Ubuntu Server install, one
-> `setup` command that prepares and hardens the host, then the tailnet the services are reached through.
+> From bare metal to a running stack: hardware and BIOS requirements, a clean Ubuntu Server install with Docker
+> (recommended: [Pantheon](https://github.com/rozsival/pantheon)), one `setup` command that prepares the host for the
+> GPU stack, then the tailnet the services are reached through.
 
 **Related:** [Networking & security](networking.md) · [Operations](operations.md) · [CLI reference](cli.md) ·
 [Architecture](architecture.md)
@@ -42,6 +43,10 @@
 - 🐧 [Ubuntu Server](https://ubuntu.com/download/server) **26.04 LTS or newer** (Linux kernel 7)
 - A non-root user with `sudo` privileges, created during the OS install
 - OpenSSH enabled during install (fetching allowed keys from GitHub is supported)
+- **Docker Engine + Compose**, with that user in the `docker` group. Recommended:
+  [Pantheon](https://github.com/rozsival/pantheon), the baseline this stack runs on, which also hardens SSH and sets up
+  a firewall, fail2ban and unattended upgrades. Any host with Docker from
+  [Docker's repository](https://docs.docker.com/engine/install/ubuntu/) works too.
 - A [Tailscale](https://tailscale.com/) tailnet you administer: the services are reached through a Tailscale node
   with a Tailscale-issued certificate, so no domain or certificate of your own is needed
 
@@ -66,7 +71,7 @@ The installer downloads the latest release's runtime archive (`panther-minor.tar
 and `tar`, refuses a non-empty directory, and installs nothing else: host setup is the next step.
 
 The archive holds only what the host runs: `bin/panther-minor`, `docker-compose.yml`, `.env.example`, the service
-directories (`llama-cpp/`, `stable-diffusion-cpp/`, `monitoring/`, `proxy/nginx.conf`, `terminfo/`) and the model
+directories (`llama-cpp/`, `stable-diffusion-cpp/`, `monitoring/`, `proxy/nginx.conf`) and the model
 catalogs. No `.git`, CLI sources, docs, tests or Node.js tooling: everything else runs in Docker. Its `.manifest`
 lists the shipped files and `.release` the installed version, both read by [`update`](operations.md#-updating).
 
@@ -79,56 +84,40 @@ cd ~/panther-minor
 sudo ./bin/panther-minor setup
 ```
 
-`setup` defaults to `setup all`, which prompts for the server name, allowed user, SSH port, timezone and LVM device
-(each pre-filled from flags, `panther_*` environment variables or defaults), asks for confirmation, then runs every
-step below in order.
+`setup` defaults to `setup all`, which prompts for the allowed user (pre-filled from `--allowed-user`, the
+`panther_allowed_user` environment variable or the `sudo` caller), asks for confirmation, then runs every step below in
+order. It changes nothing on a host that fails `check`.
 
 > [!WARNING]
-> **Reboot after setup** to load the new kernel driver and parameters. Afterwards SSH listens on **port 2222** with
-> **key-based authentication only**: `ssh -p 2222 <user>@<server-ip>`.
+> **Reboot after setup** to load the new kernel driver and parameters.
 
 ### What `setup all` configures
 
-| #   | Step        | What it does                                                                                                                                           |
-| --- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | `init`      | Extends the LVM root volume (`/dev/ubuntu-vg/ubuntu-lv`) and sets the timezone (`Europe/Prague`)                                                       |
-| 2   | `packages`  | `build-essential`, `jq`, `nvtop`, `htop` and more, plus unattended upgrades                                                                            |
-| 3   | `brew`      | Homebrew, `llmfit` and Hugging Face CLI (`hf`) for the allowed user                                                                                    |
-| 4   | `docker`    | Docker Engine + Compose; adds the allowed user to the `docker` group                                                                                   |
-| 5   | `tailscale` | Tailscale agent for the host itself (SSH over the tailnet)                                                                                             |
-| 6   | `ssh`       | Hardened `/etc/ssh/sshd_config`: port `2222`, key-only auth, `AllowUsers` restricted                                                                   |
-| 7   | `ufw`       | Firewall rules: only SSH (`2222`) is open                                                                                                              |
-| 8   | `fail2ban`  | Brute-force protection on the SSH port                                                                                                                 |
-| 9   | `amdgpu`    | Latest AMD kernel driver (DKMS) and ROCm                                                                                                               |
-| 10  | `grub`      | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                                                                 |
-| 11  | `shell`     | Starship prompt; Ghostty terminfo in `/etc/terminfo`; `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install)) |
-| 12  | `env`       | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, reminds you to set `TS_AUTHKEY`                                                  |
+| #   | Step      | What it does                                                                                                      |
+| --- | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1   | `check`   | Stops unless Ubuntu 26.04+, Docker Engine + Compose and `curl` are there; warns if the user is not in `docker`    |
+| 2   | `deps`    | `jq`, `augeas-tools`, `nvtop`, `python3-venv`; the Hugging Face CLI (`hf`) for the allowed user in `~/.local/bin` |
+| 3   | `amdgpu`  | Latest AMD kernel driver (DKMS) and ROCm                                                                          |
+| 4   | `grub`    | Kernel parameters `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`                                            |
+| 5   | `memory`  | The `llm.slice` systemd unit that keeps llama.cpp's weights in memory ([details](llm.md#host-memory-protection))  |
+| 6   | `env`     | Creates `.env` from `.env.example`, syncs `VIDEO_GID` / `RENDER_GID`, reminds you to set `TS_AUTHKEY`             |
+| 7   | `install` | `panther-minor` on the allowed user's `PATH` with bash completion ([`install`](cli.md#-install))                  |
 
-Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot,
-open a second SSH session on the new port before closing the current one, authenticate Tailscale, and set
-`TS_AUTHKEY`.
+Steps that need follow-up register it, and the run ends with an **ACTIONS REQUIRED** list — typically: reboot, set
+`TS_AUTHKEY`, and log in again if the user was just added to the `docker` group.
+
+`setup` does not touch SSH, the firewall, the timezone or anything else outside the GPU stack: that is the host
+baseline's job. `./bin/panther-minor setup check` changes nothing and needs no `sudo`, so it is a quick way to see
+whether a host is ready.
 
 > [!TIP]
-> Every step can be re-run on its own, e.g. `sudo ./bin/panther-minor setup ssh`. Flags per step are listed in the
+> Every step can be re-run on its own, e.g. `sudo ./bin/panther-minor setup grub`. Flags per step are listed in the
 > [CLI reference](cli.md#setup).
 
-## 🔐 Connect the host to Tailscale
-
-Optional for the services, which have their own tailnet node, but convenient for SSH. After the reboot, join the
-server to your [tailnet](https://login.tailscale.com/admin/):
-
-```bash
-sudo tailscale up
-```
-
-Follow the printed link to authenticate, then reconnect through Tailscale: `ssh -p 2222 <user>@<server-name>`.
-
-> [!IMPORTANT]
-> Do not name the host or its node `panther-minor`: that name belongs to the services' sidecar, which would otherwise
-> come up as `panther-minor-1`. See [Prepare the tailnet](#-prepare-the-tailnet) for renaming the host.
-
-> [!TIP]
-> [Disable key expiry](https://login.tailscale.com/admin/machines) for the server in Tailscale to avoid losing access.
+> [!NOTE]
+> SSH over the tailnet needs the host itself on Tailscale, separately from the services' sidecar:
+> [Pantheon](https://github.com/rozsival/pantheon/blob/main/docs/installation.md) installs the agent, then
+> `sudo tailscale up`. Do not name that node `panther-minor` (see [Prepare the tailnet](#-prepare-the-tailnet)).
 
 ## 🧭 Prepare the tailnet
 
@@ -160,7 +149,7 @@ Tailscale certificate and forwards each service port to nginx — see [Networkin
    ```
 
 4. **A host name other than `panther-minor`.** The host's own Tailscale node (if you add one, see
-   [above](#-connect-the-host-to-tailscale)) takes the OS hostname. If the host is called `panther-minor`, the sidecar
+   [above](#what-setup-all-configures)) takes the OS hostname. If the host is called `panther-minor`, the sidecar
    comes up as `panther-minor-1`, its certificate is issued for that name, and every
    `https://panther-minor.<tailnet>.ts.net` URL hits the host node, where nothing listens. Rename the host first:
 
@@ -200,10 +189,13 @@ Don't. Leftover kernels and disabled third-party repos leave the `amdgpu` DKMS d
 throughput silently. `setup amdgpu` warns when it finds modules built for other kernels. Reinstall cleanly and
 compare against a `models llm bench` baseline.
 
-### I lost SSH access after `setup ssh`. What happened?
+### I already ran the old `setup all`. Do I need Pantheon?
 
-SSH moved to port `2222` with key-only auth and an `AllowUsers` list. Always open a second session on the new port
-before closing the current one, and connect with `ssh -p 2222 <user>@<host>`.
+No. Up to version 15, `setup all` also installed the host baseline (packages, Docker, Tailscale, SSH hardening, UFW,
+fail2ban, Homebrew, Starship): all of that stays on the host as it is, and nothing needs to be re-run. Pantheon now
+owns those steps (`./bin/pantheon setup <step>`) if you want to re-apply one later. Homebrew's `hf` keeps working; a
+fresh `setup deps` installs `hf` only where none is found. `llmfit` is no longer installed by `setup`: see
+[Models](models.md).
 
 ### `ts-proxy` logs a login URL instead of joining the tailnet. Why?
 
@@ -211,10 +203,11 @@ Its first login found no usable `TS_AUTHKEY`: the key is empty, expired, single-
 to apply `tag:panther-minor`. Create a new key as in [Prepare the tailnet](#-prepare-the-tailnet), put it in `.env`,
 then `./bin/panther-minor cluster restart ts-proxy`.
 
-### Can I change the defaults (user, SSH port, timezone, LVM device)?
+### Which settings does `setup` take?
 
-Yes — through the interactive prompts, flags (`--allowed-user`, `--ssh-port`, `--timezone`, `--lvm-device`,
-`--server-name`) or the matching `panther_*` environment variables. See [CLI reference](cli.md#setup).
+Only the allowed user: the prompt, `--allowed-user` or `panther_allowed_user`. The SSH port, timezone, storage and
+server name moved to [Pantheon](https://github.com/rozsival/pantheon) together with the steps that used them. See
+[CLI reference](cli.md#setup).
 
 ### Do I need a domain or a TLS certificate?
 

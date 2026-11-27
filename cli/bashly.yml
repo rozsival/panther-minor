@@ -4,151 +4,50 @@ version: 15.0.1
 
 commands:
   - name: setup
-    help: Configure the Panther Minor host
+    help: Prepare the host for the Panther Minor AI stack
     commands:
       - name: all
-        help: Run the full workstation setup
+        help: Run every setup step (check, deps, amdgpu, grub, memory, env) and install the CLI
         default: force
         flags:
-          - long: --server-name
-            short: -n
-            arg: name
-            help: Server name for the setup summary (defaults to host name)
           - long: --allowed-user
             short: -u
             arg: user
-            help: User to configure for host access and tooling (defaults to current user)
-          - long: --ssh-port
-            short: -p
-            arg: port
-            help: SSH port to configure (defaults to 2222)
-            validate: port
-          - long: --timezone
-            short: -t
-            arg: timezone
-            help: System timezone to configure (defaults to Europe/Prague)
-          - long: --lvm-device
-            short: -d
-            arg: path
-            help: Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)
-        environment_variables:
-          - name: panther_server_name
-            help: Default server name for setup commands
-          - name: panther_allowed_user
-            help: Default user for setup commands
-          - name: panther_ssh_port
-            help: Default SSH port for setup commands
-            validate: port
-          - name: panther_timezone
-            help: Default timezone for setup init
-          - name: panther_lvm_device
-            help: Default logical volume device for setup init
-
-      - name: init
-        help: Extend storage and set timezone
-        flags:
-          - long: --timezone
-            short: -t
-            arg: timezone
-            help: System timezone to configure (defaults to Europe/Prague)
-          - long: --lvm-device
-            short: -d
-            arg: path
-            help: Logical volume device to extend (defaults to /dev/ubuntu-vg/ubuntu-lv)
-        environment_variables:
-          - name: panther_timezone
-            help: Default timezone for setup init
-          - name: panther_lvm_device
-            help: Default logical volume device for setup init
-
-      - name: packages
-        help: Install essential packages
-
-      - name: brew
-        help: Install Homebrew, llmfit, and Hugging Face CLI
-        flags:
-          - long: --allowed-user
-            short: -u
-            arg: user
-            help: User to configure for Homebrew and shell integration
+            help: User that owns .env, gets hf and runs the CLI (defaults to the sudo caller)
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
 
-      - name: docker
-        help: Install Docker, add the selected user to the docker group, and protect the llm.slice memory
+      - name: check
+        help: Check the host prerequisites (Ubuntu 26.04+, Docker, curl); needs no root and changes nothing
         flags:
           - long: --allowed-user
             short: -u
             arg: user
-            help: User to add to the docker group
+            help: User to check docker group membership for (defaults to the sudo caller, then the current user)
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
 
-      - name: tailscale
-        help: Install Tailscale
-
-      - name: ssh
-        help: Harden SSH configuration
+      - name: deps
+        help: Install the packages the stack needs and the Hugging Face CLI (hf) for the selected user
         flags:
           - long: --allowed-user
             short: -u
             arg: user
-            help: User to allow in SSH
-          - long: --ssh-port
-            short: -p
-            arg: port
-            help: SSH port to configure (defaults to 2222)
-            validate: port
+            help: User to install hf for
         environment_variables:
           - name: panther_allowed_user
             help: Default user for setup commands
-          - name: panther_ssh_port
-            help: Default SSH port for setup commands
-            validate: port
-
-      - name: ufw
-        help: Configure the firewall
-        flags:
-          - long: --ssh-port
-            short: -p
-            arg: port
-            help: SSH port to allow through UFW (defaults to 2222)
-            validate: port
-        environment_variables:
-          - name: panther_ssh_port
-            help: Default SSH port for setup commands
-            validate: port
-
-      - name: fail2ban
-        help: Install and configure fail2ban
-        flags:
-          - long: --ssh-port
-            short: -p
-            arg: port
-            help: SSH port to protect (defaults to 2222)
-            validate: port
-        environment_variables:
-          - name: panther_ssh_port
-            help: Default SSH port for setup commands
-            validate: port
 
       - name: amdgpu
         help: Install AMD GPU drivers and ROCm
+
       - name: grub
         help: Update GRUB kernel parameters
 
-      - name: shell
-        help: Install Starship and Ghostty terminfo, configure the shell and put panther-minor on the PATH for the selected user
-        flags:
-          - long: --allowed-user
-            short: -u
-            arg: user
-            help: User to configure for shell integration
-        environment_variables:
-          - name: panther_allowed_user
-            help: Default user for setup commands
+      - name: memory
+        help: Protect the llama.cpp memory with the llm.slice systemd unit
 
       - name: env
         help: Create .env and sync GPU group IDs
@@ -447,7 +346,7 @@ commands:
       Symlinks ~/.local/bin/panther-minor onto this install's bin/panther-minor and
       writes ~/.local/share/bash-completion/completions/panther-minor, which
       bash-completion lazy-loads. Idempotent; then checks that a fresh login shell
-      finds both. Run it as yourself, not with sudo; 'setup shell' runs it for the
+      finds both. Run it as yourself, not with sudo; 'setup all' runs it for the
       allowed user.
     examples:
       - ./bin/panther-minor install

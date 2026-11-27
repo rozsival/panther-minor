@@ -7,14 +7,16 @@ repository.
 
 Panther Minor is a self-hosted AI workstation setup designed for running LLMs and AI services on
 AMD hardware with ROCm support. It includes configurations for llama.cpp, stable-diffusion.cpp, Open WebUI, Prometheus,
-Grafana, and exporters for monitoring GPU and node performance.
+Grafana, and exporters for monitoring GPU and node performance. It is the AI stack only: the host baseline (Docker,
+SSH hardening, firewall, fail2ban, general packages) belongs to [Pantheon](https://github.com/rozsival/pantheon) or any
+Ubuntu host with Docker, and `setup` installs only what the stack itself needs.
 
 ## Stack
 
 - **Host**: Ubuntu 26.04 LTS+ (Linux kernel 7), ROCm 10, kernel params `amdgpu.mes=1 iommu=pt`
 - **Services**: llama.cpp, llama-manager (proxy/idle unloader), stable-diffusion.cpp (sd-server image generation),
   sd-manager (proxy), Open WebUI, Prometheus, Grafana, GPU/node exporters
-- **Network**: See `docs/networking.md`. SSH on 2222; services on 3000/8000/8001/8080/9090 via the `ts-proxy`
+- **Network**: See `docs/networking.md`. Services on 3000/8000/8001/8080/9090 via the `ts-proxy`
   Tailscale sidecar (`https://panther-minor.<tailnet>.ts.net:<port>`) and nginx on loopback
 - **Config**: `.env` (from `.env.example`), `docker-compose.yml`, `cli/*`
 

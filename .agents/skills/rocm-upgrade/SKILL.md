@@ -31,7 +31,7 @@ As of the last verified pass, the version-carrying locations were:
 | File                              | What it pins                                                                                                                               |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `cli/commands/setup/amdgpu.sh`    | `amdgpu_release`, `ubuntu_codename`, `rocm_release`, `rocm_distro` locals; repo URLs; `amdrocm${rocm_release}-${rocm_arch}` package name   |
-| `cli/commands/setup/packages.sh`  | `apt-get upgrade -y --with-new-pkgs` and the base package list (OS-version-sensitive names go here)                                        |
+| `cli/commands/setup/deps.sh`      | The stack's apt package list (OS-version-sensitive names go here); `check.sh` holds the minimum Ubuntu version                             |
 | `cli/commands/setup/grub.sh`      | GRUB kernel params array (`amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off`)                                                            |
 | `cli/lib/setup.sh`                | Shared setup helpers invoked by the commands above — check for embedded version assumptions                                                |
 | `llama-cpp/Dockerfile`            | `FROM rocm/dev-ubuntu-<ver>:<rocm-ver>-full`, `ARG ROCM_ARCH="gfx1201"`, `-DGGML_HIP_RCCL=ON`, `/etc/ld.so.conf.d/rocm.conf` registration  |
@@ -78,9 +78,11 @@ release at https://rocm.docs.amd.com/en/latest/install/rocm.html. Confirm:
    ROCm-release one. Only touch `amdgpu.mes=1 amdgpu.runpm=0 iommu=pt pcie_aspm=off` if the new kernel
    or driver release changes what's required — check AMD's release notes for the target ROCm version
    for new/removed recommended kernel params before editing this file at all.
-3. **`cli/commands/setup/packages.sh`** — if the OS codename changed, verify every package name in
-   the install list still exists under the new release's APT repos; some Ubuntu package names get
-   renamed across LTS releases.
+3. **`cli/commands/setup/deps.sh`** and **`check.sh`** — if the OS codename changed, verify every package
+   name in the `deps` install list still exists under the new release's APT repos (some Ubuntu package names get
+   renamed across LTS releases), and raise the minimum Ubuntu version in `check.sh` if the new driver or ROCm
+   train drops the old release. The host's general packages and upgrades belong to the host baseline
+   ([Pantheon](https://github.com/rozsival/pantheon)), not this repo.
 4. **`llama-cpp/Dockerfile`** and **`stable-diffusion-cpp/Dockerfile`** — bump
    `FROM rocm/dev-ubuntu-<ver>:<rocm-ver>-full` in both files to the same new tag. Keep
    `ARG ROCM_ARCH="gfx1201"` and `-DGGML_HIP_RCCL=ON` unless the target GPU generation changed (that's
@@ -107,8 +109,8 @@ interface and prints a warning on every scripted invocation.
 
 - `apt upgrade` is not `apt-get upgrade` — it maps to `apt-get upgrade -y --with-new-pkgs`. Plain
   `apt-get upgrade` holds back any upgrade that needs a new package, which is exactly what a kernel
-  ABI bump is (a new `linux-image` pulled in by `linux-generic`). `cli/commands/setup/packages.sh` already
-  gets this right — preserve it if you touch that file.
+  ABI bump is (a new `linux-image` pulled in by `linux-generic`). Use it if a step here ever needs an
+  upgrade.
 - Use `apt-cache` / `apt-mark` for read-only queries (available versions, held packages), never
   `apt`.
 
@@ -117,7 +119,8 @@ interface and prints a warning on every scripted invocation.
 1. **Syntax-check every changed shell script**:
    ```bash
    bash -n cli/commands/setup/amdgpu.sh
-   bash -n cli/commands/setup/packages.sh
+   bash -n cli/commands/setup/deps.sh
+   bash -n cli/commands/setup/check.sh
    bash -n cli/commands/setup/grub.sh
    bash -n cli/lib/setup.sh
    ```
