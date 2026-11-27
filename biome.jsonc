@@ -26,5 +26,12 @@
     "formatter": {
       "enabled": false
     }
+  },
+  // Prettier owns Markdown too; ultracite 8.3.1 turns Biome's Markdown formatter on, and the two disagree on
+  // blank lines around fenced code in list items.
+  "markdown": {
+    "formatter": {
+      "enabled": false
+    }
   }
 }
